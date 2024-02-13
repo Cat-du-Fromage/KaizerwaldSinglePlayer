@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 13432d6077c879b4eaa724524d653dec, type: 3}
+  m_Name: SpanishFusilier
+  m_EditorClassIdentifier: 
+  RegimentClass: {fileID: 11400000, guid: 487439540106b5e4c9775e45c0bb347d, type: 2}
+  UnitPrefab: {fileID: 7096930580367743502, guid: e4ac5c73b5ea10b4ca5c28a91c0dbb08,
+    type: 3}
+  BulletPrefab: {fileID: 100000, guid: ac147cc4a2297604bb4e5bf9099ebfe8, type: 3}
+  Range: 100
+  Accuracy: 10
+  ReloadingSkill: 10
+  MarchSpeed: 2
+  RunSpeed: 4
+  Moral: 1
+  PlacementPrefabOverride: {fileID: 0}
