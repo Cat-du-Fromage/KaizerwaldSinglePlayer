@@ -35,9 +35,6 @@ namespace Kaizerwald
         public void AttachToRegiment(HighlightRegiment regimentToAttach)
         {
             HighlightRegimentAttach = regimentToAttach;
-            
-            //DONT WORK!
-            //AttachToParentFormation<UnorderedFormationBehaviour<HighlightUnit>, HighlightUnit>(regimentToAttach);
         }
 
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
@@ -46,7 +43,7 @@ namespace Kaizerwald
         
         public void TriggerDeath()
         {
-            HighlightRegimentAttach.RemoveHighlightUnit(this);
+            HighlightRegimentAttach.Remove(this);
             //FormationMatrix.RegisterInactiveElement(this);
         }
     }

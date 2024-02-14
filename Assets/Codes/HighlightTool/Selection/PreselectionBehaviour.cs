@@ -34,13 +34,13 @@ namespace Kaizerwald
         public override void InitializeHighlight(GameObject unitAttached)
         {
             positionConstraint = GetComponent<PositionConstraint>();
-            AttachToUnit(unitAttached);
+            LinkToUnit(unitAttached);
             Hide();
         }
 
-        public override void AttachToUnit(GameObject unit)
+        public override void LinkToUnit(GameObject unit)
         {
-            base.AttachToUnit(unit);
+            base.LinkToUnit(unit);
             UnlockConstraint();
             positionConstraint.translationAxis = Axis.X | Axis.Y | Axis.Z;
             ConstraintSource source = new ConstraintSource { sourceTransform = UnitTransform, weight = 1 };

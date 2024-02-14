@@ -32,6 +32,7 @@ namespace Kaizerwald
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
         private List<HighlightController> Controllers = new (2);
+        private List<HighlightSystem> highlightSystems = new (2);
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                              ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                              ║
@@ -84,6 +85,7 @@ namespace Kaizerwald
             HighlightControls = new PlayerControls();
             Selection = new SelectionSystem(this);
             Placement = new PlacementSystem(this);
+            highlightSystems = new List<HighlightSystem>() { Selection, Placement };
             Controllers = new List<HighlightController>() { Selection.Controller, Placement.Controller };
         }
 
@@ -107,11 +109,17 @@ namespace Kaizerwald
 
         private void LateUpdate()
         {
-            foreach (HighlightRegiment highlightRegiment in Regiments)
+            for (int i = 0; i < Regiments.Count; i++)
             {
-                if (highlightRegiment.UnitsCount == Selection.PreselectionRegister.CountAt(highlightRegiment.RegimentID)) continue;
-                ResizeHighlightsRegisters(highlightRegiment, highlightRegiment.TargetPosition);
+                HighlightRegiment highlightRegiment = Regiments[i];
+                int highlightCount = highlightRegiment.Count;
+                int countAt = Selection.PreselectionRegister.CountAt(highlightRegiment.RegimentID);
+                bool needResize = highlightCount == countAt;
+                if (needResize) continue;
+                //Debug.Log($"LateUpdate: {highlightRegiment.name} need resize");
+                ResizeHighlightsRegisters(highlightRegiment);
             }
+
             CleanupEmptyRegiments();
         }
         
@@ -239,10 +247,12 @@ namespace Kaizerwald
         //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
         //║ ◈◈◈◈◈◈ OUTSIDES UPDATES / Resize Request ◈◈◈◈◈◈                                                            ║
         //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        public void ResizeHighlightsRegisters(HighlightRegiment regiment, in float3 regimentFuturePosition)
+        public void ResizeHighlightsRegisters(HighlightRegiment regiment)
         {
-            Selection.ResizeRegister(regiment);
-            Placement.ResizeRegister(regiment, regimentFuturePosition);
+            foreach (HighlightSystem highlightSystem in highlightSystems)
+            {
+                highlightSystem.ResizeRegister(regiment);
+            }
         }
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗

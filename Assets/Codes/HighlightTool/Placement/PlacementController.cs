@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-
+using System.Text;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -24,6 +24,7 @@ using float3 = Unity.Mathematics.float3;
 
 using Kaizerwald.Utilities;
 using Kaizerwald.FormationModule;
+using static Kaizerwald.Utilities.KzwMath;
 
 namespace Kaizerwald
 {
@@ -78,10 +79,13 @@ namespace Kaizerwald
         private float UpdateMouseDistance() => Magnitude(MouseEnd - MouseStart);
         private float3 LineDirection => normalizesafe(MouseEnd - MouseStart);
         private float3 DepthDirection => normalizesafe(cross(up(), LineDirection));
+
+        private SelectionInfos SelectionInfos => PlacementSystem.SelectionInfos;
+        private int TotalUnitsSelected => SelectionInfos.TotalUnitsSelected;
+        private float2 MinMaxSelectionWidth => SelectionInfos.MinMaxSelectionWidth + DISTANCE_BETWEEN_REGIMENT * (NumSelections-1);
         
-        private int TotalUnitsSelected => PlacementSystem.SelectionInfos.TotalUnitsSelected;
-        private float2 MinMaxSelectionWidth => PlacementSystem.SelectionInfos.MinMaxSelectionWidth + DISTANCE_BETWEEN_REGIMENT * (NumSelections-1);
-        private int[] MinWidthsArray => PlacementSystem.SelectionInfos.SelectionsMinWidth;
+        //CANT USE THIS because we need the Sorted MinWidthsArray()
+        //private int[] MinWidthsArray() => PlacementSystem.SelectionInfos.SelectionsMinWidth;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                              ◆◆◆◆◆◆ CONSTRUCTOR ◆◆◆◆◆◆                                             ║
@@ -213,7 +217,7 @@ namespace Kaizerwald
             NativeArray<float> nativeCostMatrix = new (square(SelectedRegiments.Count), Temp, UninitializedMemory);
             for (int i = 0; i < nativeCostMatrix.Length; i++)
             {
-                (int x, int y) = KzwMath.GetXY(i, SelectedRegiments.Count);
+                (int x, int y) = GetXY(i, SelectedRegiments.Count);
                 float3 regimentPosition = SelectedRegiments[y].CurrentPosition;
                 nativeCostMatrix[i] = distancesq(regimentPosition, destinations[x]);
             }
@@ -263,7 +267,6 @@ namespace Kaizerwald
             NativeArray<int> newWidths = GetUpdatedFormationWidths(ref unitsToAddLength);
             NativeArray<float2> starts = GetStartsPosition(unitsToAddLength, newWidths);
             NativeList<JobHandle> jhs  = GetInitialTokensPosition(starts, newWidths, out NativeArray<float2> initialTokensPositions);
-            
             using NativeArray<RaycastHit> results = GetPositionAndRotationOnTerrain(ref initialTokensPositions, jhs);
             MoveHighlightsTokens(results);
             
@@ -325,6 +328,7 @@ namespace Kaizerwald
         
         private NativeArray<RaycastHit> GetPositionAndRotationOnTerrain(ref NativeArray<float2> tokensPositions, NativeList<JobHandle> dependencies)
         {
+            //int totalUnitsSelected = 
             NativeArray<RaycastHit> results = new (TotalUnitsSelected, TempJob, UninitializedMemory);
             using NativeArray<RaycastCommand> commands = new (TotalUnitsSelected, TempJob, UninitializedMemory);
             // ---------------------------------------------------------------------------------------------------------
@@ -373,9 +377,22 @@ namespace Kaizerwald
             }
         }
 
+        //OK SO bug because WE NEED to take Sorted width here!
+        public NativeArray<int> GetSortedMinWidths()
+        {
+            NativeArray<int> sortedMinWidths = new (SortedSelectedRegiments.Count, Temp, UninitializedMemory);
+            for (int i = 0; i < SortedSelectedRegiments.Count; i++)
+            {
+                //Convert to FormationData So MinRow take in account NumUnitsAlive
+                FormationData formationData = SortedSelectedRegiments[i].CurrentFormation;
+                sortedMinWidths[i] = formationData.MinRow;
+            }
+            return sortedMinWidths;
+        }
+
         private NativeArray<int> GetUpdatedFormationWidths(ref float unitsToAddLength)
         {
-            NativeArray<int> newWidths = new NativeArray<int>(MinWidthsArray, Temp);
+            NativeArray<int> newWidths = SelectionUtils.GetSelectionsMinWidth(SortedSelectedRegiments);
             int attempts = 0;
             while (unitsToAddLength > 0 && attempts < newWidths.Length)
             {
@@ -383,7 +400,7 @@ namespace Kaizerwald
                 for (int i = 0; i < newWidths.Length; i++)
                 {
                     FormationData currentState = SortedSelectedRegiments[i].CurrentFormation;
-                    bool notEnoughSpace = unitsToAddLength < currentState.DistanceUnitToUnit.x;
+                    bool notEnoughSpace = unitsToAddLength < currentState.DistanceUnitToUnitX;
                     bool isWidthAtMax   = newWidths[i] == currentState.MaxRow;
                     bool failAttempt    = notEnoughSpace || isWidthAtMax;
                     attempts           += failAttempt ? 1 : 0;
@@ -398,19 +415,17 @@ namespace Kaizerwald
         {
             bool isMaxDistanceReach = mouseDistance < MinMaxSelectionWidth.y;
             float leftOver = isMaxDistanceReach ? unitsToAddLength / (SortedSelectedRegiments.Count - 1) : 0;
-            
             NativeArray<float2> starts = new (SortedSelectedRegiments.Count, Temp, UninitializedMemory);
             if (SortedSelectedRegiments.Count is 0) return starts;
             
             starts[0] = ((float3)MouseStart).xz;
             for (int i = 1; i < SortedSelectedRegiments.Count; i++)
             {
-                float currUnitSpace  = SortedSelectedRegiments[i].CurrentFormation.DistanceUnitToUnit.x;
-                float prevUnitSpace  = SortedSelectedRegiments[i - 1].CurrentFormation.DistanceUnitToUnit.x;
+                float currUnitSpace  = SortedSelectedRegiments[i].CurrentFormation.DistanceUnitToUnitX;
+                float prevUnitSpace  = SortedSelectedRegiments[i - 1].CurrentFormation.DistanceUnitToUnitX;
                 float previousLength = (newWidths[i - 1] - 1) * prevUnitSpace; // -1 because we us space, not units
                 previousLength      += csum(float2(prevUnitSpace, currUnitSpace) * 0.5f);//arrive at edge of last Unit + 1/2 newUnitSize
                 previousLength      += DISTANCE_BETWEEN_REGIMENT + max(0, leftOver); // add regiment space
-                
                 starts[i] = starts[i - 1] + LineDirection.xz * previousLength;
             }
             return starts;
@@ -427,9 +442,6 @@ namespace Kaizerwald
         private bool IsVisibilityTrigger()
         {
             if (PlacementsVisible) return true;
-            //FormationData formation = SelectedRegiments[0].CurrentFormation.DistanceUnitToUnitX;
-            //float midWidth = (formation.DistanceUnitToUnitX * formation.Width) / 2f;
-            //float minDistance = max(formation.DistanceUnitToUnitX, midWidth);
             if (mouseDistance < SelectedRegiments[0].CurrentFormation.DistanceUnitToUnitX) return false;
             EnableAllDynamicSelected();
             return true;
@@ -557,16 +569,6 @@ namespace Kaizerwald
                 
                 //float2 position = Start + GetStartOffset(y) + xOffset + yOffset;
                 TokensPositions[unitIndex] = position;
-            }
-
-            private float2 GetStartOffset(int yUnit)
-            {
-                int maxDepth = (int)ceil((float)NumUnitsAlive / NewWidth);
-                int numUnitLastLine = NumUnitsAlive - NewWidth * (maxDepth - 1);
-                int diffLastLineWidth = NewWidth - numUnitLastLine;
-                float offset = (diffLastLineWidth * 0.5f) * DistanceUnitToUnit.x;
-                bool isLastLine = yUnit == maxDepth - 1;
-                return select(0, (float2)LineDirection * offset, isLastLine);
             }
         }
     }

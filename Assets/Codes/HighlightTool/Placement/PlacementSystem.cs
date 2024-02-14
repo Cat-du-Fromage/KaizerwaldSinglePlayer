@@ -150,18 +150,23 @@ namespace Kaizerwald
 
         // When holding preview formation we want it to be updated when units die
         // We need to access Controller current Informations about temporary with used for those preview
+        
+        //TODO !!=====================================================================================================!!
+        //TODO: CHECK IF STILL CORRECT WHEN FIRE STATE IS IMPLEMENTED!!!
+        //TODO !!=====================================================================================================!!
         private (float3, FormationData) GetPlacementPreviewFormation(HighlightRegiment regiment, int numHighlightToKeep)
         {
-            int indexSelection = SelectedRegiments.IndexOf(regiment);
-            if(indexSelection == -1) return (regiment.CurrentPosition, regiment.CurrentFormation);
+            if(SelectedRegiments.TryGetIndexOf(regiment, out int indexSelection)) return (regiment.CurrentPosition, regiment.CurrentFormation);
             
+            //BUG!!!! Width can potentially have changed!
             int tempWidth = PlacementController.DynamicsTempWidth.Length > 0 ? PlacementController.DynamicsTempWidth[indexSelection] : regiment.TargetFormation.Width;
             
             //Check par rapport au perte subi
             tempWidth = numHighlightToKeep < tempWidth ? numHighlightToKeep : tempWidth;
             //May fail here upon rearrangement
-            float3 firstUnit = DynamicPlacementRegister[regiment.RegimentID][0].transform.position;
-            float3 lastUnit = DynamicPlacementRegister[regiment.RegimentID][tempWidth-1].transform.position;
+            int regimentID = regiment.RegimentID;
+            float3 firstUnit = DynamicPlacementRegister[regimentID][0].transform.position;
+            float3 lastUnit = DynamicPlacementRegister[regimentID][tempWidth-1].transform.position;
             
             //Get leader position in the placement preview
             float3 depthDirection = -normalizesafe(cross(up(), normalizesafe(lastUnit - firstUnit)));
@@ -175,14 +180,15 @@ namespace Kaizerwald
     //║ ◈◈◈◈◈◈ Resize ◈◈◈◈◈◈                                                                                           ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
     
-        private void ResizeAndReformRegister(int registerIndex, HighlightRegiment regiment, int numHighlightToKeep, in float3 regimentFuturePosition)
+        protected override void ResizeAndReformRegister(int registerIndex, HighlightRegiment regiment, int numHighlightToKeep)
         {
-            if (!Registers[registerIndex].Records.ContainsKey(regiment.RegimentID)) return;
-            HighlightBehaviour[] newRecordArray = Registers[registerIndex][regiment.RegimentID].Slice(0, numHighlightToKeep);
+            HighlightRegister register = Registers[registerIndex];
+            if (!register.Records.ContainsKey(regiment.RegimentID)) return;
+            HighlightBehaviour[] newRecordArray = register[regiment.RegimentID].Slice(0, numHighlightToKeep);
             
             if (numHighlightToKeep == 1)
             {
-                newRecordArray[0].AttachToUnit(regiment.HighlightUnits[0].gameObject);
+                newRecordArray[0].LinkToUnit(regiment.HighlightUnits[0].gameObject);
                 newRecordArray[0].transform.position = regiment.transform.position;
             }
             else
@@ -190,10 +196,7 @@ namespace Kaizerwald
                 for (int i = 0; i < numHighlightToKeep; i++)
                 {
                     HighlightBehaviour highlight = newRecordArray[i];
-                    highlight.AttachToUnit(regiment.HighlightUnits[i].gameObject); // ATTENTION, on part du principe que l'unité à été giclée
-                
-                    //Different from Preselection/Selection
-                    //ATTENTION: dynamic need to stay in their preview positions
+                    highlight.LinkToUnit(regiment.HighlightUnits[i].gameObject); // ATTENTION, on part du principe que l'unité à été giclée
                     Vector3 position;
                     if (registerIndex == (int)EPlacementRegister.Dynamic)
                     {
@@ -202,45 +205,12 @@ namespace Kaizerwald
                     }
                     else
                     {
-                        position = regiment.CurrentFormation.GetUnitRelativePositionToRegiment3D(i, regimentFuturePosition);
+                        position = regiment.CurrentFormation.GetUnitRelativePositionToRegiment3D(i, regiment.TargetPosition);
                     }
                     highlight.transform.position = position;
                 }
             }
-            Registers[registerIndex][regiment.RegimentID] = newRecordArray;
-        }
-
-        //SIMILAIRE MAIS DIFFERENT DE SELECTION
-        public void ResizeRegister(HighlightRegiment regiment, in float3 regimentFuturePosition)
-        {
-            int regimentID = regiment.RegimentID;
-            int numUnitsAlive = regiment.CurrentFormation.NumUnitsAlive;
-            for (int i = 0; i < Registers.Length; i++)
-            {
-                CleanUnusedHighlights(i, regimentID, numUnitsAlive);
-                ResizeAndReformRegister(i, regiment, numUnitsAlive, regimentFuturePosition);
-            }
-        }
-
-        //Use in <see cref="Blackboard.cs"/> to update destinations token on move forces by regiment chasing a target
-        //NON regiment must fire an event to inform highlight of new destination
-        public void UpdateDestinationPlacements(HighlightRegiment regiment)
-        {
-            int regimentId = regiment.RegimentID;
-            if(!StaticPlacementRegister.Records.ContainsKey(regimentId)) return;
-            
-            FormationData targetFormation = regiment.TargetFormation;
-            NativeArray<float2> newPositions = targetFormation.GetUnitsPositionRelativeToRegiment(regiment.TargetPosition.xz,Temp);
-            for (int i = 0; i < StaticPlacementRegister[regimentId].Length; i++)
-            {
-                Vector3 origin = new Vector3(newPositions[i].x, 1000, newPositions[i].y);
-                Ray ray = new Ray(origin, Vector3.down);
-                bool isHit = Raycast(ray, out RaycastHit hit, 2000, Manager.TerrainLayerMask);
-                
-                Vector3 tokenPosition = (isHit ? hit.point : origin) + (hit.normal * 0.05f);
-                Quaternion newRotation = LookRotationSafe(targetFormation.Direction3DForward, hit.normal);
-                StaticPlacementRegister[regimentId][i].transform.SetPositionAndRotation(tokenPosition, newRotation);
-            }
+            register[regiment.RegimentID] = newRecordArray;
         }
     }
 }

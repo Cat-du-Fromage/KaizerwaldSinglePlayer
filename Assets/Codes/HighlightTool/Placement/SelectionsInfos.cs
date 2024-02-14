@@ -4,7 +4,7 @@ using System.Linq;
 using Kaizerwald.FormationModule;
 using Unity.Collections;
 using Unity.Mathematics;
-
+using UnityEngine;
 using static Unity.Mathematics.math;
 using static Unity.Collections.Allocator;
 using static Unity.Collections.NativeArrayOptions;
@@ -20,7 +20,6 @@ namespace Kaizerwald
         
         public float2 MinMaxSelectionWidth { get; private set; }
         public int TotalUnitsSelected { get; private set; }
-        public int[] SelectionsMinWidth { get; private set; }
         
         public List<HighlightRegiment> SelectedRegiments => selectionSystemAttached.SelectionRegister.ActiveHighlights;
         
@@ -31,13 +30,12 @@ namespace Kaizerwald
 
         public void OnSelectionUpdate()
         {
-            MinMaxSelectionWidth = SelectionInfoUtils.GetMinMaxSelectionWidth(SelectedRegiments);
-            TotalUnitsSelected = SelectionInfoUtils.GetTotalUnitsSelected(SelectedRegiments);
-            SelectionsMinWidth = SelectionInfoUtils.GetSelectionsMinWidth(SelectedRegiments).ToArray();
+            MinMaxSelectionWidth = SelectionUtils.GetMinMaxSelectionWidth(SelectedRegiments);
+            TotalUnitsSelected = SelectionUtils.GetTotalUnitsSelected(SelectedRegiments);
         }
     }
     
-    public static class SelectionInfoUtils
+    public static class SelectionUtils
     {
         public static float2 GetMinMaxSelectionWidth(List<HighlightRegiment> selectedRegiments)
         {
@@ -57,6 +55,7 @@ namespace Kaizerwald
         private static float2 GetMinMaxFormationLength(in FormationData formation)
         {
             //return formation.DistanceUnitToUnit.x * (float2)formation.MinMaxRow;
+            //CORRECT Because we use FormationData!!!!
             return formation.DistanceUnitToUnit * max(1, formation.MinMaxRow - 1);
         }
         
@@ -65,20 +64,12 @@ namespace Kaizerwald
             NativeArray<int> tmp = new (selectedRegiments.Count, Temp, UninitializedMemory);
             for (int i = 0; i < selectedRegiments.Count; i++)
             {
-                tmp[i] = selectedRegiments[i].CurrentFormation.MinRow;
+                //Contrary To Formation Data Formation MinRow is Fixe and does not take in account NumUnitsAlive
+                FormationData formationData = selectedRegiments[i].CurrentFormation;
+                tmp[i] = formationData.MinRow;
+                //tmp[i] = min(selectedRegiments[i].CurrentFormation.MinRow, selectedRegiments[i].CurrentFormation.NumUnitsAlive);
             }
             return tmp;
         }
-        /*
-        public static int[] GetSelectionsMinWidth(List<HighlightRegiment> selectedRegiments)
-        {
-            int[] tmp = new (selectedRegiments.Count, Temp, UninitializedMemory);
-            for (int i = 0; i < selectedRegiments.Count; i++)
-            {
-                tmp[i] = selectedRegiments[i].CurrentFormation.MinRow;
-            }
-            return tmp;
-        }
-        */
     }
 }

@@ -35,7 +35,7 @@ namespace Kaizerwald
         
         public override void InitializeHighlight(GameObject unitAttached)
         {
-            AttachToUnit(unitAttached);
+            LinkToUnit(unitAttached);
             meshRenderer = GetComponent<MeshRenderer>();
             Vector3 position = UnitTransform.position + Vector3.up * 0.05f;
             transform.SetPositionAndRotation(position, UnitTransform.rotation);

@@ -11,15 +11,15 @@ namespace Kaizerwald
 //║                                              ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        public GameObject UnitAttach { get; protected set; }
-        protected Transform UnitTransform => UnitAttach.transform;
+        public GameObject LinkedUnit { get; protected set; }
+        protected Transform UnitTransform => LinkedUnit.transform;
 
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
         public abstract void InitializeHighlight(GameObject unitAttached);
-        public virtual void AttachToUnit(GameObject unit) => UnitAttach = unit;
+        public virtual void LinkToUnit(GameObject unit) => LinkedUnit = unit;
         
         public abstract void Show();
         public abstract void Hide();

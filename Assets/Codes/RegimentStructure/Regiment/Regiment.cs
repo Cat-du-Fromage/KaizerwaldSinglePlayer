@@ -17,7 +17,7 @@ using Kaizerwald.Utilities;
 
 namespace Kaizerwald
 {
-    public class Regiment : OrderedFormationBehaviour<Unit>
+    public sealed class Regiment : OrderedFormationBehaviour<Unit>
     {
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                                ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                 ║
@@ -63,6 +63,12 @@ namespace Kaizerwald
         public float3 Right    => regimentTransform.right;
         public float3 Left     => -regimentTransform.right;
         public Quaternion Rotation => regimentTransform.rotation;
+
+        public new event Action<int> OnFormationResized
+        {
+            add => base.OnFormationResized += value;
+            remove => base.OnFormationResized -= value;
+        }
 
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ UNITY EVENTS ◆◆◆◆◆◆                                             ║
@@ -187,7 +193,26 @@ namespace Kaizerwald
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                    ◆◆◆◆◆◆ FORMATION BEHAVIOUR APPENDIX ◆◆◆◆◆◆                                      ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-
+        /*
+        protected override void Rearrangement()
+        {
+            if (!RegisterInactiveElements(out int cacheNumDead)) return;
+            TargetFormation.Remove(cacheNumDead); //was needed before rearrange, make more sense to let it here anyway
+            Rearrange();
+            //CurrentFormation.Remove(cacheNumDead);
+            if (cacheNumDead >= Elements.Count)
+            {
+                Clear();
+            }
+            else
+            {
+                RemoveInactiveElements(cacheNumDead);
+            }
+            CurrentFormation.Remove(cacheNumDead);
+            
+            //OnFormationResized?.Invoke(CurrentFormation.NumUnitsAlive);
+        }
+        */
         //TODO: Find a way without Memory allocation (Unit[] tmpUnits = new Unit[Elements.Count])
         //Here was the issue
         //We receive sorted Indices [2,0,3,1], Which translate to:

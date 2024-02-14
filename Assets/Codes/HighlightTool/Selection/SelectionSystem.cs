@@ -111,7 +111,7 @@ namespace Kaizerwald
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Rearrangement ◈◈◈◈◈◈                                                                                    ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        private void ResizeAndReformRegister(int registerIndex, HighlightRegiment regiment, int numHighlightToKeep)
+        protected override void ResizeAndReformRegister(int registerIndex, HighlightRegiment regiment, int numHighlightToKeep)
         {
             if (!Registers[registerIndex].Records.ContainsKey(regiment.RegimentID)) return;
             HighlightBehaviour[] newRecordArray = Registers[registerIndex][regiment.RegimentID].Slice(0, numHighlightToKeep);
@@ -119,21 +119,17 @@ namespace Kaizerwald
             {
                 HighlightBehaviour highlight = newRecordArray[i];
                 HighlightUnit unitToAttach = regiment.HighlightUnits[i];
-                highlight.AttachToUnit(unitToAttach.gameObject);
+                highlight.LinkToUnit(unitToAttach.gameObject);
             }
             Registers[registerIndex][regiment.RegimentID] = newRecordArray;
+            // ON ne peut pas faire Ici le Selection Update??!!!
         }
-
-        //SIMILAIRE MAIS DIFFERENT DE PLACEMENT
-        public void ResizeRegister(HighlightRegiment regiment)
+        
+        //Pour l'instant Uniquement sur séléction, Placement bug autrement!
+        protected override void CleanUnusedHighlights(int registerIndex, HighlightRegiment regiment, int numToKeep)
         {
-            int regimentID = regiment.RegimentID;
-            int numUnitsAlive = regiment.CurrentFormation.NumUnitsAlive;
-            for (int i = 0; i < Registers.Length; i++)
-            {
-                CleanUnusedHighlights(i, regimentID, numUnitsAlive);
-                ResizeAndReformRegister(i, regiment, numUnitsAlive);
-            }
+            base.CleanUnusedHighlights(registerIndex, regiment, numToKeep);
+            SelectionInfos.OnSelectionUpdate();
         }
         
         //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────╖

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -76,36 +77,36 @@ namespace Kaizerwald
                 OnHide(Registers[registerIndex].ActiveHighlights[i], registerIndex);
             }
         }
+
+        //VOIR pour une methods en interne ! qui permet de lancer des fonction APRES le resize!
+        protected abstract void ResizeAndReformRegister(int registerIndex, HighlightRegiment regiment, int numHighlightToKeep);
         
         //TODO CORRIGER PROBLEME OU 1 Highlight survie a la mort de la dernière troupe
-        protected virtual void CleanUnusedHighlights(int registerIndex, int regimentIndex, int numToKeep)
+        protected virtual void CleanUnusedHighlights(int registerIndex, HighlightRegiment regiment, int numToKeep)
         {
-            bool exist = Registers[registerIndex].Records.TryGetValue(regimentIndex, out HighlightBehaviour[] highlights);
-            if (!exist) return;
-            //if (!Registers[registerIndex].Records.ContainsKey(regimentIndex)) return;
-            //int registerLength = Registers[registerIndex][regimentIndex].Length;
-            Debug.Log($"CleanUnusedHighlights: highlights.Length == numToKeep = {highlights.Length == numToKeep}");
+            HighlightRegister register = Registers[registerIndex];
+            if (!register.Records.TryGetValue(regiment.RegimentID, out HighlightBehaviour[] highlights)) return;
             if (highlights.Length == numToKeep) return;
             for (int i = numToKeep; i < highlights.Length; i++)
             {
-                Debug.Log($"CleanUnusedHighlights, destroy{i} from {highlights[i].UnitAttach.name}");
                 Object.Destroy(highlights[i].gameObject);
             }
+            
+            //BUG PLACEMENT! QUAND width change de manière à (numUnitsAlive < minWidth) alors "PlacementController.DynamicsTempWidth" n'est plus correct!
+            
             if (numToKeep > 0) return;
-            Registers[registerIndex].Records.Remove(regimentIndex);
+            register.Records.Remove(regiment.RegimentID);
+            register.ActiveHighlights.Remove(regiment);
         }
-/*
-        protected void DestroyAllHighlights(int regimentIndex)
+        
+        public void ResizeRegister(HighlightRegiment regiment)
         {
-            foreach (HighlightRegister register in Registers)
+            int numUnitsAlive = regiment.Count;
+            for (int i = 0; i < Registers.Length; i++)
             {
-                if (!register.Records.ContainsKey(regimentIndex)) continue;
-                foreach (HighlightBehaviour highlight in register.Records[regimentIndex])
-                {
-                    Destroy(highlight.gameObject);
-                }
+                CleanUnusedHighlights(i, regiment, numUnitsAlive);
+                ResizeAndReformRegister(i, regiment, numUnitsAlive);
             }
         }
-        */
     }
 }

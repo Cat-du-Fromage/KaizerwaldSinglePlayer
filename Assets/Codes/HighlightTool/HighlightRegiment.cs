@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Kaizerwald.FormationModule;
 using Kaizerwald.Utilities;
+using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Jobs;
@@ -96,11 +97,22 @@ namespace Kaizerwald
         {
             return RegisterHighlightUnit(unit.gameObject);
         }
-
-        public void RemoveHighlightUnit(HighlightUnit highlightUnit)
+        
+        protected override void InternalRemove(HighlightUnit element, int indexToRemove)
         {
-            if (!FormationTransformAccessArray.isCreated) return;//need to find a way to know if we are quitting the game...
-            RegisterInactiveElement(highlightUnit);
+            element.BeforeRemoval();
+            TargetFormation.Decrement();
+            
+            FormationTransformAccessArray.RemoveAtSwapBack(indexToRemove);
+            Transforms.RemoveAtSwapBack(indexToRemove);
+            // A CORRIGER SUR FORMATION MODULE!
+            ElementKeyTransformIndex[Elements[^1]] = ElementKeyTransformIndex[element];
+            ElementKeyTransformIndex.Remove(element);
+            Elements.RemoveAtSwapBack(indexToRemove);
+            // A CORRIGER SUR FORMATION MODULE!
+            CurrentFormation.Decrement();
+            element.AfterRemoval();
+            //OnFormationResized?.Invoke(CurrentFormation.NumUnitsAlive);
         }
     }
 }
