@@ -70,7 +70,7 @@ CapsuleCollider:
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 128
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -125,36 +125,8 @@ MonoBehaviour:
   MuzzleFlash: {fileID: 0}
   animationsSpeed: 0
   speedIdle: 0
-  speed: 0
   shoot: 0
   aim: 0
-  AnimationClips:
-    reorderableList:
-      canAdd: 1
-      canRemove: 1
-      draggable: 1
-      expandable: 1
-      multipleSelection: 1
-      isExpanded: 0
-      label:
-        m_Text: Keys
-        m_Image: {fileID: 0}
-        m_Tooltip: 
-        m_TextWithWhitespace: "Keys\u200B"
-      headerHeight: 18
-      footerHeight: 13
-      slideEasing: 0.15
-      verticalSpacing: 2
-      showDefaultBackground: 1
-      elementDisplayType: 0
-      elementNameProperty: 
-      elementNameOverride: 
-      elementIcon: {fileID: 0}
-    reqReferences: {fileID: 0}
-    isExpanded: 0
-    _keyValues: []
-    _keys: []
-    _values: []
 --- !u!114 &-7857854145401677731
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -167,9 +139,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cd58deeb5a5875743827e5b7f8fcda12, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  <RegimentAttach>k__BackingField: {fileID: 0}
+  <LinkedRegiment>k__BackingField: {fileID: 0}
   <Animation>k__BackingField: {fileID: 0}
-  <IsDead>k__BackingField: 0
+  <BehaviourTree>k__BackingField: {fileID: 0}
+  <IndexInFormation>k__BackingField: 0
 --- !u!1 &2922216681751390691
 GameObject:
   m_ObjectHideFlags: 0

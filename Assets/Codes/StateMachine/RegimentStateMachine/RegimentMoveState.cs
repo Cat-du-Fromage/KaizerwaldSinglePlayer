@@ -40,6 +40,7 @@ namespace Kaizerwald.StateMachine
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
+        public bool IsAlreadyMoving => CurrentMoveType != EMoveType.None;
         public float3 LeaderTargetPosition => LinkedRegiment.TargetPosition;
         public float MarchSpeed => RegimentType.MarchSpeed;
         public float RunSpeed   => RegimentType.RunSpeed;
@@ -97,7 +98,7 @@ namespace Kaizerwald.StateMachine
 
         public override void OnExit()
         {
-            //
+            CurrentMoveType = EMoveType.None;
         }
 
         public override EStates ShouldExit()

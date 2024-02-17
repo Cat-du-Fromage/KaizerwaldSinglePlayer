@@ -13,9 +13,10 @@ using Kaizerwald.FormationModule;
 namespace Kaizerwald
 {
     //FAIRE de régiment manager une partie intégrante de l'outil "HighlightRegimentManager"
-    public sealed class HighlightRegimentManager : Singleton<HighlightRegimentManager>
+    public sealed class HighlightRegimentManager : Singleton<HighlightRegimentManager>, IOwnershipInformation
     {
-        [field:SerializeField] public ulong PlayerID { get; private set; }
+        // IOwnershipInformation
+        [field:SerializeField] public ulong OwnerPlayerID { get; private set; }
         [field:SerializeField] public int TeamID { get; private set; }
         
         [field:Header("Layer Masks")]
@@ -68,7 +69,6 @@ namespace Kaizerwald
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Events ◈◈◈◈◈◈                                                                                           ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-
         public event Action<PlayerOrderData[]> OnPlayerOrders;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
@@ -87,6 +87,11 @@ namespace Kaizerwald
             Placement = new PlacementSystem(this);
             highlightSystems = new List<HighlightSystem>() { Selection, Placement };
             Controllers = new List<HighlightController>() { Selection.Controller, Placement.Controller };
+        }
+
+        private void Start()
+        {
+            RegimentManager.Instance.OnNewRegiment += InitAndRegisterRegiment<Regiment, Unit>;
         }
 
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
@@ -116,7 +121,6 @@ namespace Kaizerwald
                 int countAt = Selection.PreselectionRegister.CountAt(highlightRegiment.RegimentID);
                 bool needResize = highlightCount == countAt;
                 if (needResize) continue;
-                //Debug.Log($"LateUpdate: {highlightRegiment.name} need resize");
                 ResizeHighlightsRegisters(highlightRegiment);
             }
 
@@ -141,7 +145,7 @@ namespace Kaizerwald
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        public void SetPlayerID(ulong playerID) => PlayerID = playerID;
+        public void SetPlayerID(ulong playerID) => OwnerPlayerID = playerID;
         public void SetTeamID(int teamID) => TeamID = teamID;
         
         public void SetPlayerInfos(ulong playerID, int teamID)
@@ -170,6 +174,7 @@ namespace Kaizerwald
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Request Registration ◈◈◈◈◈◈                                                                             ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
+        /*
         public void RequestHighlightAttachment<T1,T2>(ulong ownerID, int teamID, T1 formationMatrix)
         where T1 : OrderedFormationBehaviour<T2>
         where T2 : Component, IFormationElement
@@ -177,29 +182,36 @@ namespace Kaizerwald
             List<GameObject> unitsObject = formationMatrix.Elements.Select(unit => unit.gameObject).ToList();
             InitAndRegisterRegiment(ownerID, teamID, formationMatrix.gameObject, unitsObject, formationMatrix.CurrentFormation);
         }
-        
+        */
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Initialize AND Register ◈◈◈◈◈◈                                                                          ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
         //TODO: Allow Identifier Override so we can use NetworkHashId for multiplayer games, instead of GetInstanceID() which is different for each Client!
-        public void InitAndRegisterRegiment(ulong ownerID, int teamID, GameObject regimentGo, List<GameObject> units, int2 minMaxRow, float2 unitSize, float spaceBetweenUnit, float3 direction) 
+        /*
+        public void InitAndRegisterRegiment(ulong ownerID, int teamID, GameObject regimentGo, List<GameObject> units, int2 minMaxRow, float2 unitSize, float spaceBetweenUnit, float3 direction)
         {
             HighlightRegiment newHighlightRegiment = regimentGo.AddComponent<HighlightRegiment>();
             newHighlightRegiment.InitializeHighlight(ownerID, teamID, units, minMaxRow, unitSize, spaceBetweenUnit, direction);
             RegisterRegiment(newHighlightRegiment, units);
         }
-        
+
         public void InitAndRegisterRegiment(ulong ownerID, int teamID, GameObject regimentGo, List<GameObject> units, Formation formation)
         {
             InitAndRegisterRegiment(ownerID, teamID, regimentGo, units, formation.MinMaxRow, formation.UnitSize, formation.SpaceBetweenUnits, formation.DirectionForward);
         }
-        
-        public void  InitAndRegisterRegiment<TRegiment, TUnit>(ulong ownerID, int teamID, TRegiment regiment, List<TUnit> units, Formation formation)
-        where TRegiment : MonoBehaviour
-        where TUnit : MonoBehaviour, IFormationElement
+        */
+        public void InitAndRegisterRegiment<TRegiment, TUnit>(TRegiment regiment)
+        where TRegiment : BaseFormationBehaviour<TUnit>, IOwnershipInformation
+        where TUnit : Component, IFormationElement
         {
-            List<GameObject> unitsObject = units.Select(unit => unit.gameObject).ToList();
-            InitAndRegisterRegiment(ownerID, teamID, regiment.gameObject, unitsObject, formation.MinMaxRow, formation.UnitSize, formation.SpaceBetweenUnits, formation.DirectionForward);
+            ulong ownerID = regiment.OwnerPlayerID;
+            int teamID = regiment.TeamID;
+            List<GameObject> unitsObject = regiment.Elements.Select(unit => unit.gameObject).ToList();
+            Formation formation = regiment.CurrentFormation;
+            
+            HighlightRegiment newHighlightRegiment = regiment.gameObject.AddComponent<HighlightRegiment>();
+            newHighlightRegiment.InitializeHighlight(ownerID, teamID, unitsObject, formation);
+            RegisterRegiment(newHighlightRegiment, unitsObject);
         }
     
         //┌────────────────────────────────────────────────────────────────────────────────────────────────────────────┐

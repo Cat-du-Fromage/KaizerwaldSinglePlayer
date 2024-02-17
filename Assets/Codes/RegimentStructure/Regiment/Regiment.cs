@@ -17,7 +17,7 @@ using Kaizerwald.Utilities;
 
 namespace Kaizerwald
 {
-    public sealed class Regiment : OrderedFormationBehaviour<Unit>
+    public sealed class Regiment : OrderedFormationBehaviour<Unit>, IOwnershipInformation
     {
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                                ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                 ║
@@ -28,22 +28,21 @@ namespace Kaizerwald
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                              ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-        // REGIMENT IDENTIFICATION
+        // REGIMENT IDENTIFICATION (IOwnershipInformation)
         [field:SerializeField] public ulong OwnerPlayerID { get; private set; }
         [field:SerializeField] public int TeamID { get; private set; }
         [field:SerializeField] public int RegimentID { get; private set; }
         
         // REGIMENT STATS
         [field:SerializeField] public RegimentType RegimentType { get; private set; }
+        [field:SerializeField] public RegimentBehaviourTree BehaviourTree { get; private set; }
         
-        public RegimentBehaviourTree BehaviourTree { get; private set; }
-        //public RegimentFormationMatrix RegimentFormationMatrix { get; private set; }
+        //"BlackBoard"
+        public EnemyRegimentTargetData EnemyRegimentTargetData { get; private set; } = new EnemyRegimentTargetData();
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        public List<Unit> Units => Elements;
-        public int UnitsCount => Count;
         
         //┌────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
         //│  ◇◇◇◇◇◇ Formation Access ◇◇◇◇◇◇                                                                            │
@@ -63,12 +62,6 @@ namespace Kaizerwald
         public float3 Right    => regimentTransform.right;
         public float3 Left     => -regimentTransform.right;
         public Quaternion Rotation => regimentTransform.rotation;
-
-        public new event Action<int> OnFormationResized
-        {
-            add => base.OnFormationResized += value;
-            remove => base.OnFormationResized -= value;
-        }
 
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ UNITY EVENTS ◆◆◆◆◆◆                                             ║
@@ -95,9 +88,9 @@ namespace Kaizerwald
         public void OnUpdate()
         {
             BehaviourTree.OnUpdate();
-            for (int i = 0; i < Units.Count; i++)
+            for (int i = 0; i < Count; i++)
             {
-                Units[i].UpdateUnit();
+                Elements[i].UpdateUnit();
             }
         }
         
@@ -164,6 +157,7 @@ namespace Kaizerwald
         public void OnDeadUnit(Unit unit)
         {
             RegisterInactiveElement(unit);
+            //Remove(unit);
         }
         
         //┌────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -193,26 +187,32 @@ namespace Kaizerwald
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                    ◆◆◆◆◆◆ FORMATION BEHAVIOUR APPENDIX ◆◆◆◆◆◆                                      ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-        /*
-        protected override void Rearrangement()
+
+        
+        protected override void SwapElementByIndex(int deadIndex, int swapIndex)
         {
-            if (!RegisterInactiveElements(out int cacheNumDead)) return;
-            TargetFormation.Remove(cacheNumDead); //was needed before rearrange, make more sense to let it here anyway
-            Rearrange();
-            //CurrentFormation.Remove(cacheNumDead);
-            if (cacheNumDead >= Elements.Count)
-            {
-                Clear();
-            }
-            else
-            {
-                RemoveInactiveElements(cacheNumDead);
-            }
-            CurrentFormation.Remove(cacheNumDead);
-            
-            //OnFormationResized?.Invoke(CurrentFormation.NumUnitsAlive);
+            (Elements[deadIndex], Elements[swapIndex]) = (Elements[swapIndex], Elements[deadIndex]);
+            Elements[deadIndex].OnRearrangement(deadIndex);
+            Elements[swapIndex].OnRearrangement(swapIndex);
+            HandleElementSwapped(deadIndex, swapIndex);
         }
-        */
+
+        private void LastLineRearrangement(int numElementAfterResize)
+        {
+            if (CurrentFormation.IsLastLineComplete) return;
+            MoveOrder moveOrder = new (CurrentFormationData, TargetPosition, EMoveType.March);
+            for (int i = CurrentFormation.LastRowFirstIndex; i < numElementAfterResize; i++)
+            {
+                Elements[i].BehaviourTree.RequestChangeState(moveOrder);
+            }
+        }
+        
+        protected override void HandleFormationResized(int numElementAfterResize)
+        {
+            LastLineRearrangement(numElementAfterResize);
+            base.HandleFormationResized(numElementAfterResize);
+        }
+
         //TODO: Find a way without Memory allocation (Unit[] tmpUnits = new Unit[Elements.Count])
         //Here was the issue
         //We receive sorted Indices [2,0,3,1], Which translate to:

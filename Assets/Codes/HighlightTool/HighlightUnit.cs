@@ -43,8 +43,8 @@ namespace Kaizerwald
         
         public void TriggerDeath()
         {
-            HighlightRegimentAttach.Remove(this);
-            //FormationMatrix.RegisterInactiveElement(this);
+            //HighlightRegimentAttach.Remove(this);
+            HighlightRegimentAttach.RegisterInactiveElement(this);
         }
     }
 }

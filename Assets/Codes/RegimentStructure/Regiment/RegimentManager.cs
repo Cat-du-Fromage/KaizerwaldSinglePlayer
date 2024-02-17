@@ -11,8 +11,18 @@ using Kaizerwald.FormationModule;
 
 namespace Kaizerwald
 {
-    public class RegimentManager : Singleton<RegimentManager>
+    public class RegimentManager : Singleton<RegimentManager>, IManagerInitialization
     {
+        public const float RegimentFieldOfView = 60f;
+//╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+//║                                                ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                 ║
+//╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+        //[SerializeField] 
+
+        public bool Initialized { get; private set; }
+        public event Action OnManagerInitialized;
+        
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                              ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
@@ -44,25 +54,44 @@ namespace Kaizerwald
 //║                                             ◆◆◆◆◆◆ UNITY EVENTS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        private void Start()
+    //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
+    //║ ◈◈◈◈◈◈ Awake | Start ◈◈◈◈◈◈                                                                                    ║
+    //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
+        protected override void OnAwake()
         {
+            base.OnAwake();
+        }
+
+        private async void Start()
+        {
+            // Allow to other managers to subscribe to "OnNewRegiment" Before they are created!
+            // Can't use Awake because it may force to create a New RegimentManager because Order is not controlled!
+            await Awaitable.NextFrameAsync();
             List<Regiment> regiments = RegimentFactory.Instance.RequestRegiments(SpawnCommandManager.Instance);
             regiments.ForEach(RegisterRegiment);
             
-            //Seems wrong! but we cant glue this together as we need to retrieve owner id and regiment teamId
-            //PLUS WHERE do we set the PlayerID and TeamID ??!!
-            HighlightsAttachments();
             HighlightRegimentManager.Instance.OnPlayerOrders += OnPlayerOrdersReceived;
         }
         
+    //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
+    //║ ◈◈◈◈◈◈ Update | Late Update ◈◈◈◈◈◈                                                                             ║
+    //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
         private void FixedUpdate()
         {
-            Regiments.ForEach(regiment => regiment.OnFixedUpdate());
+            //Regiments.ForEach(regiment => regiment.OnFixedUpdate());
+            for (int i = 0; i < Regiments.Count; i++)
+            {
+                Regiments[i].OnFixedUpdate();
+            }
         }
 
         private void Update()
         {
-            Regiments.ForEach(regiment => regiment.OnUpdate());
+            //Regiments.ForEach(regiment => regiment.OnUpdate());
+            for (int i = 0; i < Regiments.Count; i++)
+            {
+                Regiments[i].OnUpdate();
+            }
         }
 
         private void LateUpdate()
@@ -73,25 +102,39 @@ namespace Kaizerwald
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-        
+
+        public bool RegimentExist(int regimentID) => RegimentsByID.ContainsKey(regimentID);
+        public bool RegimentExist(Regiment regiment)
+        {
+            if (regiment == null) return false;
+            return RegimentsByID.ContainsKey(regiment.RegimentID);
+        }
+
+        public bool TryGetRegiment(int regimentID, out Regiment regiment) => RegimentsByID.TryGetValue(regimentID, out regiment);
+        public bool TryGetRegiment(Regiment regiment, out Regiment enemyRegiment)
+        {
+            if (regiment != null) return RegimentsByID.TryGetValue(regiment.RegimentID, out enemyRegiment);
+            enemyRegiment = null;
+            return false;
+        }
+
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Num Units ◈◈◈◈◈◈                                                                                        ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        
         public int GetEnemiesTeamNumUnits(int friendlyTeamID)
         {
             int numUnits = 0;
-            foreach ((int key, List<Regiment> value) in RegimentsByTeamID)
+            foreach ((int key, List<Regiment> regiments) in RegimentsByTeamID)
             {
-                if (key == friendlyTeamID) continue;
-                numUnits += value.Sum(pair => pair.UnitsCount);
+                bool isEnemyTeam = key != friendlyTeamID;
+                numUnits += isEnemyTeam ? regiments.Sum(pair => pair.Count) : 0;
             }
             return numUnits;
         }
         
         public int GetTeamNumUnits(int teamId)
         {
-            return RegimentsByTeamID.TryGetValue(teamId, out List<Regiment> regiments) ? regiments.Sum(reg => reg.UnitsCount) : 0;
+            return RegimentsByTeamID.TryGetValue(teamId, out List<Regiment> regiments) ? regiments.Sum(reg => reg.Count) : 0;
         }
 
         private void CleanupEmptyRegiments()
@@ -100,7 +143,7 @@ namespace Kaizerwald
             for (int i = Regiments.Count - 1; i > -1; i--)
             {
                 Regiment regiment = Regiments[i];
-                if(regiment.Units.Count > 0) continue;
+                if(regiment.Count > 0) continue;
                 UnRegisterRegiment(regiment);
                 Destroy(regiment.gameObject);
             }
@@ -130,7 +173,7 @@ namespace Kaizerwald
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Highlights ◈◈◈◈◈◈                                                                                       ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜ 
-
+        /*
         private void HighlightsAttachments()
         {
             HighlightRegimentManager.Instance.SetPlayerInfos(0,0);
@@ -147,6 +190,7 @@ namespace Kaizerwald
         {
             HighlightRegimentManager.Instance.RequestHighlightAttachment<T1,T2>(ownerId,teamId,formationMatrix);
         }
+        */
         // CANT call it from event : No link to RegimentType + Units possible to HighlightManager
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗

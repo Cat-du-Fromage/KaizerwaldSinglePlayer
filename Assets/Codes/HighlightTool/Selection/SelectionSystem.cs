@@ -23,7 +23,7 @@ namespace Kaizerwald
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        public List<HighlightRegiment> Regiments => Manager.RegimentsByPlayerID[Manager.PlayerID];
+        public List<HighlightRegiment> Regiments => Manager.RegimentsByPlayerID[Manager.OwnerPlayerID];
         
         //Add Remove Occure on Show/Hide base class of HighlightSystem (can't move it to register)
         public HighlightRegister PreselectionRegister => Registers[(int)ESelectionRegister.Preselection];
@@ -71,7 +71,7 @@ namespace Kaizerwald
         public override void AddRegiment(HighlightRegiment regiment, List<GameObject> units)
         {
             PreselectionRegister.RegisterRegiment(regiment, units);
-            if (regiment.OwnerID != Manager.PlayerID) return;
+            if (regiment.OwnerID != Manager.OwnerPlayerID) return;
             SelectionRegister.RegisterRegiment(regiment, units);
         }
         

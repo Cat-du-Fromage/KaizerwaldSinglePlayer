@@ -71,6 +71,7 @@ namespace Kaizerwald.StateMachine
             {
                 {EStates.Idle, new UnitIdleState(this)},
                 {EStates.Move, new UnitMoveState(this)},
+                {EStates.Fire, new UnitRangeAttackState(this)},
             };
             State = EStates.Idle;
         }

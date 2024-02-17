@@ -112,7 +112,7 @@ namespace Kaizerwald
 
         public override void AddRegiment<T>(HighlightRegiment regiment, List<T> units)
         {
-            if (regiment.OwnerID != Manager.PlayerID) return;
+            if (regiment.OwnerID != Manager.OwnerPlayerID) return;
             base.AddRegiment(regiment,units);
         }
 
@@ -159,11 +159,20 @@ namespace Kaizerwald
             if(SelectedRegiments.TryGetIndexOf(regiment, out int indexSelection)) return (regiment.CurrentPosition, regiment.CurrentFormation);
             
             //BUG!!!! Width can potentially have changed!
+            List<HighlightRegiment> sorted = PlacementController.SortedSelectedRegiments;
             int tempWidth = PlacementController.DynamicsTempWidth.Length > 0 ? PlacementController.DynamicsTempWidth[indexSelection] : regiment.TargetFormation.Width;
+            if (PlacementController.DynamicsTempWidth != null && PlacementController.DynamicsTempWidth.Length != 0)
+            {
+                if (sorted != null && sorted.Count != 0)
+                {
+                    tempWidth = sorted[indexSelection].TargetFormation.Width;
+                }
+            }
             
             //Check par rapport au perte subi
             tempWidth = numHighlightToKeep < tempWidth ? numHighlightToKeep : tempWidth;
             //May fail here upon rearrangement
+            
             int regimentID = regiment.RegimentID;
             float3 firstUnit = DynamicPlacementRegister[regimentID][0].transform.position;
             float3 lastUnit = DynamicPlacementRegister[regimentID][tempWidth-1].transform.position;
@@ -180,6 +189,7 @@ namespace Kaizerwald
     //║ ◈◈◈◈◈◈ Resize ◈◈◈◈◈◈                                                                                           ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
     
+        //BUG: Placement static placé incorrectement (Rotation oui bizarrement)
         protected override void ResizeAndReformRegister(int registerIndex, HighlightRegiment regiment, int numHighlightToKeep)
         {
             HighlightRegister register = Registers[registerIndex];

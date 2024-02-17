@@ -16,7 +16,7 @@ MonoBehaviour:
   UnitPrefab: {fileID: 5683379749989411287, guid: e6daa00cbe3b8364ab70ccb46eab077b,
     type: 3}
   BulletPrefab: {fileID: 100000, guid: ac147cc4a2297604bb4e5bf9099ebfe8, type: 3}
-  Range: 100
+  Range: 20
   Accuracy: 10
   ReloadingSkill: 10
   MarchSpeed: 2

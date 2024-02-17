@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Kaizerwald.FormationModule;
 using UnityEngine;
 using Unity.Mathematics;
 
@@ -19,9 +20,11 @@ namespace Kaizerwald.StateMachine
     //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
         // Regiment
-        protected Regiment LinkedParentRegiment => BehaviourTree.LinkedUnit.RegimentAttach;
+        protected Regiment LinkedParentRegiment => RegimentStateReference.LinkedRegiment;
         protected RegimentBehaviourTree LinkedRegimentBehaviourTree => BehaviourTree.RegimentBehaviourTree;
+        
         protected EStates RegimentState => BehaviourTree.RegimentState;
+        protected bool IsRegimentStateIdentical => StateIdentity == RegimentState;
     
         // Unit
         protected Unit LinkedUnit => BehaviourTree.LinkedUnit;

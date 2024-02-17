@@ -17,7 +17,6 @@ using float2 = Unity.Mathematics.float2;
 using static Kaizerwald.Utilities.KzwMath;
 using static Kaizerwald.Utilities.UnityMathematicsExtension;
 using static Kaizerwald.Utilities.CSharpContainerUtils;
-using static Kaizerwald.StateMachine.StateExtension;
 
 namespace Kaizerwald.StateMachine
 {
@@ -57,6 +56,8 @@ namespace Kaizerwald.StateMachine
 
         public override EStates ShouldExit()
         {
+            if (FireExit()) return EStates.Fire;
+            
             return StateIdentity;
         }
         
@@ -65,7 +66,12 @@ namespace Kaizerwald.StateMachine
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
         private bool FireExit()
         {
-            return false;
+            const float fovAngle = RegimentManager.RegimentFieldOfView;
+            
+            bool enemyInRange = StateExtension.CheckEnemiesAtRange(LinkedRegiment, AttackRange, out int targetID, fovAngle);
+            if (enemyInRange) LinkedRegiment.EnemyRegimentTargetData.SetEnemyTarget(targetID);
+            
+            return enemyInRange;
         }
         
         private bool MoveExit()

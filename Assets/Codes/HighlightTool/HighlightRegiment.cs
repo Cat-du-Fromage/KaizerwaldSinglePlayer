@@ -33,10 +33,7 @@ namespace Kaizerwald
         public float3 CurrentPosition => regimentTransform.position;
         public List<HighlightUnit> HighlightUnits => Elements;
         public List<Transform> HighlightTransforms => Transforms;
-        
         public TransformAccessArray HighlightUnitsTransform => FormationTransformAccessArray;
-        
-        public int UnitsCount => HighlightUnits.Count;
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ ISelectable ◈◈◈◈◈◈                                                                                      ║
@@ -96,23 +93,6 @@ namespace Kaizerwald
         public HighlightUnit RegisterHighlightUnit<T>(T unit) where T : MonoBehaviour, IFormationElement
         {
             return RegisterHighlightUnit(unit.gameObject);
-        }
-        
-        protected override void InternalRemove(HighlightUnit element, int indexToRemove)
-        {
-            element.BeforeRemoval();
-            TargetFormation.Decrement();
-            
-            FormationTransformAccessArray.RemoveAtSwapBack(indexToRemove);
-            Transforms.RemoveAtSwapBack(indexToRemove);
-            // A CORRIGER SUR FORMATION MODULE!
-            ElementKeyTransformIndex[Elements[^1]] = ElementKeyTransformIndex[element];
-            ElementKeyTransformIndex.Remove(element);
-            Elements.RemoveAtSwapBack(indexToRemove);
-            // A CORRIGER SUR FORMATION MODULE!
-            CurrentFormation.Decrement();
-            element.AfterRemoval();
-            //OnFormationResized?.Invoke(CurrentFormation.NumUnitsAlive);
         }
     }
 }

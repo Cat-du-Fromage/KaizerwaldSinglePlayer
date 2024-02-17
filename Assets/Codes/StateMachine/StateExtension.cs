@@ -84,12 +84,14 @@ namespace Kaizerwald.StateMachine
                 float2 unitPosition2D = unitPosition.xz;
                 // 1) Is Inside The Circle (Range)
                 float distanceFromEnemy = distancesq(triangleTip, unitPosition2D);
-                if (IsOutOfRange(distanceFromEnemy)) continue;
+                bool isEnemyOutOfRange = distanceFromEnemy > radiusSq;
+                if (isEnemyOutOfRange) continue;
                 
                 // 2) Behind Regiment Check
                 //Regiment.forward: (regPos -> directionForward) , regiment -> enemy: (enemyPos - regPos) 
                 float2 regimentToUnitDirection = normalizesafe(unitPosition2D - regimentPosition);
-                if (IsEnemyBehind(regimentToUnitDirection)) continue;
+                bool isEnemyBehind = dot(regimentToUnitDirection, forward) < 0;
+                if (isEnemyBehind) continue;
                 
                 // 3) Is Inside the Triangle of vision (by checking inside both circle and triangle we get the Cone)
                 NativeArray<float2> triangle = GetTrianglePoints(regimentPosition, triangleTip, leftStartDir, rightStartDir, radius);
@@ -101,14 +103,14 @@ namespace Kaizerwald.StateMachine
             //┌▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁┐
             //▕  ◇◇◇◇◇◇ Internal Methods ◇◇◇◇◇◇                                                                        ▏
             //└▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔┘
-            bool IsOutOfRange(float distance) => distance > radiusSq;
-            bool IsEnemyBehind(in float2 direction) => dot(direction, forward) < 0;
+            //bool IsOutOfRange(float distance) => distance > radiusSq;
+            //bool IsEnemyBehind(in float2 direction) => dot(direction, forward) < 0;
         }
         
         private static NativeArray<float3> GetTargetUnitsPosition(Regiment regimentTargeted)
         {
-            NativeArray<float3> targetUnitsPosition = new(regimentTargeted.Units.Count, Temp, UninitializedMemory);
-            for (int i = 0; i < regimentTargeted.Units.Count; i++)
+            NativeArray<float3> targetUnitsPosition = new(regimentTargeted.Count, Temp, UninitializedMemory);
+            for (int i = 0; i < regimentTargeted.Count; i++)
             {
                 targetUnitsPosition[i] = regimentTargeted.Transforms[i].position;
             }
@@ -161,12 +163,14 @@ namespace Kaizerwald.StateMachine
                 float2 unitPosition2D = unitRegIdPosition.Value.xz;
                 // 1) Is Inside The Circle (Range)
                 float distanceFromEnemy = distancesq(triangleTip, unitPosition2D);
-                if (IsOutOfRange(distanceFromEnemy)) continue;
+                bool isEnemyOutOfRange = distancesq(triangleTip, unitPosition2D) > radiusSq;
+                if (isEnemyOutOfRange) continue;
                 
                 // 2) Behind Regiment Check
                 //Regiment.forward: (regPos -> directionForward) , regiment -> enemy: (enemyPos - regPos) 
                 float2 regimentToUnitDirection = normalizesafe(unitPosition2D - regimentPosition);
-                if (IsEnemyBehind(regimentToUnitDirection)) continue;
+                bool isEnemyBehind = dot(regimentToUnitDirection, regimentAttach.BehaviourTree.Forward.xz) < 0;
+                if (isEnemyBehind) continue;
                 
                 // 3) Is Inside the Triangle of vision (by checking inside both circle and triangle we get the Cone)
                 NativeArray<float2> triangle = GetTrianglePoints(regimentPosition, triangleTip, leftStartDir, rightStartDir, radius);
@@ -181,10 +185,8 @@ namespace Kaizerwald.StateMachine
             //┌▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁┐
             //▕  ◇◇◇◇◇◇ Internal Methods ◇◇◇◇◇◇                                                                        ▏
             //└▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔┘
-            bool IsOutOfRange(float distance) => distance > radiusSq;
-            
-            bool IsEnemyBehind(in float2 direction) => dot(direction, regimentAttach.BehaviourTree.Forward.xz) < 0;
-            
+            //bool IsOutOfRange(float distance) => distance > radiusSq;
+            //bool IsEnemyBehind(in float2 direction) => dot(direction, regimentAttach.BehaviourTree.Forward.xz) < 0;
             bool IsMinDistanceUpdated(int key, float distance)
             {
                 bool invalidKey = !enemyRegimentDistances.TryGetValue(key, out float currentMinDistance);

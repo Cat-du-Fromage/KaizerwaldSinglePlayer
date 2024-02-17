@@ -13,6 +13,8 @@ namespace Kaizerwald.StateMachine
 {
     public sealed class UnitMoveState : UnitStateBase<RegimentMoveState>
     {
+        public const float ADAPT_DISTANCE_THRESHOLD = 0.5f; //was 0.125f
+        public const float REACH_DISTANCE_THRESHOLD = 0.0125f;
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                                 ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
@@ -37,6 +39,7 @@ namespace Kaizerwald.StateMachine
         public float RunSpeed => RegimentStateReference.RunSpeed;
         
         //UnitState
+        public bool IsAlreadyMoving => currentMoveType != EMoveType.None;
         public bool IsRunning => currentMoveType == EMoveType.Run;
         
         //┌────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -60,9 +63,14 @@ namespace Kaizerwald.StateMachine
             UnitReachTargetPosition = false;
             MoveOrder moveOrder = (MoveOrder)order;
             FormationData targetFormation = moveOrder.TargetFormation;
-            float3 leaderTargetPosition = moveOrder.LeaderTargetPosition;
-            UpdateMoveType(moveOrder.MoveType);
-            unitTargetPosition = targetFormation.GetUnitRelativePositionToRegiment3D(IndexInFormation, leaderTargetPosition);
+            float3 targetPosition = moveOrder.LeaderTargetPosition;
+            unitTargetPosition = targetFormation.GetUnitRelativePositionToRegiment3D(IndexInFormation, targetPosition);
+            
+            //TODO: remove this once automatic speed adaptation is implemented
+            if (!IsAlreadyMoving)
+            {
+                UpdateMoveType(moveOrder.MoveType); 
+            }
         }
 
         public override void OnEnter()
@@ -91,10 +99,8 @@ namespace Kaizerwald.StateMachine
         
         protected override EStates TryReturnToRegimentState()
         {
-            if (StateIdentity == RegimentState || !UnitReachTargetPosition || !LeaderReachDestination)
-            {
-                return StateIdentity;
-            }
+            if (IsRegimentStateIdentical || !UnitReachTargetPosition || !LeaderReachDestination) return StateIdentity;
+            
             bool canEnterNextState = BehaviourTree.States[RegimentState].ConditionEnter();
             EStates nextState = canEnterNextState ? RegimentState : DefaultNextState;
             return nextState;
@@ -103,6 +109,7 @@ namespace Kaizerwald.StateMachine
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+//TODO : Function that adapt speed depending on the distance from destination to current leader Position(GetUnitRelativePositionToRegiment3D), NOT final target position (unitTargetPosition)
         private void UpdateMoveType(EMoveType moveType)
         {
             currentMoveType = moveType;
@@ -112,13 +119,12 @@ namespace Kaizerwald.StateMachine
         private void UpdateProgressToTargetPosition()
         {
             if (UnitReachTargetPosition) return;
-            UnitReachTargetPosition = distancesq(Position, unitTargetPosition) <= 0.0125f;
+            UnitReachTargetPosition = distancesq(Position, unitTargetPosition) <= REACH_DISTANCE_THRESHOLD;
         }
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ State Logic ◈◈◈◈◈◈                                                                                      ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-
         private void UpdateMoveSpeed()
         {
             currentSpeed = IsRunning ? SetRunning() : SetMarching();
@@ -146,8 +152,7 @@ namespace Kaizerwald.StateMachine
 
         private void AdaptSpeed()
         {
-            const float threshold = 0.5f; //0.125f
-            if (!IsRunning || distancesq(Position, unitTargetPosition) > threshold) return; 
+            if (!IsRunning || distancesq(Position, unitTargetPosition) > ADAPT_DISTANCE_THRESHOLD) return; 
             currentSpeed = SetMarching();
         }
     }

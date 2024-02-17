@@ -200,7 +200,7 @@ namespace Kaizerwald
             //└▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔┘
             bool CheckUnitsInRectangleBounds(HighlightRegiment regiment)
             {
-                foreach (Transform unitHighlightTransform in regiment.HighlightTransforms)
+                foreach (Transform unitHighlightTransform in regiment.Transforms)
                 {
                     if (unitHighlightTransform == null) continue;
                     Vector3 unitPositionInRect = PlayerCamera.WorldToViewportPoint(unitHighlightTransform.position);

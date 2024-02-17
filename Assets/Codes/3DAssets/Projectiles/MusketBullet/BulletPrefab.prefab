@@ -14,7 +14,8 @@ GameObject:
   - component: {fileID: 6722650495089600493}
   - component: {fileID: 1563301914575672527}
   - component: {fileID: 900946853554123205}
-  m_Layer: 0
+  - component: {fileID: -2637227042171708717}
+  m_Layer: 7
   m_Name: BulletPrefab
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -98,7 +99,7 @@ SphereCollider:
   m_Material: {fileID: 13400000, guid: b95e1e147d74bdd448dcb76696d47a0e, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 64
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -260,3 +261,22 @@ TrailRenderer:
   m_Autodestruct: 0
   m_Emitting: 1
   m_ApplyActiveColorSpace: 0
+--- !u!114 &-2637227042171708717
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 100000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0c3b48980d8a1ca4a964887db66d6312, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  <BulletType>k__BackingField: 0
+  MuzzleVelocity: 10
+  UnitLayerMask:
+    serializedVersion: 2
+    m_Bits: 0
+  BulletRigidbody: {fileID: 0}
+  Trail: {fileID: 0}

@@ -22,7 +22,7 @@ namespace Kaizerwald
 //║                                              ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
         // Components
-        [field: SerializeField] public Regiment RegimentAttach { get; private set; }
+        [field: SerializeField] public Regiment LinkedRegiment { get; private set; }
         [field: SerializeField] public UnitAnimation Animation { get; private set; }
         [field: SerializeField] public UnitBehaviourTree BehaviourTree { get; private set; }
         
@@ -65,6 +65,7 @@ namespace Kaizerwald
 
         public void UpdateUnit()
         {
+            if (IsInactive) return;
             BehaviourTree.OnUpdate();
         }
         
@@ -76,21 +77,21 @@ namespace Kaizerwald
         //│  ◇◇◇◇◇◇ Static Constructor ◇◇◇◇◇◇                                                                          │
         //└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
         // Meant to be instantiate this way AND NO OTHER WAY
-        public static Unit InstantiateUnit(int indexInRegiment, int layerIndex, Regiment regimentAttach, GameObject prefab, Vector3 position, Quaternion rotation)
+        public static Unit InstantiateUnit(int indexInRegiment, int layerIndex, Regiment linkedRegiment, GameObject prefab, Vector3 position, Quaternion rotation)
         {
             GameObject unitGameObject = Instantiate(prefab, position, rotation);
             if (!unitGameObject.TryGetComponent(out Unit unit))
             {
                 unit = unitGameObject.AddComponent<Unit>();
             }
-            unit.Initialize(regimentAttach, indexInRegiment, layerIndex);
+            unit.Initialize(linkedRegiment, indexInRegiment, layerIndex);
             return unit;
         }
         
         public void Initialize(Regiment regiment, int indexInRegiment, int unitLayerIndex)
         {
             name = $"{name}_{indexInRegiment}";
-            RegimentAttach = regiment;
+            LinkedRegiment = regiment;
             gameObject.layer = unitLayerIndex;
             IndexInFormation = indexInRegiment;
             BehaviourTree = gameObject.GetOrAddComponent<UnitBehaviourTree>();
@@ -102,8 +103,9 @@ namespace Kaizerwald
         
         public void TriggerDeath()
         {
+            if (IsInactive) return;
             Animation.SetDead(); // need to track when animation finishes to disable collider
-            RegimentAttach.OnDeadUnit(this);
+            LinkedRegiment.OnDeadUnit(this);
         }
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
@@ -121,7 +123,6 @@ namespace Kaizerwald
         public override void BeforeRemoval()
         {
             IsInactive = true;
-            //IsDead = true;
         }
 
         public override void AfterRemoval()
@@ -135,7 +136,7 @@ namespace Kaizerwald
         {
             IndexInFormation = newIndex;
             if (IsInactive) return;
-            MoveOrder moveOrder = new (RegimentAttach.CurrentFormation, RegimentAttach.TargetPosition, EMoveType.March);
+            MoveOrder moveOrder = new (LinkedRegiment.CurrentFormation, LinkedRegiment.TargetPosition, EMoveType.March);
             BehaviourTree.RequestChangeState(moveOrder);
         }
     }

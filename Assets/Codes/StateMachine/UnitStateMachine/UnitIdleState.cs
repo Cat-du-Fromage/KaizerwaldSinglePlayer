@@ -53,7 +53,8 @@ namespace Kaizerwald.StateMachine
         
         protected override EStates TryReturnToRegimentState()
         {
-            if (StateIdentity == RegimentState) return StateIdentity;
+            if (IsRegimentStateIdentical) return StateIdentity;
+            
             return BehaviourTree.States[RegimentState].ConditionEnter() ? RegimentState : StateIdentity;
         }
         

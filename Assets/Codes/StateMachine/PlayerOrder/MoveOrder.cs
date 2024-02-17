@@ -7,10 +7,11 @@ using Kaizerwald.FormationModule;
 
 namespace Kaizerwald.StateMachine
 {
-    public enum EMoveType
+    public enum EMoveType : int
     {
-        March,
-        Run,
+        None = 0,
+        March = 1,
+        Run = 2,
     }
     
     public sealed class MoveOrder : Order

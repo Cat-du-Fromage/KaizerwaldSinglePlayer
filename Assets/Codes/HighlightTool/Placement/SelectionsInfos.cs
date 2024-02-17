@@ -65,8 +65,8 @@ namespace Kaizerwald
             for (int i = 0; i < selectedRegiments.Count; i++)
             {
                 //Contrary To Formation Data Formation MinRow is Fixe and does not take in account NumUnitsAlive
-                FormationData formationData = selectedRegiments[i].CurrentFormation;
-                tmp[i] = formationData.MinRow;
+                //FormationData formationData = selectedRegiments[i].CurrentFormation;
+                tmp[i] = selectedRegiments[i].CurrentFormation.MinRow;
                 //tmp[i] = min(selectedRegiments[i].CurrentFormation.MinRow, selectedRegiments[i].CurrentFormation.NumUnitsAlive);
             }
             return tmp;

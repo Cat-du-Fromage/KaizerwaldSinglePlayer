@@ -31,7 +31,6 @@ namespace Kaizerwald.StateMachine
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
         public Regiment LinkedRegiment => linkedRegiment;
         public RegimentType RegimentType => linkedRegiment.RegimentType;
-        //public RegimentFormationMatrix FormationMatrix => regimentAttach.RegimentFormationMatrix;
 
         public HashSet<UnitBehaviourTree> UnitsBehaviourTrees => unitsBehaviourTrees;
         
@@ -85,7 +84,7 @@ namespace Kaizerwald.StateMachine
             deadUnitsBehaviourTrees = new HashSet<UnitBehaviourTree>(linkedRegiment.Count);
             
             InitializeStates();//Here must be done before init Units, because we need states reference in units state
-            foreach (Unit unit in linkedRegiment.Units)
+            foreach (Unit unit in linkedRegiment.Elements)
             {
                 unit.BehaviourTree.Initialize(this);
                 unitsBehaviourTrees.Add(unit.BehaviourTree);
@@ -99,6 +98,7 @@ namespace Kaizerwald.StateMachine
             {
                 {EStates.Idle, new RegimentIdleState(this)},
                 {EStates.Move, new RegimentMoveState(this)},
+                {EStates.Fire, new RegimentRangeAttackState(this)},
             };
             State = EStates.Idle; //CAREFULL was not set before? mistake or on purpose?
         }
