@@ -28,7 +28,7 @@ namespace Kaizerwald.StateMachine
 //║                                                ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                 ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        private bool leaderReachTargetPosition;
+        private bool leaderReachTargetPosition = true;
         private float moveSpeed;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
@@ -116,7 +116,7 @@ namespace Kaizerwald.StateMachine
         private void UpdateProgressToTargetPosition()
         {
             if (leaderReachTargetPosition) return;
-            leaderReachTargetPosition = distance(Position, LeaderTargetPosition) <= 0.01f;
+            leaderReachTargetPosition = distance(Position, LeaderTargetPosition) <= REACH_DISTANCE_THRESHOLD;
         }
 
         private void MoveRegiment()

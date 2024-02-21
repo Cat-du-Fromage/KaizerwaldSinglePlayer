@@ -13,8 +13,7 @@ namespace Kaizerwald.StateMachine
 {
     public sealed class UnitMoveState : UnitStateBase<RegimentMoveState>
     {
-        public const float ADAPT_DISTANCE_THRESHOLD = 0.5f; //was 0.125f
-        public const float REACH_DISTANCE_THRESHOLD = 0.0125f;
+        public const float ADAPT_DISTANCE_THRESHOLD = 0.125f; //was 0.5f
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                                 ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
@@ -65,6 +64,8 @@ namespace Kaizerwald.StateMachine
             FormationData targetFormation = moveOrder.TargetFormation;
             float3 targetPosition = moveOrder.LeaderTargetPosition;
             unitTargetPosition = targetFormation.GetUnitRelativePositionToRegiment3D(IndexInFormation, targetPosition);
+
+            if (IsDestinationReach()) return; // avoid last line animation when already on position
             
             //TODO: remove this once automatic speed adaptation is implemented
             if (!IsAlreadyMoving)
@@ -83,12 +84,14 @@ namespace Kaizerwald.StateMachine
         public override void OnUpdate()
         {
             if (UnitReachTargetPosition || LinkedUnit.IsInactive) return;
+            
+            unitTargetPosition = GetDestinationInFormation();
             MoveUnit();
         }
 
         public override void OnExit()
         {
-            UnitReachTargetPosition = false;
+            //UnitReachTargetPosition = true;
         }
 
         public override EStates ShouldExit()
@@ -110,6 +113,17 @@ namespace Kaizerwald.StateMachine
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 //TODO : Function that adapt speed depending on the distance from destination to current leader Position(GetUnitRelativePositionToRegiment3D), NOT final target position (unitTargetPosition)
+        private float3 GetDestinationInFormation()
+        {
+            FormationData formation = LinkedParentRegiment.TargetFormation;
+            return formation.GetUnitRelativePositionToRegiment3D(IndexInFormation, LeaderTargetPosition);
+        }
+        
+        private bool IsDestinationReach()
+        {
+            return distancesq(Position, unitTargetPosition) <= REACH_DISTANCE_THRESHOLD;
+        }
+        
         private void UpdateMoveType(EMoveType moveType)
         {
             currentMoveType = moveType;
@@ -119,7 +133,7 @@ namespace Kaizerwald.StateMachine
         private void UpdateProgressToTargetPosition()
         {
             if (UnitReachTargetPosition) return;
-            UnitReachTargetPosition = distancesq(Position, unitTargetPosition) <= REACH_DISTANCE_THRESHOLD;
+            UnitReachTargetPosition = IsDestinationReach();
         }
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖

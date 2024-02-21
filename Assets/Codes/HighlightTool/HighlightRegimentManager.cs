@@ -211,6 +211,7 @@ namespace Kaizerwald
             
             HighlightRegiment newHighlightRegiment = regiment.gameObject.AddComponent<HighlightRegiment>();
             newHighlightRegiment.InitializeHighlight(ownerID, teamID, unitsObject, formation);
+            
             RegisterRegiment(newHighlightRegiment, unitsObject);
         }
     

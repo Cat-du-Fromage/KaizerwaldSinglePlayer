@@ -9,7 +9,8 @@ namespace Kaizerwald.StateMachine
 {
     public abstract class RegimentStateBase : StateBase<RegimentBehaviourTree>
     {
-        
+        protected const float FOV_ANGLE = RegimentManager.RegimentFieldOfView;
+        protected const float REACH_DISTANCE_THRESHOLD = 0.0125f;
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                               ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝

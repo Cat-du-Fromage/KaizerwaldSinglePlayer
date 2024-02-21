@@ -116,6 +116,12 @@ namespace Kaizerwald
             base.AddRegiment(regiment,units);
         }
 
+        public override void AddRegiment(HighlightRegiment regiment, List<GameObject> units)
+        {
+            if (regiment.OwnerID != Manager.OwnerPlayerID) return;
+            base.AddRegiment(regiment, units);
+        }
+
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Regiment Update Event ◈◈◈◈◈◈                                                                            ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
@@ -156,33 +162,38 @@ namespace Kaizerwald
         //TODO !!=====================================================================================================!!
         private (float3, FormationData) GetPlacementPreviewFormation(HighlightRegiment regiment, int numHighlightToKeep)
         {
-            if(SelectedRegiments.TryGetIndexOf(regiment, out int indexSelection)) return (regiment.CurrentPosition, regiment.CurrentFormation);
+            float3 offset = up() * 0.05f;
+            
+            if(PlacementController.SortedSelectedRegiments == null) return (regiment.CurrentPosition + offset, regiment.CurrentFormation);
+            if(!PlacementController.SortedSelectedRegiments.TryGetIndexOf(regiment, out int indexSelection)) return (regiment.CurrentPosition + offset, regiment.CurrentFormation);
             
             //BUG!!!! Width can potentially have changed!
-            List<HighlightRegiment> sorted = PlacementController.SortedSelectedRegiments;
-            int tempWidth = PlacementController.DynamicsTempWidth.Length > 0 ? PlacementController.DynamicsTempWidth[indexSelection] : regiment.TargetFormation.Width;
-            if (PlacementController.DynamicsTempWidth != null && PlacementController.DynamicsTempWidth.Length != 0)
+            if (PlacementController.DynamicsTempWidth != null)
             {
-                if (sorted != null && sorted.Count != 0)
-                {
-                    tempWidth = sorted[indexSelection].TargetFormation.Width;
-                }
+                //Debug.Log($"GetPlacementPreviewFormation : DynamicsTempWidth.Length = {PlacementController.DynamicsTempWidth.Length}, index = {indexSelection}");
+                int tempWidth = PlacementController.DynamicsTempWidth is { Length: > 0 } ? PlacementController.DynamicsTempWidth[indexSelection] : regiment.TargetFormation.Width;
+                //BUG: PlacementController.DynamicsTempWidth AND PlacementController.SortedSelectedRegiments are null 
+                
+                //Check par rapport au perte subi
+                tempWidth = numHighlightToKeep < tempWidth ? numHighlightToKeep : tempWidth;
+                //May fail here upon rearrangement
+                
+                int regimentID = regiment.RegimentID;
+                float3 firstUnit = DynamicPlacementRegister[regimentID][0].transform.position;
+                float3 lastUnit = DynamicPlacementRegister[regimentID][tempWidth-1].transform.position;
+                
+                //Get leader position in the placement preview
+                float3 depthDirection = -normalizesafe(cross(up(), normalizesafe(lastUnit - firstUnit)));
+                float3 leaderTempPosition = firstUnit + (lastUnit - firstUnit) / 2f;
+                
+                FormationData tempFormation = new (regiment.CurrentFormation,numHighlightToKeep, tempWidth, depthDirection);
+                return (leaderTempPosition, tempFormation);
             }
-            
-            //Check par rapport au perte subi
-            tempWidth = numHighlightToKeep < tempWidth ? numHighlightToKeep : tempWidth;
-            //May fail here upon rearrangement
-            
-            int regimentID = regiment.RegimentID;
-            float3 firstUnit = DynamicPlacementRegister[regimentID][0].transform.position;
-            float3 lastUnit = DynamicPlacementRegister[regimentID][tempWidth-1].transform.position;
-            
-            //Get leader position in the placement preview
-            float3 depthDirection = -normalizesafe(cross(up(), normalizesafe(lastUnit - firstUnit)));
-            float3 leaderTempPosition = firstUnit + (lastUnit - firstUnit) / 2f;
-            
-            FormationData tempFormation = new (regiment.CurrentFormation,numHighlightToKeep, tempWidth, depthDirection);
-            return (leaderTempPosition, tempFormation);
+            else
+            {
+                Debug.Log($"Use default");
+                return (regiment.CurrentPosition + offset, regiment.CurrentFormation);
+            }
         }
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
@@ -215,7 +226,7 @@ namespace Kaizerwald
                     }
                     else
                     {
-                        position = regiment.CurrentFormation.GetUnitRelativePositionToRegiment3D(i, regiment.TargetPosition);
+                        position = regiment.TargetFormation.GetUnitRelativePositionToRegiment3D(i, regiment.TargetPosition);
                     }
                     highlight.transform.position = position;
                 }

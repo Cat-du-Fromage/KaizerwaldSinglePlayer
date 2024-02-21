@@ -1,13 +1,15 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Kaizerwald.FormationModule;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace Kaizerwald.StateMachine
 {
     public sealed class UnitIdleState : UnitStateBase<RegimentIdleState>
     {
-        
+        //public const float REACH_DISTANCE_THRESHOLD = 0.0125f;
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                              ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝

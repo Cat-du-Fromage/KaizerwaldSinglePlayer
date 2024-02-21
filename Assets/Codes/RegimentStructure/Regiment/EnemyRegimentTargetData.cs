@@ -44,6 +44,11 @@ namespace Kaizerwald
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+        public void Clear()
+        {
+            enemyTarget = null;
+            enemyTargetID = -1;
+        }
 
         public void SetEnemyTarget(int regimentID)
         {
@@ -64,6 +69,12 @@ namespace Kaizerwald
         public void SetFormation(FormationData formation)
         {
             cacheEnemyFormation = formation;
+        }
+
+        public void UpdateCachedFormation()
+        {
+            if (cacheEnemyFormation.EqualComposition(enemyTarget.CurrentFormation)) return;
+            cacheEnemyFormation = enemyTarget.CurrentFormation;
         }
     }
 }

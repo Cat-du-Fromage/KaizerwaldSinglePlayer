@@ -11,7 +11,7 @@ namespace Kaizerwald
 //║                                              ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        public GameObject LinkedUnit { get; protected set; }
+        [field:SerializeField] public GameObject LinkedUnit { get; protected set; }
         protected Transform UnitTransform => LinkedUnit.transform;
 
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗

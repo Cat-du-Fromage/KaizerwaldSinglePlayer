@@ -61,10 +61,9 @@ namespace Kaizerwald
             if (!hit || !CheckHasUnitComponent(other.gameObject, out Unit unit)) return;
             if (!unit.IsInactive)
             {
-                unit.TriggerDeath();
+                //unit.TriggerDeath();
+                ProjectileManager.Instance.RegisterUnitHits(unit);
             }
-            //RegisterHitUnitToRegiment(unit);
-            //unit.OnDeath();
             ReturnToPool();
         }
 

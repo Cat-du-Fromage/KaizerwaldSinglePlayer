@@ -21,6 +21,8 @@ namespace Kaizerwald
         private Dictionary<int, ObjectPool<ProjectileComponent>> RegimentBulletsPool = new();
         
         private List<ProjectileComponent> ActiveBullets = new(10);
+
+        private HashSet<Unit> unitHits = new HashSet<Unit>(16);
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ UNITY EVENTS ◆◆◆◆◆◆                                             ║
@@ -43,6 +45,20 @@ namespace Kaizerwald
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Update | Late Update ◈◈◈◈◈◈                                                                             ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
+
+        private void FixedUpdate()
+        {
+            if (unitHits.Count != 0)
+            {
+                HashSet<Unit> tmpUnitHits = new (unitHits);
+                foreach (Unit unit in unitHits)
+                {
+                    unit.TriggerDeath();
+                }
+                unitHits.ExceptWith(tmpUnitHits);
+            }
+        }
+
         private void Update()
         {
             if (ActiveBullets.Count == 0) return;
@@ -73,12 +89,11 @@ namespace Kaizerwald
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-    //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
-    //║ ◈◈◈◈◈◈ Initialization Methods ◈◈◈◈◈◈                                                                           ║
-    //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        
-        
-        
+        public void RegisterUnitHits(Unit unitHit)
+        {
+            unitHits.Add(unitHit);
+        }
+
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Object Pooling Methods ◈◈◈◈◈◈                                                                           ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
@@ -96,7 +111,6 @@ namespace Kaizerwald
         {
             if (!RegimentBulletsPool.TryGetValue(regimentID, out ObjectPool<ProjectileComponent> pool)) return;
             pool.Pull(positionInRifle).Fire(direction);
-            //return RegimentBulletsPool.TryGetValue(regimentID, out ObjectPool<ProjectileComponent> pool) ? pool.Pull(positionInRifle) : null;
         }
 
         private void CleanActiveBullets()

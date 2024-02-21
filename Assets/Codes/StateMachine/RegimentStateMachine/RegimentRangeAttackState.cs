@@ -21,7 +21,6 @@ namespace Kaizerwald.StateMachine
 {
     public class RegimentRangeAttackState : RegimentStateBase
     {
-        private const float FOV_ANGLE = RegimentManager.RegimentFieldOfView;
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                                 ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
@@ -32,9 +31,10 @@ namespace Kaizerwald.StateMachine
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                              ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-        private RegimentManager regimentManager => RegimentManager.Instance;
-        public Regiment TargetEnemyRegiment { get; private set; }
-        //public bool HasTarget { get; private set; }
+
+        public EnemyRegimentTargetData EnemyRegimentTargetData => LinkedRegiment.EnemyRegimentTargetData;
+        private Regiment CurrentEnemyTarget => EnemyRegimentTargetData.EnemyTarget;
+        
         public bool HasTarget => LinkedRegiment.EnemyRegimentTargetData.EnemyTargetID != -1;
         private int AttackRange => RegimentType.Range;
         
@@ -53,10 +53,8 @@ namespace Kaizerwald.StateMachine
         public override void OnSetup(Order order)
         {
             RangeAttackOrder rangeAttackOrder = (RangeAttackOrder)order;
-            //TargetEnemyRegiment = rangeAttackOrder.TargetEnemyRegiment;
             if (!RegimentManager.Instance.TryGetRegiment(rangeAttackOrder.TargetEnemyRegiment, out Regiment target)) return;
-            LinkedRegiment.EnemyRegimentTargetData.SetEnemyTarget(target);
-            //HasTarget = rangeAttackOrder.TargetEnemyRegiment != null;
+            EnemyRegimentTargetData.SetEnemyTarget(target);
         }
 
         public override void OnEnter()
@@ -66,19 +64,17 @@ namespace Kaizerwald.StateMachine
 
         public override void OnUpdate()
         {
-            //Will check if enemyFormationChange (unit?)
-            return;
+            EnemyRegimentTargetData.UpdateCachedFormation();
         }
 
         public override void OnExit() { return; }
 
         public override EStates ShouldExit()
         {
-            if (IdleExit() && !TryChangeTarget()) return EStates.Idle;
-            
-            //bool isEnemyInRange = StateExtension.CheckEnemiesAtRange(LinkedRegiment, AttackRange, out int targetID, FOV_ANGLE);
-            //if (!isEnemyInRange) return ChaseExit() ? EStates.Move : EStates.Idle;
-            
+            if (IdleExit())
+            {
+                return EStates.Idle;
+            }
             return StateIdentity;
         }
         
@@ -86,29 +82,28 @@ namespace Kaizerwald.StateMachine
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
+        private bool IsTargetInRange()
+        {
+            return StateExtension.IsTargetRegimentInRange(LinkedRegiment, CurrentEnemyTarget, AttackRange, FOV_ANGLE);
+        }
+        
         private bool TryChangeTarget()
         {
             bool hasOtherTargetInRange = StateExtension.CheckEnemiesAtRange(LinkedRegiment, AttackRange, out int targetID, FOV_ANGLE);
             if (hasOtherTargetInRange)
             {
-                LinkedRegiment.EnemyRegimentTargetData.SetEnemyTarget(regimentManager.RegimentsByID[targetID]);
+                EnemyRegimentTargetData.SetEnemyTarget(RegimentManager.Instance.RegimentsByID[targetID]);
+            }
+            else
+            {
+                EnemyRegimentTargetData.Clear();
             }
             return hasOtherTargetInRange;
         }
 
         private bool IdleExit()
         {
-            return !HasTarget;
-        }
-
-        private bool HasEnemyFormationChange()
-        {
-            bool3 hasEnemyFormationChange = new bool3
-            (
-                PreviousEnemyFormation.NumUnitsAlive != CurrentEnemyFormation.NumUnitsAlive,
-                PreviousEnemyFormation.WidthDepth != CurrentEnemyFormation.WidthDepth
-            );
-            return any(hasEnemyFormationChange);
+            return (!HasTarget || !IsTargetInRange()) && !TryChangeTarget();
         }
     }
 }

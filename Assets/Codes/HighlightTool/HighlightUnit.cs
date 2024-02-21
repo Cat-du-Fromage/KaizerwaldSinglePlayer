@@ -46,5 +46,11 @@ namespace Kaizerwald
             //HighlightRegimentAttach.Remove(this);
             HighlightRegimentAttach.RegisterInactiveElement(this);
         }
+
+        public override void BeforeRemoval()
+        {
+            SetInactive();
+            IsInactive = true;
+        }
     }
 }

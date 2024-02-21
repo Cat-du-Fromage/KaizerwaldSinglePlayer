@@ -17,6 +17,8 @@ namespace Kaizerwald
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
         private Transform unitTransform;
+        private Rigidbody unitRigidBody;
+        private Collider unitCollider;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                              ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                              ║
@@ -28,7 +30,6 @@ namespace Kaizerwald
         
         // Variables
         [field: SerializeField] public int IndexInFormation { get; private set; }
-        //[field: SerializeField] public bool IsDead { get; private set; }
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║
@@ -57,6 +58,8 @@ namespace Kaizerwald
         {
             unitTransform = transform;
             Animation = GetComponent<UnitAnimation>();
+            unitRigidBody = GetComponent<Rigidbody>();
+            unitCollider = GetComponent<Collider>();
         }
 
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
@@ -104,6 +107,7 @@ namespace Kaizerwald
         public void TriggerDeath()
         {
             if (IsInactive) return;
+            IsInactive = true;
             Animation.SetDead(); // need to track when animation finishes to disable collider
             LinkedRegiment.OnDeadUnit(this);
         }
@@ -130,6 +134,8 @@ namespace Kaizerwald
             //remove collider etc.. + inform highlight?
             //TODO: Find a way to link this event with Highlight.AfterRemoval
             DestroyHighlight();
+            unitCollider.enabled = false;
+            unitRigidBody.Sleep();
         }
 
         public override void OnRearrangement(int newIndex)

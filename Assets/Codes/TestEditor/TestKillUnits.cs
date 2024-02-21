@@ -11,6 +11,14 @@ namespace Kaizerwald
 {
     public class TestKillUnits : MonoBehaviour
     {
+        private enum EUpdateUse
+        {
+            FixedUpdate,
+            Update,
+            LateUpdate
+        }
+
+        [SerializeField] private EUpdateUse UpdateUse = EUpdateUse.Update;
         [SerializeField] private LayerMask UnitLayer;
         [SerializeField] private Camera PlayerCamera;
 
@@ -21,8 +29,23 @@ namespace Kaizerwald
             if(PlayerCamera == null) PlayerCamera = Camera.main;
         }
 
+        private void FixedUpdate()
+        {
+            if(UpdateUse != EUpdateUse.FixedUpdate) return;
+            if (UnitLayer == default) return;
+            TestKillUnit();
+        }
+        
         private void Update()
         {
+            if(UpdateUse != EUpdateUse.Update) return;
+            if (UnitLayer == default) return;
+            TestKillUnit();
+        }
+
+        private void LateUpdate()
+        {
+            if(UpdateUse != EUpdateUse.LateUpdate) return;
             if (UnitLayer == default) return;
             TestKillUnit();
         }

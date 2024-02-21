@@ -11,9 +11,12 @@ namespace Kaizerwald.StateMachine
     {
         protected const EStates DefaultNextState = EStates.Idle;
         
+        protected const float REACH_DISTANCE_THRESHOLD = 0.0125f;
+        
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                               ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
         protected T RegimentStateReference { get; private set; }
 
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
@@ -44,6 +47,15 @@ namespace Kaizerwald.StateMachine
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+        protected bool ShouldRearrange()
+        {
+            float3 targetPosition = LinkedParentRegiment.TargetPosition;
+            FormationData formation = LinkedParentRegiment.TargetFormation;
+            float3 positionInFormation = formation.GetUnitRelativePositionToRegiment3D(IndexInFormation, targetPosition);
+            return math.distancesq(Position.xz, positionInFormation.xz) > REACH_DISTANCE_THRESHOLD;
+        }
+
         protected abstract EStates TryReturnToRegimentState();
     }
 }

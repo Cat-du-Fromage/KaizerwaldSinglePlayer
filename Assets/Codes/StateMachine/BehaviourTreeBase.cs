@@ -18,7 +18,7 @@ namespace Kaizerwald.StateMachine
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                               ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-        [field:SerializeField]public EStates State { get; protected set; }
+        [field:SerializeField] public EStates State { get; protected set; }
         public Dictionary<EStates, StateBase<T>> States { get; protected set; }
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
@@ -55,20 +55,21 @@ namespace Kaizerwald.StateMachine
 
         public virtual void OnUpdate()
         {
-            TryChangeState();
+            if (TryChangeState()) return;
             CurrentState.OnUpdate();
         }
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-        private void TryChangeState()
+        private bool TryChangeState()
         {
             EStates nextState = CurrentState.ShouldExit();
-            if (nextState == CurrentState.StateIdentity) return;
+            if (nextState == CurrentState.StateIdentity) return false;
             CurrentState.OnExit();
             State = nextState;
             CurrentState.OnEnter();
+            return true;
         }
 
         public virtual void RequestChangeState(Order order)
