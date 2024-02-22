@@ -22,12 +22,14 @@ namespace Kaizerwald.StateMachine
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        // Regiment
-        protected Regiment LinkedParentRegiment => RegimentStateReference.LinkedRegiment;
         protected RegimentBehaviourTree LinkedRegimentBehaviourTree => BehaviourTree.RegimentBehaviourTree;
-        
         protected EStates RegimentState => BehaviourTree.RegimentState;
         protected bool IsRegimentStateIdentical => StateIdentity == RegimentState;
+    
+        // Regiment
+        protected Regiment LinkedParentRegiment => RegimentStateReference.LinkedRegiment;
+        //protected RegimentType RegimentType => RegimentStateReference.RegimentType;
+        //protected EnemyRegimentTargetData EnemyRegimentTargetData => RegimentStateReference.EnemyRegimentTargetData;
     
         // Unit
         protected Unit LinkedUnit => BehaviourTree.LinkedUnit;
@@ -47,7 +49,7 @@ namespace Kaizerwald.StateMachine
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-
+        /*
         protected bool ShouldRearrange()
         {
             float3 targetPosition = LinkedParentRegiment.TargetPosition;
@@ -55,7 +57,7 @@ namespace Kaizerwald.StateMachine
             float3 positionInFormation = formation.GetUnitRelativePositionToRegiment3D(IndexInFormation, targetPosition);
             return math.distancesq(Position.xz, positionInFormation.xz) > REACH_DISTANCE_THRESHOLD;
         }
-
+        */
         protected abstract EStates TryReturnToRegimentState();
     }
 }

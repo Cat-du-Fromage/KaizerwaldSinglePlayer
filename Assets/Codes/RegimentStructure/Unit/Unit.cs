@@ -10,7 +10,7 @@ using Kaizerwald.StateMachine;
 
 namespace Kaizerwald
 {
-    public sealed class Unit : FormationElementBehaviour
+    public sealed partial class Unit : FormationElementBehaviour
     {
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                                 ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                ║

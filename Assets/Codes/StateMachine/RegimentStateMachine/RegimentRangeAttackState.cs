@@ -31,12 +31,13 @@ namespace Kaizerwald.StateMachine
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                              ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-
-        public EnemyRegimentTargetData EnemyRegimentTargetData => LinkedRegiment.EnemyRegimentTargetData;
+        // EnemyRegimentTargetData
         private Regiment CurrentEnemyTarget => EnemyRegimentTargetData.EnemyTarget;
+        public bool HasTarget => EnemyRegimentTargetData.EnemyTargetID != -1;
         
-        public bool HasTarget => LinkedRegiment.EnemyRegimentTargetData.EnemyTargetID != -1;
-        private int AttackRange => RegimentType.Range;
+        // RegimentType
+        public int MaxRange => RegimentType.Range;
+        public int Accuracy => RegimentType.Accuracy;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ CONSTRUCTOR ◆◆◆◆◆◆                                              ║
@@ -84,12 +85,12 @@ namespace Kaizerwald.StateMachine
 
         private bool IsTargetInRange()
         {
-            return StateExtension.IsTargetRegimentInRange(LinkedRegiment, CurrentEnemyTarget, AttackRange, FOV_ANGLE);
+            return StateExtension.IsTargetRegimentInRange(LinkedRegiment, CurrentEnemyTarget, MaxRange, FOV_ANGLE);
         }
         
         private bool TryChangeTarget()
         {
-            bool hasOtherTargetInRange = StateExtension.CheckEnemiesAtRange(LinkedRegiment, AttackRange, out int targetID, FOV_ANGLE);
+            bool hasOtherTargetInRange = StateExtension.CheckEnemiesAtRange(LinkedRegiment, MaxRange, out int targetID, FOV_ANGLE);
             if (hasOtherTargetInRange)
             {
                 EnemyRegimentTargetData.SetEnemyTarget(RegimentManager.Instance.RegimentsByID[targetID]);

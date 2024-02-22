@@ -17,7 +17,7 @@ using Kaizerwald.Utilities;
 
 namespace Kaizerwald
 {
-    public sealed class Regiment : OrderedFormationBehaviour<Unit>, IOwnershipInformation
+    public sealed partial class Regiment : OrderedFormationBehaviour<Unit>, IOwnershipInformation
     {
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                                ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                 ║

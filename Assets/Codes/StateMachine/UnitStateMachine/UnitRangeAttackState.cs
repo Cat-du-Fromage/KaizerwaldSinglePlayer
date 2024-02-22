@@ -42,16 +42,14 @@ namespace Kaizerwald.StateMachine
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        //private Regiment RegimentEnemyTarget => LinkedParentRegiment.EnemyRegimentTargetData.EnemyTarget;
         public float3 UnitTargetPosition => UnitEnemyTarget.Position;
-
-        private EnemyRegimentTargetData EnemyRegimentTargetData => LinkedParentRegiment.EnemyRegimentTargetData;
-        private Regiment RegimentEnemyTarget => EnemyRegimentTargetData.EnemyTarget;
-        public FormationData CacheEnemyFormation => EnemyRegimentTargetData.CacheEnemyFormation;
-        private FormationData CurrentEnemyFormation => EnemyRegimentTargetData.EnemyTarget.CurrentFormation;
         
-        private int MaxRange => LinkedRegimentBehaviourTree.RegimentType.Range;
-        private int Accuracy => LinkedRegimentBehaviourTree.RegimentType.Accuracy;
+        // EnemyRegimentTargetData
+        private EnemyRegimentTargetData EnemyRegimentTargetData => RegimentStateReference.EnemyRegimentTargetData;
+        
+        // RegimentType
+        private int MaxRange => RegimentStateReference.MaxRange;
+        private int Accuracy => RegimentStateReference.Accuracy;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ CONSTRUCTOR ◆◆◆◆◆◆                                              ║
@@ -142,11 +140,11 @@ namespace Kaizerwald.StateMachine
         private void OnFireEvent(AnimationEvent animationEvent)
         {
             Vector3 bulletStartPosition = Position + up() + Forward;
-            if (Physics.Raycast(bulletStartPosition, AimDirection, MaxRange, UnitLayerMask.value))
-            {
+            //if (Physics.Raycast(bulletStartPosition, AimDirection, MaxRange, UnitLayerMask.value))
+            //{
                 int regimentID = LinkedParentRegiment.RegimentID;
                 ProjectileManager.Instance.RequestAndFireBullet(regimentID, bulletStartPosition, AimDirection);
-            }
+            //}
             CurrentRandomAimDirection = randomState.NextFloat2Direction(); // Renew Random Direction
         }
 
@@ -178,7 +176,7 @@ namespace Kaizerwald.StateMachine
         private bool TryGetEnemyTarget(out Unit target)
         {
             //EnemyRegimentTargetData regimentTargetData = LinkedParentRegiment.EnemyRegimentTargetData;
-            using NativeHashSet<int> hullIndices = GetUnitsHullIndices(CacheEnemyFormation);
+            using NativeHashSet<int> hullIndices = GetUnitsHullIndices(EnemyRegimentTargetData.CacheEnemyFormation);
             
             (int index, float minDistance) = (-1, INFINITY);
             foreach (int unitIndex in hullIndices)
