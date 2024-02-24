@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 using static System.Array;
@@ -24,8 +25,6 @@ namespace Kaizerwald
             set => Records[index] = value;
         }
 
-        public int CountAt(int regimentIndex) => this[regimentIndex].Length;
-        
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ CONSTRUCTOR ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
@@ -46,9 +45,24 @@ namespace Kaizerwald
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
         
-        //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
-        //║ ◈◈◈◈◈◈ Populate Records ◈◈◈◈◈◈                                                                             ║
-        //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
+        public int CountAt(int regimentIndex)
+        {
+            return this[regimentIndex].Length;
+        }
+
+        public bool ContainsKey(int regimentIndex)
+        {
+            return Records.ContainsKey(regimentIndex);
+        }
+
+        public bool TryGetValue(int regimentIndex, out HighlightBehaviour[] values)
+        {
+            return Records.TryGetValue(regimentIndex, out values);
+        }
+
+    //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
+    //║ ◈◈◈◈◈◈ Populate Records ◈◈◈◈◈◈                                                                                 ║
+    //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
         private void PopulateRecords(HighlightRegiment selectableRegiment, List<GameObject> units, GameObject prefab)
         {
             Records[selectableRegiment.RegimentID] ??= new HighlightBehaviour[units.Count];
@@ -56,7 +70,7 @@ namespace Kaizerwald
             {
                 GameObject highlightObj = Object.Instantiate(prefab);
                 Records[selectableRegiment.RegimentID][i] = highlightObj.GetComponent<HighlightBehaviour>();
-                Records[selectableRegiment.RegimentID][i].InitializeHighlight(units[i].gameObject);
+                Records[selectableRegiment.RegimentID][i].InitializeHighlight(units[i]);
             }
         }
         
@@ -72,9 +86,9 @@ namespace Kaizerwald
             }
         }
         
-        //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
-        //║ ◈◈◈◈◈◈ Register Methods ◈◈◈◈◈◈                                                                             ║
-        //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
+    //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
+    //║ ◈◈◈◈◈◈ Register Methods ◈◈◈◈◈◈                                                                                 ║
+    //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
         public void RegisterRegiment(HighlightRegiment selectableRegiment, List<GameObject> units, GameObject prefabOverride = null)
         {
             GameObject highlightPrefab = prefabOverride == null ? Prefab : prefabOverride;
@@ -96,9 +110,10 @@ namespace Kaizerwald
             foreach (HighlightBehaviour highlight in highlights)
             {
                 if (highlight == null) continue;
-                Object.Destroy(highlight);
+                Object.Destroy(highlight.gameObject);
             }
             Records.Remove(selectableRegiment.RegimentID);
+            ActiveHighlights.Remove(selectableRegiment);
         }
     }
 }

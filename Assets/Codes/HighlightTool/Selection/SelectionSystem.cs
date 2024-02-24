@@ -74,7 +74,12 @@ namespace Kaizerwald
             if (regiment.OwnerID != Manager.OwnerPlayerID) return;
             SelectionRegister.RegisterRegiment(regiment, units);
         }
-        
+
+        public override void RemoveRegiment(HighlightRegiment regiment)
+        {
+            base.RemoveRegiment(regiment);
+        }
+
         //┌────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
         //│  ◇◇◇◇◇◇ Show | Hide ◇◇◇◇◇◇                                                                                 │
         //└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
@@ -113,23 +118,20 @@ namespace Kaizerwald
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
         protected override void ResizeAndReformRegister(int registerIndex, HighlightRegiment regiment, int numHighlightToKeep)
         {
-            if (!Registers[registerIndex].Records.ContainsKey(regiment.RegimentID)) return;
-            HighlightBehaviour[] newRecordArray = Registers[registerIndex][regiment.RegimentID].Slice(0, numHighlightToKeep);
+            if (!Registers[registerIndex].TryGetValue(regiment.RegimentID, out HighlightBehaviour[] highlights)) return;
+            HighlightBehaviour[] newRecordArray = highlights.Slice(0, numHighlightToKeep);
             for (int i = 0; i < numHighlightToKeep; i++)
             {
-                HighlightBehaviour highlight = newRecordArray[i];
-                HighlightUnit unitToAttach = regiment.HighlightUnits[i];
-                highlight.LinkToUnit(unitToAttach.gameObject);
+                newRecordArray[i].LinkToUnit(regiment.HighlightUnits[i].gameObject);
             }
             Registers[registerIndex][regiment.RegimentID] = newRecordArray;
-            // ON ne peut pas faire Ici le Selection Update??!!!
         }
         
         //Pour l'instant Uniquement sur séléction, Placement bug autrement!
         protected override void CleanUnusedHighlights(int registerIndex, HighlightRegiment regiment, int numToKeep)
         {
             base.CleanUnusedHighlights(registerIndex, regiment, numToKeep);
-            SelectionInfos.OnSelectionUpdate();
+            SelectionInfos.OnSelectionUpdate(); //seems to not update fast enough sometimes....
         }
         
         //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────╖

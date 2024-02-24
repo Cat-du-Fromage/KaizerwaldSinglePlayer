@@ -134,8 +134,8 @@ namespace Kaizerwald
             //remove collider etc.. + inform highlight?
             //TODO: Find a way to link this event with Highlight.AfterRemoval
             DestroyHighlight();
-            unitCollider.enabled = false;
-            unitRigidBody.Sleep();
+            //unitCollider.enabled = false;
+            //unitRigidBody.Sleep();
         }
 
         public override void OnRearrangement(int newIndex)

@@ -13,7 +13,7 @@ namespace Kaizerwald
     
     public sealed partial class Unit : FormationElementBehaviour
     {
-        private bool DebugAvailable = false;
+        //private bool DebugAvailable = false;
         
         private void OnDrawGizmos()
         {

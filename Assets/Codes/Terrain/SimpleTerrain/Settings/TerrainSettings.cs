@@ -34,11 +34,17 @@ namespace Kaizerwald.TerrainBuilder
         //Triangles
         public int TrianglesCount => QuadCount * 2;
         public int TriangleIndicesCount => QuadCount * 6;
-        
-        private void OnEnable()
+
+        public TerrainSettings Initialize()
         {
             SizeX = max(1, ceilpow2(SizeX));
             SizeY = max(1, ceilpow2(SizeY));
+            return this;
+        }
+        
+        private void OnEnable()
+        {
+            Initialize();
         }
 
 #if UNITY_EDITOR

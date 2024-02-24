@@ -45,6 +45,7 @@ namespace Kaizerwald
         public virtual void RemoveRegiment(HighlightRegiment regiment)
         {
             Array.ForEach(Registers, register => register.UnregisterRegiment(regiment));
+            //TODO add OnHighlightRemoved to Controllers!
         }
         
         public virtual void OnShow(HighlightRegiment regiment, int registerIndex)
@@ -88,12 +89,11 @@ namespace Kaizerwald
             HighlightRegister register = Registers[registerIndex];
             if (!register.Records.TryGetValue(regiment.RegimentID, out HighlightBehaviour[] highlights)) return;
             if (highlights.Length == numToKeep) return;
+            
             for (int i = numToKeep; i < highlights.Length; i++)
             {
                 Object.Destroy(highlights[i].gameObject);
             }
-            
-            //BUG PLACEMENT! QUAND width change de manière à (numUnitsAlive < minWidth) alors "PlacementController.DynamicsTempWidth" n'est plus correct!
             
             if (numToKeep > 0) return;
             register.Records.Remove(regiment.RegimentID);
@@ -103,6 +103,7 @@ namespace Kaizerwald
         public void ResizeRegister(HighlightRegiment regiment)
         {
             int numUnitsAlive = regiment.Count;
+            //if(numUnitsAlive == 0) Debug.Log($"{regiment.name} : ResizeRegister with numUnitsAlive == 0 ");
             for (int i = 0; i < Registers.Length; i++)
             {
                 CleanUnusedHighlights(i, regiment, numUnitsAlive);

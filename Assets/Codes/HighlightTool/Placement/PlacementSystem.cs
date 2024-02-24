@@ -30,7 +30,7 @@ namespace Kaizerwald
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        public SelectionInfos SelectionInfos => Manager.SelectionInfos;
+        //public SelectionInfos SelectionInfos => Manager.SelectionInfos;
         public List<HighlightRegiment> PreselectedRegiments => Manager.PreselectedRegiments;
         public List<HighlightRegiment> SelectedRegiments => Manager.SelectedRegiments;
         
@@ -60,11 +60,12 @@ namespace Kaizerwald
         {
             bool keepSameFormation = PlacementController.DynamicsTempWidth.Length == 0;
             PlayerOrderData[] moveOrders = new PlayerOrderData[SelectedRegiments.Count];
-            for (int i = 0; i < PlacementController.SortedSelectedRegiments.Count; i++)
+            for (int i = 0; i < SelectedRegiments.Count; i++)
             {
                 HighlightRegiment regiment = PlacementController.SortedSelectedRegiments[i];
-                if (regiment == null) continue;
-                int width = keepSameFormation ? regiment.CurrentFormation.Width : PlacementController.DynamicsTempWidth[i];
+                if (regiment == null || !Registers[registerIndexUsed].ContainsKey(regiment.RegimentID)) continue;
+                //int currentFormationWidth = regiment.CurrentFormation.Width;
+                int width = keepSameFormation ? regiment.CurrentFormation.Width : min(regiment.CurrentFormation.NumUnitsAlive, PlacementController.DynamicsTempWidth[i]);
                 int numUnitsAlive = regiment.CurrentFormation.NumUnitsAlive;
                 width = width > numUnitsAlive ? numUnitsAlive : width;
                 
@@ -76,11 +77,12 @@ namespace Kaizerwald
 
         private PlayerOrderData PackOrder(int registerIndexUsed, HighlightRegiment regiment, int width, bool marchOrdered)
         {
-            float3 firstUnit = Registers[registerIndexUsed][regiment.RegimentID][0].transform.position;
-            float3 lastUnit = Registers[registerIndexUsed][regiment.RegimentID][width-1].transform.position;
-            float3 direction = normalizesafe(cross(down(), lastUnit - firstUnit));
+            Transform firstUnit = Registers[registerIndexUsed][regiment.RegimentID][0].transform;
+            Transform lastUnit = Registers[registerIndexUsed][regiment.RegimentID][width-1].transform;
+            
+            float3 direction = width == 1 ? firstUnit.forward : normalizesafe(cross(down(), lastUnit.position - firstUnit.position));
             FormationData formationDestination = new (regiment.CurrentFormation, width, direction);
-            float3 leaderDestination = (firstUnit + lastUnit) / 2f;
+            float3 leaderDestination = width == 1 ? firstUnit.position : (firstUnit.position + lastUnit.position) / 2f;
             
             PlayerOrderData orderData = new PlayerOrderData
             {
@@ -91,7 +93,6 @@ namespace Kaizerwald
                 TargetFormation = formationDestination,
                 TargetEnemyID = -1
             };
-            
             return orderData;
         }
         
@@ -109,7 +110,9 @@ namespace Kaizerwald
             Registers[0] = new HighlightRegister(this, Manager.PlacementDefaultPrefab);
             Registers[1] = new HighlightRegister(this, Manager.PlacementDefaultPrefab);
         }
-
+    //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
+    //║ ◈◈◈◈◈◈ Add | Remove ◈◈◈◈◈◈                                                                                     ║
+    //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
         public override void AddRegiment<T>(HighlightRegiment regiment, List<T> units)
         {
             if (regiment.OwnerID != Manager.OwnerPlayerID) return;
@@ -120,6 +123,12 @@ namespace Kaizerwald
         {
             if (regiment.OwnerID != Manager.OwnerPlayerID) return;
             base.AddRegiment(regiment, units);
+        }
+
+        public override void RemoveRegiment(HighlightRegiment regiment)
+        {
+            base.RemoveRegiment(regiment);
+            PlacementController.OnHighlightRemoved(regiment);
         }
 
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
@@ -167,16 +176,12 @@ namespace Kaizerwald
             if(PlacementController.SortedSelectedRegiments == null) return (regiment.CurrentPosition + offset, regiment.CurrentFormation);
             if(!PlacementController.SortedSelectedRegiments.TryGetIndexOf(regiment, out int indexSelection)) return (regiment.CurrentPosition + offset, regiment.CurrentFormation);
             
-            //BUG!!!! Width can potentially have changed!
             if (PlacementController.DynamicsTempWidth != null)
             {
-                //Debug.Log($"GetPlacementPreviewFormation : DynamicsTempWidth.Length = {PlacementController.DynamicsTempWidth.Length}, index = {indexSelection}");
-                int tempWidth = PlacementController.DynamicsTempWidth is { Length: > 0 } ? PlacementController.DynamicsTempWidth[indexSelection] : regiment.TargetFormation.Width;
-                //BUG: PlacementController.DynamicsTempWidth AND PlacementController.SortedSelectedRegiments are null 
-                
-                //Check par rapport au perte subi
+                int tempWidth = PlacementController.DynamicsTempWidth is { Length: > 0 } 
+                    ? PlacementController.DynamicsTempWidth[indexSelection] 
+                    : regiment.TargetFormation.Width;
                 tempWidth = numHighlightToKeep < tempWidth ? numHighlightToKeep : tempWidth;
-                //May fail here upon rearrangement
                 
                 int regimentID = regiment.RegimentID;
                 float3 firstUnit = DynamicPlacementRegister[regimentID][0].transform.position;
@@ -200,13 +205,13 @@ namespace Kaizerwald
     //║ ◈◈◈◈◈◈ Resize ◈◈◈◈◈◈                                                                                           ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
     
-        //BUG: Placement static placé incorrectement (Rotation oui bizarrement)
+        //BUG: Dynamique n'est remis a jour que lors d'une update, si on ne bouge pas (dont pas d'update) sortedselection n'est pas remis a jour!
         protected override void ResizeAndReformRegister(int registerIndex, HighlightRegiment regiment, int numHighlightToKeep)
         {
-            HighlightRegister register = Registers[registerIndex];
-            if (!register.Records.ContainsKey(regiment.RegimentID)) return;
-            HighlightBehaviour[] newRecordArray = register[regiment.RegimentID].Slice(0, numHighlightToKeep);
+            if (!Registers[registerIndex].TryGetValue(regiment.RegimentID, out HighlightBehaviour[] highlights)) return;
             
+            bool isDynamicRegister = registerIndex == (int)EPlacementRegister.Dynamic;
+            HighlightBehaviour[] newRecordArray = highlights.Slice(0, numHighlightToKeep);
             if (numHighlightToKeep == 1)
             {
                 newRecordArray[0].LinkToUnit(regiment.HighlightUnits[0].gameObject);
@@ -217,7 +222,12 @@ namespace Kaizerwald
                 for (int i = 0; i < numHighlightToKeep; i++)
                 {
                     HighlightBehaviour highlight = newRecordArray[i];
-                    highlight.LinkToUnit(regiment.HighlightUnits[i].gameObject); // ATTENTION, on part du principe que l'unité à été giclée
+                    highlight.LinkToUnit(regiment.HighlightUnits[i].gameObject);
+                    (float3 leaderPosition, FormationData tempFormation) = isDynamicRegister
+                        ? GetPlacementPreviewFormation(regiment, numHighlightToKeep)
+                        : (regiment.TargetPosition, (FormationData)regiment.TargetFormation);
+                    highlight.transform.position = tempFormation.GetUnitRelativePositionToRegiment3D(i, leaderPosition);
+                    /*
                     Vector3 position;
                     if (registerIndex == (int)EPlacementRegister.Dynamic)
                     {
@@ -229,9 +239,10 @@ namespace Kaizerwald
                         position = regiment.TargetFormation.GetUnitRelativePositionToRegiment3D(i, regiment.TargetPosition);
                     }
                     highlight.transform.position = position;
+                    */
                 }
             }
-            register[regiment.RegimentID] = newRecordArray;
+            Registers[registerIndex][regiment.RegimentID] = newRecordArray;
         }
     }
 }

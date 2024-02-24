@@ -143,7 +143,8 @@ namespace Kaizerwald.StateMachine
             //if (Physics.Raycast(bulletStartPosition, AimDirection, MaxRange, UnitLayerMask.value))
             //{
                 int regimentID = LinkedParentRegiment.RegimentID;
-                ProjectileManager.Instance.RequestAndFireBullet(regimentID, bulletStartPosition, AimDirection);
+                ProjectileManager.Instance.RequestBullet(regimentID, bulletStartPosition).Fire(AimDirection);
+                //ProjectileManager.Instance.RequestAndFireBullet(regimentID, bulletStartPosition, AimDirection);
             //}
             CurrentRandomAimDirection = randomState.NextFloat2Direction(); // Renew Random Direction
         }

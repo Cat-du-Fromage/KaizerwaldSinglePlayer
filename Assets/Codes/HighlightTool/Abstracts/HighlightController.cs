@@ -15,7 +15,7 @@ namespace Kaizerwald
         
         public abstract void OnEnable();
         public abstract void OnDisable();
-        public abstract void OnUpdate();
+        public virtual void OnUpdate(){}
         
         public virtual void OnFixedUpdate(){}
     }

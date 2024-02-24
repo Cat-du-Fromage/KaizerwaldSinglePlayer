@@ -18,12 +18,8 @@ namespace Kaizerwald
         public Dictionary<int, Dictionary<ulong, List<RegimentSpawner>>> TeamKeyPairPlayerSpawners { get; }
     }
     
-    public sealed class RegimentFactory : Singleton<RegimentFactory>, IGameSystem
+    public sealed class RegimentFactory : Singleton<RegimentFactory>
     {
-        public int PriorityOrder => 1;
-        public void OnStartSystem() { Debug.Log($"RegimentFactory PriorityOrder = {PriorityOrder}"); }
-        
-        
         private const float SPACE_BETWEEN_REGIMENT = 1f;
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                                ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                 ║
@@ -39,6 +35,11 @@ namespace Kaizerwald
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ UNITY EVENTS ◆◆◆◆◆◆                                             ║
+//╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+        
+//╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+//║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
         private float GetOffset(RegimentSpawner spawner, int index, bool sameRegiment = false)

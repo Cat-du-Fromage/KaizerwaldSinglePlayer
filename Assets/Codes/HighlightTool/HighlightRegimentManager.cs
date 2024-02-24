@@ -15,8 +15,8 @@ namespace Kaizerwald
     //FAIRE de régiment manager une partie intégrante de l'outil "HighlightRegimentManager"
     public sealed class HighlightRegimentManager : Singleton<HighlightRegimentManager>, IOwnershipInformation, IGameSystem
     {
-        public int PriorityOrder => 2;
-        public void OnStartSystem() { Debug.Log($"HighlightRegimentManager PriorityOrder = {PriorityOrder}"); }
+        public int PriorityOrder => 0;
+        
         
         // IOwnershipInformation
         [field:SerializeField] public ulong OwnerPlayerID { get; private set; }
@@ -60,6 +60,10 @@ namespace Kaizerwald
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
         [field:SerializeField] public List<HighlightRegiment> Regiments { get; private set; } = new ();
         
+        [field:SerializeField] public List<HighlightRegiment> DebugSelectedRegiment { get; private set; } = new ();
+        [field:SerializeField] public List<HighlightRegiment> DebugSortedSelectedRegiment { get; private set; } = new ();
+        
+        
         //Allow to retrieve regiment By it's Instance ID
         public Dictionary<int, HighlightRegiment> RegimentsByID { get; private set; } = new ();
         
@@ -91,23 +95,26 @@ namespace Kaizerwald
             highlightSystems = new List<HighlightSystem>() { Selection, Placement };
             Controllers = new List<HighlightController>() { Selection.Controller, Placement.Controller };
         }
-
+        /*
         private void Start()
         {
             RegimentManager.Instance.OnNewRegiment += InitAndRegisterRegiment<Regiment, Unit>;
+        }
+        */
+        public void OnStart()
+        {
+            //Debug.Log($"HighlightRegimentManager PriorityOrder = {PriorityOrder}");
+            RegimentManager.Instance.OnNewRegiment += InitAndRegisterRegiment<Regiment, Unit>;
+            RegimentManager.Instance.OnDeadRegiment += UnRegisterRegiment;
         }
 
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Update | Late Update ◈◈◈◈◈◈                                                                             ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
 
-        private void Update()
+        public void OnFixedUpdate()
         {
-            Controllers.ForEach(controller => controller.OnUpdate());
-        }
-
-        private void FixedUpdate()
-        {
+            CleanUp();
             Controllers.ForEach(controller => controller.OnFixedUpdate());
             foreach (HighlightRegiment highlightRegiment in Regiments)
             {
@@ -115,21 +122,18 @@ namespace Kaizerwald
             }
         }
 
-        private void LateUpdate()
+        public void OnUpdate()
         {
-            for (int i = 0; i < Regiments.Count; i++)
-            {
-                HighlightRegiment highlightRegiment = Regiments[i];
-                int highlightCount = highlightRegiment.Count;
-                int countAt = Selection.PreselectionRegister.CountAt(highlightRegiment.RegimentID);
-                bool needResize = highlightCount == countAt;
-                if (needResize) continue;
-                ResizeHighlightsRegisters(highlightRegiment);
-            }
-
-            CleanupEmptyRegiments();
+            Controllers.ForEach(controller => controller.OnUpdate());
         }
-        
+
+        public void OnLateUpdate()
+        {
+            //CleanUp();
+            DebugSelectedRegiment = SelectedRegiments;
+            DebugSortedSelectedRegiment = Placement.PlacementController.SortedSelectedRegiments;
+        }
+
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Enable | Disable ◈◈◈◈◈◈                                                                                 ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
@@ -147,6 +151,20 @@ namespace Kaizerwald
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+        private void CleanUp()
+        {
+            for (int i = 0; i < Regiments.Count; i++)
+            {
+                HighlightRegiment highlightRegiment = Regiments[i];
+                int highlightCount = highlightRegiment.Count;
+                int countAt = Selection.PreselectionRegister.CountAt(highlightRegiment.RegimentID);
+                bool needResize = highlightCount == countAt;
+                if (needResize) continue;
+                ResizeHighlightsRegisters(highlightRegiment);
+            }
+            CleanupEmptyRegiments();
+        }
 
         public void SetPlayerID(ulong playerID) => OwnerPlayerID = playerID;
         public void SetTeamID(int teamID) => TeamID = teamID;
@@ -168,6 +186,10 @@ namespace Kaizerwald
             for (int i = Regiments.Count - 1; i > -1; i--)
             {
                 HighlightRegiment regiment = Regiments[i];
+                if (regiment == null)
+                {
+                    Debug.Log($"Got a null Highlight regiment at {i}");
+                }
                 if (regiment.CurrentFormation.NumUnitsAlive > 0) continue;
                 UnRegisterRegiment(regiment);
                 Destroy(regiment);
@@ -175,34 +197,9 @@ namespace Kaizerwald
         }
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
-    //║ ◈◈◈◈◈◈ Request Registration ◈◈◈◈◈◈                                                                             ║
-    //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        /*
-        public void RequestHighlightAttachment<T1,T2>(ulong ownerID, int teamID, T1 formationMatrix)
-        where T1 : OrderedFormationBehaviour<T2>
-        where T2 : Component, IFormationElement
-        {
-            List<GameObject> unitsObject = formationMatrix.Elements.Select(unit => unit.gameObject).ToList();
-            InitAndRegisterRegiment(ownerID, teamID, formationMatrix.gameObject, unitsObject, formationMatrix.CurrentFormation);
-        }
-        */
-    //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Initialize AND Register ◈◈◈◈◈◈                                                                          ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        //TODO: Allow Identifier Override so we can use NetworkHashId for multiplayer games, instead of GetInstanceID() which is different for each Client!
-        /*
-        public void InitAndRegisterRegiment(ulong ownerID, int teamID, GameObject regimentGo, List<GameObject> units, int2 minMaxRow, float2 unitSize, float spaceBetweenUnit, float3 direction)
-        {
-            HighlightRegiment newHighlightRegiment = regimentGo.AddComponent<HighlightRegiment>();
-            newHighlightRegiment.InitializeHighlight(ownerID, teamID, units, minMaxRow, unitSize, spaceBetweenUnit, direction);
-            RegisterRegiment(newHighlightRegiment, units);
-        }
 
-        public void InitAndRegisterRegiment(ulong ownerID, int teamID, GameObject regimentGo, List<GameObject> units, Formation formation)
-        {
-            InitAndRegisterRegiment(ownerID, teamID, regimentGo, units, formation.MinMaxRow, formation.UnitSize, formation.SpaceBetweenUnits, formation.DirectionForward);
-        }
-        */
         public void InitAndRegisterRegiment<TRegiment, TUnit>(TRegiment regiment)
         where TRegiment : BaseFormationBehaviour<TUnit>, IOwnershipInformation
         where TUnit : Component, IFormationElement
@@ -256,7 +253,8 @@ namespace Kaizerwald
         
         public void UnRegisterRegiment(GameObject regimentGameObject)
         {
-            if (!regimentGameObject.TryGetComponent(out HighlightRegiment regiment)) return;
+            bool hasHighlightComponent = regimentGameObject.TryGetComponent(out HighlightRegiment regiment);
+            if (!hasHighlightComponent) return;
             UnRegisterRegiment(regiment);
         }
         

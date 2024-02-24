@@ -11,21 +11,18 @@ using Kaizerwald.FormationModule;
 
 namespace Kaizerwald
 {
-    public class RegimentManager : Singleton<RegimentManager>, IManagerInitialization, IGameSystem
+    public class RegimentManager : Singleton<RegimentManager>, IGameSystem
     {
-        public int PriorityOrder => 3;
-        public void OnStartSystem() { Debug.Log($"RegimentManager PriorityOrder = {PriorityOrder}"); }
-        
+        public int PriorityOrder => 1;
         
         public const float RegimentFieldOfView = 60f;
+        
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                                ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                 ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        //[SerializeField] 
-
-        public bool Initialized { get; private set; }
-        public event Action OnManagerInitialized;
+        //public bool Initialized { get; private set; }
+        //public event Action OnManagerInitialized;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                              ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                              ║
@@ -52,7 +49,7 @@ namespace Kaizerwald
     //║ ◈◈◈◈◈◈ Events ◈◈◈◈◈◈                                                                                           ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
         public event Action<Regiment> OnNewRegiment;
-        public event Action<Regiment> OnDeadRegiment;
+        public event Action<GameObject> OnDeadRegiment;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ UNITY EVENTS ◆◆◆◆◆◆                                             ║
@@ -61,7 +58,7 @@ namespace Kaizerwald
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Awake | Start ◈◈◈◈◈◈                                                                                    ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-
+        /*
         private async void Start()
         {
             // Allow to other managers to subscribe to "OnNewRegiment" Before they are created!
@@ -72,29 +69,36 @@ namespace Kaizerwald
             
             HighlightRegimentManager.Instance.OnPlayerOrders += OnPlayerOrdersReceived;
         }
+        */
+        public void OnStart()
+        {
+            //Debug.Log($"RegimentManager PriorityOrder = {PriorityOrder}");
+            List<Regiment> regiments = RegimentFactory.Instance.RequestRegiments(SpawnCommandManager.Instance);
+            regiments.ForEach(RegisterRegiment);
+            HighlightRegimentManager.Instance.OnPlayerOrders += OnPlayerOrdersReceived;
+        }
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Update | Late Update ◈◈◈◈◈◈                                                                             ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        private void FixedUpdate()
+
+        public void OnFixedUpdate()
         {
-            //Regiments.ForEach(regiment => regiment.OnFixedUpdate());
             for (int i = 0; i < Regiments.Count; i++)
             {
                 Regiments[i].OnFixedUpdate();
             }
         }
 
-        private void Update()
+        public void OnUpdate()
         {
-            //Regiments.ForEach(regiment => regiment.OnUpdate());
             for (int i = 0; i < Regiments.Count; i++)
             {
                 Regiments[i].OnUpdate();
             }
         }
 
-        private void LateUpdate()
+        public void OnLateUpdate()
         {
             CleanupEmptyRegiments();
         }
@@ -140,13 +144,19 @@ namespace Kaizerwald
         private void CleanupEmptyRegiments()
         {
             if (Regiments.Count == 0) return;
+            //HashSet<Regiment> toDestroy = new HashSet<Regiment>(1);
             for (int i = Regiments.Count - 1; i > -1; i--)
             {
                 Regiment regiment = Regiments[i];
                 if(regiment.Count > 0) continue;
+                //Debug.Log($"RegimentManager.CleanupEmptyRegiments : regiment.Count = {regiment.Count}, formation num alive : {regiment.CurrentFormation.NumUnitsAlive}");
+                //toDestroy.Add(regiment);
                 UnRegisterRegiment(regiment);
-                Destroy(regiment.gameObject);
+                //Destroy(regiment.gameObject);
             }
+            
+            //if (toDestroy.Count == 0) return;
+            //foreach (Regiment regimentToDestroy in toDestroy) Destroy(regimentToDestroy.gameObject);
         }
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
@@ -158,40 +168,17 @@ namespace Kaizerwald
             RegimentsByID.TryAdd(regiment.RegimentID, regiment);
             RegimentsByPlayerID.AddSafe(regiment.OwnerPlayerID, regiment);
             RegimentsByTeamID.AddSafe(regiment.TeamID, regiment);
-            OnNewRegiment?.Invoke(regiment); //MAYBE USELESS
+            OnNewRegiment?.Invoke(regiment);
         }
         
         public void UnRegisterRegiment(Regiment regiment)
         {
-            OnDeadRegiment?.Invoke(regiment); //MAYBE USELESS
+            OnDeadRegiment?.Invoke(regiment.gameObject);
             Regiments.Remove(regiment);
             RegimentsByID.Remove(regiment.RegimentID);
             RegimentsByPlayerID[regiment.OwnerPlayerID].Remove(regiment);
             RegimentsByTeamID[regiment.TeamID].Remove(regiment);
         }
-        
-    //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
-    //║ ◈◈◈◈◈◈ Highlights ◈◈◈◈◈◈                                                                                       ║
-    //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜ 
-        /*
-        private void HighlightsAttachments()
-        {
-            HighlightRegimentManager.Instance.SetPlayerInfos(0,0);
-            foreach (Regiment regiment in Regiments)
-            {
-                AttachHighlight<OrderedFormationBehaviour<Unit>,Unit>(regiment.OwnerPlayerID, regiment.TeamID, regiment);
-            }
-            //Regiments.ForEach(regiment => AttachHighlight<RegimentFormationMatrix,Unit>(regiment.OwnerPlayerID, regiment.TeamID, regiment.RegimentFormationMatrix));
-        }
-        
-        private void AttachHighlight<T1,T2>(ulong ownerId, int teamId, T1 formationMatrix)
-        where T1 : OrderedFormationBehaviour<T2>
-        where T2 : Component, IFormationElement
-        {
-            HighlightRegimentManager.Instance.RequestHighlightAttachment<T1,T2>(ownerId,teamId,formationMatrix);
-        }
-        */
-        // CANT call it from event : No link to RegimentType + Units possible to HighlightManager
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                            ◆◆◆◆◆◆ ORDER METHODS ◆◆◆◆◆◆                                             ║
@@ -201,6 +188,7 @@ namespace Kaizerwald
         {
             foreach (PlayerOrderData order in orders)
             {
+                if (!RegimentExist(order.RegimentID)) continue;
                 RegimentsByID[order.RegimentID].OnOrderReceived(order);
             }
         }

@@ -15,11 +15,8 @@ using Kaizerwald.Utilities;
 namespace Kaizerwald
 {
     [RequireComponent(typeof(MeshRenderer), typeof(MeshFilter), typeof(MeshCollider))]
-    public class TerrainManager : Singleton<TerrainManager>, IGameSystem
+    public class TerrainManager : Singleton<TerrainManager>
     {
-        public int PriorityOrder => 0;
-        public void OnStartSystem() { Debug.Log($"TerrainManager PriorityOrder = {PriorityOrder}"); }
-        
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                                ◆◆◆◆◆◆ DEBUG ◆◆◆◆◆◆                                                 ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝

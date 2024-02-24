@@ -13,16 +13,18 @@ namespace Kaizerwald
 {
     public class ProjectileComponent : MonoBehaviour, IPoolable<ProjectileComponent>
     {
-        private const float MaxDistance = 1024f;
-        private const float Velocity = 5f;
+        private const float MaxDistance = 64f;
+        private const float Velocity = 2f;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                                 ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+        private bool hitSomething;
+
         [field:SerializeField] public EBulletType BulletType { get; private set; }
         
         [SerializeField] private float MuzzleVelocity = 10f;
-        //[SerializeField] private LayerMask UnitLayerMask;
         private int unitLayerIndex;
         
         [SerializeField] private Rigidbody BulletRigidbody;
@@ -54,20 +56,18 @@ namespace Kaizerwald
             if (BulletRigidbody.velocity != Vector3.zero && !CheckFadeDistance()) return;
             ReturnToPool();
         }
-
+        
         private void OnCollisionEnter(Collision other)
         {
+            if (hitSomething) return;
             bool hit = other.gameObject.layer == unitLayerIndex;
             if (!hit || !CheckHasUnitComponent(other.gameObject, out Unit unit)) return;
             if (!unit.IsInactive)
             {
-                //unit.TriggerDeath();
                 ProjectileManager.Instance.RegisterUnitHits(unit);
             }
             ReturnToPool();
         }
-
-        private void RegisterHitUnitToRegiment(Unit unit) => unit.LinkedRegiment.OnDeadUnit(unit);
         
         private bool CheckHasUnitComponent(GameObject hitGameObject, out Unit unit)
         {
@@ -91,6 +91,9 @@ namespace Kaizerwald
 
         public void ReturnToPool()
         {
+            hitSomething = false;
+            Trail.emitting = false;
+            BulletRigidbody.useGravity = false;
             returnToPool.Invoke(this);
         }
 
@@ -99,26 +102,28 @@ namespace Kaizerwald
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
         private bool CheckFadeDistance()
         {
-            return distancesq(bulletTransform.position, startPosition) > MaxDistance;
+            return distance(bulletTransform.position, startPosition) > MaxDistance;
         }
 
         public void MakeReady(Vector3 positionInRifle)
         {
+            startPosition = positionInRifle;
             bulletTransform.position = positionInRifle;
+        }
+        
+        public void Fire(Vector3 positionInRifle, Vector3 direction)
+        {
+            bulletTransform.position = positionInRifle;
+            startPosition = positionInRifle; //Made in Pull function!
+            Fire(direction);
         }
         
         public void Fire(Vector3 direction)
         {
             BulletRigidbody.velocity = direction * Velocity;
-            BulletRigidbody.useGravity = true;
             Trail.emitting = true;
             BulletRigidbody.AddForce(BulletRigidbody.velocity * MuzzleVelocity, ForceMode.Impulse);
-        }
-
-        public void Fire(Vector3 positionInRifle, Vector3 direction)
-        {
-            startPosition = positionInRifle;
-            Fire(direction);
+            BulletRigidbody.useGravity = true;
         }
     }
 }

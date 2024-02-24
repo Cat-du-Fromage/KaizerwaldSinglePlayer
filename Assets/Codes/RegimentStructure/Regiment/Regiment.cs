@@ -28,6 +28,7 @@ namespace Kaizerwald
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                              ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
         // REGIMENT IDENTIFICATION (IOwnershipInformation)
         [field:SerializeField] public ulong OwnerPlayerID { get; private set; }
         [field:SerializeField] public int TeamID { get; private set; }

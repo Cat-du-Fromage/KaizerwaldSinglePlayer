@@ -9,13 +9,14 @@ using Kaizerwald.Utilities;
 
 namespace Kaizerwald
 {
-    public class ProjectileManager : Singleton<ProjectileManager>
+    public class ProjectileManager : Singleton<ProjectileManager>, IGameSystem
     {
+        public int PriorityOrder => 0;
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                                ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                 ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        private bool initialized;
+        //private bool initialized;
         
         //TODO MAKE POOL BY REGIMENT!!!! so we can destroy them
         private Dictionary<int, ObjectPool<ProjectileComponent>> RegimentBulletsPool = new();
@@ -31,22 +32,19 @@ namespace Kaizerwald
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Awake | Start ◈◈◈◈◈◈                                                                                    ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        protected override void OnAwake()
-        {
-            base.OnAwake();
-        }
-
-        private void Start()
+    
+        public void OnStart()
         {
             RegimentManager.Instance.OnNewRegiment += RegisterPool;
-            initialized = true;
+            RegimentManager.Instance.OnDeadRegiment += UnRegisterPool;
+            //initialized = true;
         }
 
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Update | Late Update ◈◈◈◈◈◈                                                                             ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
 
-        private void FixedUpdate()
+        public void OnFixedUpdate()
         {
             if (unitHits.Count != 0)
             {
@@ -59,7 +57,7 @@ namespace Kaizerwald
             }
         }
 
-        private void Update()
+        public void OnUpdate()
         {
             if (ActiveBullets.Count == 0) return;
             foreach (ProjectileComponent activeBullet in ActiveBullets)
@@ -68,13 +66,12 @@ namespace Kaizerwald
             }
         }
 
-        //A SURVEILLER DE PRES: POSSIBLE SOURCE DE BUG!
-        private void LateUpdate()
+        public void OnLateUpdate()
         {
             if (ActiveBullets.Count == 0) return;
             CleanActiveBullets();
         }
-
+        
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Enable | Disable ◈◈◈◈◈◈                                                                                 ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
@@ -106,18 +103,12 @@ namespace Kaizerwald
         {
             return RegimentBulletsPool.TryGetValue(regimentID, out ObjectPool<ProjectileComponent> pool) ? pool.Pull(positionInRifle) : null;
         }
-        
-        public void RequestAndFireBullet(int regimentID, Vector3 positionInRifle, Vector3 direction)
-        {
-            if (!RegimentBulletsPool.TryGetValue(regimentID, out ObjectPool<ProjectileComponent> pool)) return;
-            pool.Pull(positionInRifle).Fire(direction);
-        }
 
         private void CleanActiveBullets()
         {
             for (int i = ActiveBullets.Count - 1; i > -1; i--)
             {
-                if (ActiveBullets[i].isActiveAndEnabled) continue;
+                if (ActiveBullets[i].gameObject.activeSelf) continue;
                 ActiveBullets.RemoveAt(i);
             }
         }
@@ -129,8 +120,15 @@ namespace Kaizerwald
         {
             GameObject prefab = regiment.RegimentType.BulletPrefab;
             //Remplacer par width??!! car seul la première ligne pouvant tirer?
-            int unitCount = regiment.CurrentFormation.BaseNumUnits;
+            int unitCount = regiment.CurrentFormation.MaxRow;
             RegimentBulletsPool.TryAdd(regiment.RegimentID, new ObjectPool<ProjectileComponent>(prefab, CallOnPull, unitCount));
+        }
+        
+        private void UnRegisterPool(GameObject regimentObject)
+        {
+            if (!regimentObject.TryGetComponent(out Regiment regiment)) return;
+            //if (!RegimentBulletsPool.TryGetValue(regiment.RegimentID, out ObjectPool<ProjectileComponent> value)) return;
+            RegimentBulletsPool.Remove(regiment.RegimentID);
         }
         
         private void CallOnPull(ProjectileComponent projectile)

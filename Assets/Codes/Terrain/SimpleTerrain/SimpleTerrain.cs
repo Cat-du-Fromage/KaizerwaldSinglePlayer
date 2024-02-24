@@ -24,6 +24,8 @@ namespace Kaizerwald.TerrainBuilder
     [RequireComponent(typeof(TerrainSettings), typeof(TerrainGridSystem))]
     public class SimpleTerrain : Singleton<SimpleTerrain>
     {
+        //public int PriorityOrder => 0;
+        
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                                ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                 ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
@@ -69,15 +71,12 @@ namespace Kaizerwald.TerrainBuilder
             meshRenderer = GetComponent<MeshRenderer>();
             meshCollider = GetComponent<MeshCollider>();
             
-            TerrainSettings = GetComponent<TerrainSettings>();
+            TerrainSettings = GetComponent<TerrainSettings>().Initialize();
             TerrainGridSystem = GetComponent<TerrainGridSystem>();
-        }
-
-        private void Start()
-        {
             GenerateTerrain();
         }
-/*
+        
+        /*
 #if UNITY_EDITOR
         private void OnDrawGizmos()
         {
@@ -87,7 +86,7 @@ namespace Kaizerwald.TerrainBuilder
             Gizmos.DrawWireSphere(hit.point, 0.45f);
         }
 #endif
-*/
+        */
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
@@ -98,7 +97,7 @@ namespace Kaizerwald.TerrainBuilder
             
             // Mesh -> MeshData
             Mesh terrainMesh = new Mesh(){ name = "TerrainMesh" };
-            MeshDataArray meshDataArray = Mesh.AllocateWritableMeshData(1);
+            MeshDataArray meshDataArray = AllocateWritableMeshData(1);
             meshDataArray[0].InitializeBufferParams(TerrainSettings.VerticesCount, TerrainSettings.TriangleIndicesCount);
 
             // MeshData Creation
@@ -110,7 +109,6 @@ namespace Kaizerwald.TerrainBuilder
 
             IsInitialized = true;
             OnTerrainGenerated?.Invoke(this);
-            
             TerrainGridSystem.Initialize(this);
         }
 

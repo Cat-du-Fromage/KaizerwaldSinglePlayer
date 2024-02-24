@@ -10,12 +10,11 @@ namespace Kaizerwald
     {
         public int PriorityOrder { get; }
         
-        //public void OnAwakeSystem();
-        public void OnStartSystem();
-        //
-        //public void OnFixedUpdateSystem();
-        //public void OnUpdateSystem();
-        //public void OnLateUpdateSystem();
+        public void OnStart();
+        
+        public void OnFixedUpdate();
+        public void OnUpdate();
+        public void OnLateUpdate();
 
         int IComparable<IGameSystem>.CompareTo(IGameSystem other)
         {
@@ -31,17 +30,40 @@ namespace Kaizerwald
         {
             base.OnAwake();
             GameSystems = FindGameSystemInterface();
-            //GameSystems = SearchAndSortGameSystems();
         }
 
         private void Start()
         {
             foreach (IGameSystem gameSystem in GameSystems)
             {
-                gameSystem.OnStartSystem();
+                gameSystem.OnStart();
             }
         }
         
+        private void FixedUpdate()
+        {
+            foreach (IGameSystem gameSystem in GameSystems)
+            {
+                gameSystem.OnFixedUpdate();
+            }
+        }
+
+        private void Update()
+        {
+            foreach (IGameSystem gameSystem in GameSystems)
+            {
+                gameSystem.OnUpdate();
+            }
+        }
+        
+        private void LateUpdate()
+        {
+            foreach (IGameSystem gameSystem in GameSystems)
+            {
+                gameSystem.OnLateUpdate();
+            }
+        }
+
         public List<IGameSystem> FindGameSystemInterface()
         {
             MonoBehaviour[] monoBehaviours = GameObject.FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None);
