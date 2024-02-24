@@ -11,8 +11,12 @@ using Kaizerwald.FormationModule;
 
 namespace Kaizerwald
 {
-    public class RegimentManager : Singleton<RegimentManager>, IManagerInitialization
+    public class RegimentManager : Singleton<RegimentManager>, IManagerInitialization, IGameSystem
     {
+        public int PriorityOrder => 3;
+        public void OnStartSystem() { Debug.Log($"RegimentManager PriorityOrder = {PriorityOrder}"); }
+        
+        
         public const float RegimentFieldOfView = 60f;
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                                ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                 ║
@@ -57,10 +61,6 @@ namespace Kaizerwald
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Awake | Start ◈◈◈◈◈◈                                                                                    ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        protected override void OnAwake()
-        {
-            base.OnAwake();
-        }
 
         private async void Start()
         {

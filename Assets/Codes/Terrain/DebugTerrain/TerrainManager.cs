@@ -15,8 +15,11 @@ using Kaizerwald.Utilities;
 namespace Kaizerwald
 {
     [RequireComponent(typeof(MeshRenderer), typeof(MeshFilter), typeof(MeshCollider))]
-    public class TerrainManager : Singleton<TerrainManager>
+    public class TerrainManager : Singleton<TerrainManager>, IGameSystem
     {
+        public int PriorityOrder => 0;
+        public void OnStartSystem() { Debug.Log($"TerrainManager PriorityOrder = {PriorityOrder}"); }
+        
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                                ◆◆◆◆◆◆ DEBUG ◆◆◆◆◆◆                                                 ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
@@ -43,15 +46,13 @@ namespace Kaizerwald
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                                ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                 ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-        public Transform TerrainTransform { get; private set; }
 
+        [SerializeField] private Material DefaultMaterial;
+        [SerializeField] private List<GameObject> PlayerSpawns;
+        
         private MeshFilter meshFilter;
         private MeshRenderer meshRenderer;
         private MeshCollider meshCollider;
-
-        [SerializeField] private Material DefaultMaterial;
-
-        [SerializeField] private List<GameObject> PlayerSpawns;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                              ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                              ║
@@ -59,6 +60,8 @@ namespace Kaizerwald
 
         [field:SerializeField] public Transform TerrainTemplate { get; private set; }
         [field:SerializeField] public int2 SizeXY { get; private set; }
+        
+        public Transform TerrainTransform { get; private set; }
 
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ UNITY EVENTS ◆◆◆◆◆◆                                             ║
@@ -75,7 +78,7 @@ namespace Kaizerwald
             InitializeSpawners();
         }
 
-        
+#if UNITY_EDITOR
         // ================================================ Debug ======================================================
         private void OnDrawGizmos()
         {
@@ -88,6 +91,7 @@ namespace Kaizerwald
             }
         }
         // ================================================ Debug ======================================================
+#endif
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║

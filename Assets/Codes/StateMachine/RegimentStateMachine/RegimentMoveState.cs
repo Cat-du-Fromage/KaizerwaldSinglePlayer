@@ -1,7 +1,3 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text;
 using Kaizerwald.FormationModule;
 using Kaizerwald.Utilities;
 using Unity.Burst;
@@ -17,7 +13,6 @@ using static Unity.Collections.NativeArrayOptions;
 using static Unity.Mathematics.math;
 
 using static Kaizerwald.Utilities.KzwMath;
-using static Kaizerwald.Utilities.UnityMathematicsExtension;
 using static Kaizerwald.Utilities.CSharpContainerUtils;
 
 namespace Kaizerwald.StateMachine

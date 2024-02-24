@@ -13,8 +13,11 @@ using Kaizerwald.FormationModule;
 namespace Kaizerwald
 {
     //FAIRE de régiment manager une partie intégrante de l'outil "HighlightRegimentManager"
-    public sealed class HighlightRegimentManager : Singleton<HighlightRegimentManager>, IOwnershipInformation
+    public sealed class HighlightRegimentManager : Singleton<HighlightRegimentManager>, IOwnershipInformation, IGameSystem
     {
+        public int PriorityOrder => 2;
+        public void OnStartSystem() { Debug.Log($"HighlightRegimentManager PriorityOrder = {PriorityOrder}"); }
+        
         // IOwnershipInformation
         [field:SerializeField] public ulong OwnerPlayerID { get; private set; }
         [field:SerializeField] public int TeamID { get; private set; }
