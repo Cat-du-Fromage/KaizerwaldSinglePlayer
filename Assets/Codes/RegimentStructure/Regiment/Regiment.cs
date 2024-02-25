@@ -103,18 +103,21 @@ namespace Kaizerwald
         //│  ◇◇◇◇◇◇ Static Constructor ◇◇◇◇◇◇                                                                          │
         //└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
         // Meant to be instantiate this way AND NO OTHER WAY
-        public static Regiment InstantiateRegiment(ulong playerId, int teamID, GameObject regimentPrefab, Vector3 position, Quaternion rotation)
+        public static Regiment InstantiateAndInitialize(GameObject regimentPrefab, Vector3 position, Quaternion rotation, ulong playerId, int teamID, LayerMask terrainLayer)
         {
             GameObject newRegiment = Instantiate(regimentPrefab, position, rotation);
-            if (!newRegiment.TryGetComponent(out Regiment regiment))
-            {
-                regiment = newRegiment.AddComponent<Regiment>();
-            }
-            regiment.InitializeProperties(playerId, teamID, regiment.Forward);
+            Regiment regiment = newRegiment.GetOrAddComponent<Regiment>();
+            //if (!newRegiment.TryGetComponent(out Regiment regiment)) { regiment = newRegiment.AddComponent<Regiment>(); }
+            regiment.InitializeProperties(playerId, teamID, terrainLayer);
             return regiment;
         }
         
-        public void InitializeProperties(ulong playerId, int teamID, float3 regimentDirection)
+        public Regiment InitializeProperties(ulong playerId, int teamID, LayerMask terrainLayer)
+        {
+            return InitializeProperties(playerId, teamID, terrainLayer, Forward);
+        }
+
+        public Regiment InitializeProperties(ulong playerId, int teamID, LayerMask terrainLayer, float3 regimentDirection)
         {
             //Properties
             RegimentID = transform.GetInstanceID();
@@ -130,15 +133,15 @@ namespace Kaizerwald
             //BehaviourTree
             BehaviourTree = gameObject.GetOrAddComponent<RegimentBehaviourTree>();
             BehaviourTree.InitializeAndRegisterUnits(this);
-            return;
+            return this;
             //┌▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁┐
             //▕  ◇◇◇◇◇◇ Internal Methods ◇◇◇◇◇◇                                                                        ▏
             //└▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔┘
             List<Unit> CreateRegimentsUnit()
             {
                 GameObject prefab = RegimentType.UnitPrefab;
-                int unitLayerIndex = RegimentManager.Instance.UnitLayerMask.GetLayerIndex();
-                using NativeArray<float3> positions = formation.GetPositionsInFormationByRaycast(Position, RegimentManager.Instance.TerrainLayerMask);
+                int unitLayerIndex = KaizerwaldGameManager.Instance.UnitLayerIndex;
+                using NativeArray<float3> positions = formation.GetPositionsInFormationByRaycast(Position, terrainLayer);
                 
                 List<Unit> tmpUnits = new(formation.BaseNumUnits);
                 for (int i = 0; i < positions.Length; i++)
@@ -148,6 +151,21 @@ namespace Kaizerwald
                 }
                 return tmpUnits;
             }
+        }
+        
+        private List<Unit> CreateRegimentsUnit2(Formation formation, LayerMask terrainLayer)
+        {
+            GameObject prefab = RegimentType.UnitPrefab;
+            int unitLayerIndex = KaizerwaldGameManager.Instance.UnitLayerIndex;
+            using NativeArray<float3> positions = formation.GetPositionsInFormationByRaycast(Position, terrainLayer);
+                
+            List<Unit> tmpUnits = new(formation.BaseNumUnits);
+            for (int i = 0; i < positions.Length; i++)
+            {
+                Unit unit = Unit.InstantiateUnit(i, unitLayerIndex, this, prefab, positions[i], Rotation);
+                tmpUnits.Add(unit);
+            }
+            return tmpUnits;
         }
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖

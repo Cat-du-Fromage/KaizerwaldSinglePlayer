@@ -12,10 +12,11 @@ GameObject:
   - component: {fileID: 4799210888554567742}
   - component: {fileID: 7361914644305368687}
   - component: {fileID: 4278198254782985048}
+  - component: {fileID: 3277421030940302087}
   - component: {fileID: 7431238223711506287}
   - component: {fileID: 507186437087859498}
   - component: {fileID: 8553602944952644417}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: SimpleTerrain
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -64,10 +65,10 @@ MeshRenderer:
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 0}
+  - {fileID: 2100000, guid: efed37df1186bda4685d09c737043a06, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -111,6 +112,23 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 0}
+--- !u!114 &3277421030940302087
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7220548846776909168}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3367098f37d11eb48a8fb2d683c54327, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SpawnerPrefab: {fileID: 3503010057562491949, guid: 0ca1a417229cb13468d4ecf4ae7cf8d0,
+    type: 3}
+  SpawnerMaterial: {fileID: 2100000, guid: d18f4dfb555bab44483d85c339bbe3f0, type: 2}
+  TerrainSettings: {fileID: 0}
+  Spawners: []
 --- !u!114 &7431238223711506287
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -123,8 +141,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64db66a129de6514089afbf11ecccbb2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  <SizeX>k__BackingField: 4
-  <SizeY>k__BackingField: 4
+  <SizeX>k__BackingField: 128
+  <SizeY>k__BackingField: 128
 --- !u!114 &507186437087859498
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -153,3 +171,5 @@ MonoBehaviour:
   TerrainLayerMask:
     serializedVersion: 2
     m_Bits: 256
+  <AutoUpdate>k__BackingField: 0
+  <IsInitialized>k__BackingField: 1

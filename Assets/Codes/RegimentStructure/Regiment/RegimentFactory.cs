@@ -1,14 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Kaizerwald.FormationModule;
-//using KWUtils;
-using UnityEngine;
 using Unity.Mathematics;
+using UnityEngine;
 
 using static Unity.Mathematics.math;
 
 using Kaizerwald.Utilities;
+using Kaizerwald.FormationModule;
 
 namespace Kaizerwald
 {
@@ -33,10 +32,16 @@ namespace Kaizerwald
 
         private Dictionary<int, float> TeamKeyPairOffset = new Dictionary<int, float>(2);
         
+        private LayerMask TerrainLayerMask => KaizerwaldGameManager.Instance.TerrainLayerMask;
+        
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ UNITY EVENTS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
+        protected override void OnAwake()
+        {
+            base.OnAwake();
+        }
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
@@ -60,14 +65,16 @@ namespace Kaizerwald
         
         private List<Regiment> CreateRegiments(Dictionary<int, Dictionary<ulong, List<RegimentSpawner>>> spawnerByTeam)
         {
-            //not accurate since a commands may have a number property > 1
+            //TODO: !!not accurate since a commands may have a number property > 1
             List<Regiment> regimentsCreated = new (spawnerByTeam.Values.Sum(pair => pair.Values.Count));
             int teamIndex = 0;// because may enter team like (0,2,6).. need to fixe that
             foreach ((int teamId, Dictionary<ulong, List<RegimentSpawner>> teamSpawners) in spawnerByTeam)
             {
                 TeamKeyPairOffset[teamId] = 0;
+                
                 Vector3 startPosition = TerrainManager.Instance.GetPlayerFirstSpawnPosition(teamIndex);
                 Transform spawnerTransform = TerrainManager.Instance.GetSpawnerTransform(teamIndex);
+                
                 foreach ((ulong playerId, List<RegimentSpawner> playerSpawners) in teamSpawners)
                 {
                     for (int spawnerIndex = 0; spawnerIndex < playerSpawners.Count; spawnerIndex++)
@@ -80,7 +87,9 @@ namespace Kaizerwald
                         {
                             TeamKeyPairOffset[teamId] += GetOffset(current, cloneIndex, true) + SPACE_BETWEEN_REGIMENT;
                             Vector3 position = startPosition + TeamKeyPairOffset[teamId] * spawnerTransform.right;
-                            regimentsCreated.Add(Regiment.InstantiateRegiment(playerId, teamId, regimentPrefab, position, spawnerTransform.rotation));
+
+                            Regiment regiment = Instantiate(regimentPrefab, position, spawnerTransform.rotation).GetOrAddComponent<Regiment>();
+                            regimentsCreated.Add(regiment.InitializeProperties(playerId, teamId, TerrainLayerMask));
                         }
                     }
                 }

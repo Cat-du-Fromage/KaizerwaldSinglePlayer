@@ -22,7 +22,7 @@ namespace Kaizerwald.StateMachine
     
     public class UnitRangeAttackState : UnitStateBase<RegimentRangeAttackState>
     {
-        private readonly LayerMask UnitLayerMask;
+        //private readonly LayerMask UnitLayerMask;
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                                ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                 ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
@@ -57,7 +57,7 @@ namespace Kaizerwald.StateMachine
 
         public UnitRangeAttackState(UnitBehaviourTree behaviourTree) : base(behaviourTree, EStates.Fire)
         {
-            UnitLayerMask = RegimentManager.Instance.UnitLayerMask;
+            //UnitLayerMask = KaizerwaldGameManager.Instance.UnitLayerMask;
 
             uint seed = (uint)(abs(LinkedUnit.GetInstanceID()) + IndexInFormation);
             randomState = Random.CreateFromIndex(seed);

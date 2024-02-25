@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+using Kaizerwald.Utilities;
+
 namespace Kaizerwald
 {
     [CreateAssetMenu(fileName = "NewRegimentPrefabsList", menuName = "Regiment/PrefabsList")]

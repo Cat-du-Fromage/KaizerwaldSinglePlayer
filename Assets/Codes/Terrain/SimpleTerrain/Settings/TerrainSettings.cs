@@ -37,8 +37,8 @@ namespace Kaizerwald.TerrainBuilder
 
         public TerrainSettings Initialize()
         {
-            SizeX = max(1, ceilpow2(SizeX));
-            SizeY = max(1, ceilpow2(SizeY));
+            SizeX = max(1, Mathf.ClosestPowerOfTwo(SizeX));
+            SizeY = max(1, Mathf.ClosestPowerOfTwo(SizeY));
             return this;
         }
         
@@ -50,8 +50,8 @@ namespace Kaizerwald.TerrainBuilder
 #if UNITY_EDITOR
         private void OnValidate()
         {
-            SizeX = max(1, ceilpow2(SizeX));
-            SizeY = max(1, ceilpow2(SizeY));
+            SizeX = max(1, Mathf.ClosestPowerOfTwo(SizeX));
+            SizeY = max(1, Mathf.ClosestPowerOfTwo(SizeY));
         }
 #endif
     }

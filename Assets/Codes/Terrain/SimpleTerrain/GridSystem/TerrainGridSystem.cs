@@ -40,12 +40,12 @@ namespace Kaizerwald.TerrainBuilder
 //║                                             ◆◆◆◆◆◆ UNITY EVENTS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        protected override void OnAwake()
+        private void OnDestroy()
         {
-            base.OnAwake();
+            OnDispose();
         }
 
-        private void OnDestroy()
+        public void OnDispose()
         {
             if (nodes.IsCreated) nodes.Dispose();
             if (obstacles.IsCreated) obstacles.Dispose();
@@ -72,16 +72,18 @@ namespace Kaizerwald.TerrainBuilder
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        public void Initialize(SimpleTerrain terrain)
+        public TerrainGridSystem Initialize(SimpleTerrain terrain)
         {
+            OnDispose();
             gridCells = new GridCells(terrain);
             nodes = new NativeArray<Node>(terrain.TerrainSettings.QuadCount, Persistent, UninitializedMemory);
             for (int i = 0; i < nodes.Length; i++) nodes[i] = new Node(i, terrain.TerrainSettings.NumQuadX);
+            return this;
         }
 
         public NativeList<int> GetPathTo(float3 currentPosition, float3 targetPosition)
         {
-            NativeList<int> pathList = new (8, Allocator.TempJob);
+            NativeList<int> pathList = new (8, TempJob);
             int startIndex = KzwGrid.GetIndexFromPositionCentered(currentPosition.xz, gridCells.NumCellXY);
             int endIndex = KzwGrid.GetIndexFromPositionCentered(targetPosition.xz, gridCells.NumCellXY);
             JAStar.Process(pathList, gridCells.NumCellXY, startIndex, endIndex, nodes, true).Complete();
@@ -90,14 +92,16 @@ namespace Kaizerwald.TerrainBuilder
         
         public NativeArray<Cell> GetCellPathTo(float3 currentPosition, float3 targetPosition, Allocator allocator = Temp)
         {
-            NativeList<int> pathList = new (8, Allocator.TempJob);
+            NativeList<int> pathList = new (8, TempJob);
             int startIndex = KzwGrid.GetIndexFromPositionCentered(currentPosition.xz, gridCells.NumCellXY);
             int endIndex = KzwGrid.GetIndexFromPositionCentered(targetPosition.xz, gridCells.NumCellXY);
             JAStar.Process(pathList, gridCells.NumCellXY, startIndex, endIndex, nodes, true).Complete();
             
             NativeArray<Cell> cellPath = new(pathList.Length, allocator, UninitializedMemory);
-            for (int i = 0; i < pathList.Length; i++) cellPath[i] = gridCells.Cells[pathList[i]];
-            
+            for (int i = 0; i < pathList.Length; i++)
+            {
+                cellPath[i] = gridCells.Cells[pathList[i]];
+            }
             pathList.Dispose();
             return cellPath;
         }

@@ -5,6 +5,11 @@ using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.InputSystem;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 using static Unity.Mathematics.math;
 using static UnityEngine.Mesh;
@@ -15,8 +20,6 @@ using static Unity.Collections.NativeArrayOptions;
 using half4 = Unity.Mathematics.half4;
 
 using Kaizerwald.Utilities;
-using UnityEngine.InputSystem;
-using UnityEngine.Serialization;
 
 namespace Kaizerwald.TerrainBuilder
 {
@@ -24,8 +27,6 @@ namespace Kaizerwald.TerrainBuilder
     [RequireComponent(typeof(TerrainSettings), typeof(TerrainGridSystem))]
     public class SimpleTerrain : Singleton<SimpleTerrain>
     {
-        //public int PriorityOrder => 0;
-        
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                                ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                 ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
@@ -40,10 +41,11 @@ namespace Kaizerwald.TerrainBuilder
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                               ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-        
-        public bool IsInitialized { get; private set; }
-        public TerrainSettings TerrainSettings { get; private set; }
-        public TerrainGridSystem TerrainGridSystem { get; private set; }
+        [field:SerializeField] public bool AutoUpdate { get; private set; }
+        [field:SerializeField] public bool IsInitialized { get; private set; }
+        [field:SerializeField] public TerrainSettings TerrainSettings { get; private set; }
+        [field:SerializeField] public TerrainGridSystem TerrainGridSystem { get; private set; }
+        [field:SerializeField] public SpawnerManager SpawnerManager { get; private set; }
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║
@@ -67,17 +69,16 @@ namespace Kaizerwald.TerrainBuilder
         protected override void OnAwake()
         {
             base.OnAwake();
-            meshFilter = GetComponent<MeshFilter>();
-            meshRenderer = GetComponent<MeshRenderer>();
-            meshCollider = GetComponent<MeshCollider>();
-            
-            TerrainSettings = GetComponent<TerrainSettings>().Initialize();
-            TerrainGridSystem = GetComponent<TerrainGridSystem>();
-            GenerateTerrain();
+            Initialize();
+        }
+        
+#if UNITY_EDITOR
+        public void DrawMapInEditor()
+        {
+            Initialize();
         }
         
         /*
-#if UNITY_EDITOR
         private void OnDrawGizmos()
         {
             Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.value);
@@ -85,11 +86,24 @@ namespace Kaizerwald.TerrainBuilder
             Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(hit.point, 0.45f);
         }
-#endif
         */
+#endif  
+        
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+        private void Initialize()
+        {
+            meshFilter        = GetComponent<MeshFilter>();
+            meshRenderer      = GetComponent<MeshRenderer>();
+            meshCollider      = GetComponent<MeshCollider>();
+            TerrainSettings   = GetComponent<TerrainSettings>().Initialize();
+            TerrainGridSystem = GetComponent<TerrainGridSystem>().Initialize(this);
+            SpawnerManager    = GetComponent<SpawnerManager>().Initialize();
+            GenerateTerrain();
+        }
+
         public void GenerateTerrain(string terrainName = "SimpleTerrain")
         {
             name = terrainName;
@@ -106,7 +120,6 @@ namespace Kaizerwald.TerrainBuilder
             ApplyAndDisposeWritableMeshData(meshDataArray, terrainMesh);
 
             UpdateMeshProperties(terrainMesh);
-
             IsInitialized = true;
             OnTerrainGenerated?.Invoke(this);
             TerrainGridSystem.Initialize(this);
@@ -117,10 +130,8 @@ namespace Kaizerwald.TerrainBuilder
             terrainMesh.RecalculateNormals();
             terrainMesh.RecalculateTangents();
             terrainMesh.RecalculateBounds();
-            
             meshFilter.mesh = terrainMesh;
             meshCollider.sharedMesh = terrainMesh;
-            
             meshRenderer.sharedMaterial = DefaultMaterial;
             meshRenderer.ResetBounds();
         }
@@ -131,7 +142,7 @@ namespace Kaizerwald.TerrainBuilder
 //║                                                 ◆◆◆◆◆◆ JOBS ◆◆◆◆◆◆                                                 ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-    [BurstCompile(CompileSynchronously = true)]
+    //[BurstCompile(CompileSynchronously = true)]
     internal struct JMeshData : IJobFor
     {
         [ReadOnly] public int2 NumVerticesXY;

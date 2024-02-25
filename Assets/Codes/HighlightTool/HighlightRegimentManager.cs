@@ -15,7 +15,7 @@ namespace Kaizerwald
     //FAIRE de régiment manager une partie intégrante de l'outil "HighlightRegimentManager"
     public sealed class HighlightRegimentManager : Singleton<HighlightRegimentManager>, IOwnershipInformation, IGameSystem
     {
-        public int PriorityOrder => 0;
+        public int ExecutionOrderWeight => 0;
         
         
         // IOwnershipInformation

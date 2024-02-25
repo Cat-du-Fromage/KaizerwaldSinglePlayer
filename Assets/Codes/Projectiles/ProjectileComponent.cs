@@ -48,7 +48,7 @@ namespace Kaizerwald
             bulletTransform = transform;
             BulletRigidbody = GetComponent<Rigidbody>();
             Trail = GetComponent<TrailRenderer>();
-            unitLayerIndex = RegimentManager.Instance.UnitLayerMask.GetLayerIndex();
+            unitLayerIndex = KaizerwaldGameManager.Instance.UnitLayerIndex;
         }
         
         public void OnUpdate()

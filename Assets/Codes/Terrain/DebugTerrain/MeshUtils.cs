@@ -10,9 +10,9 @@ namespace Kaizerwald
     {
         private static int[] SquareTriangleIndices => new int[] { 0, 2, 1, 1, 2, 3 };
         
-        private static Vector3[] CenteredSquareVertices(int2 scaleXY)
+        private static Vector3[] CenteredSquareVertices(float2 scaleXY)
         {
-            float2 cornersValue = new float2(0.5f) * scaleXY;
+            float2 cornersValue = scaleXY / 2f;
             return new[]
             {
                 new Vector3(-cornersValue.x, 0, -cornersValue.y),
@@ -22,7 +22,7 @@ namespace Kaizerwald
             };
         }
 
-        private static Vector2[] SquareUvs(int2 sizeXY)
+        private static Vector2[] SquareUvs(float2 sizeXY)
         {
             Vector2 uvValues = new Vector2(1f / (sizeXY.x + 1), 1f / (sizeXY.y + 1));
             return new Vector2[]
@@ -34,7 +34,7 @@ namespace Kaizerwald
             };
         }
         
-        public static Mesh CreatePlaneMesh(int2 sizeXY)
+        public static Mesh CreatePlaneMesh(float2 sizeXY)
         {
             Mesh mesh = new Mesh
             {

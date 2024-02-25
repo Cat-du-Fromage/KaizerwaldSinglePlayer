@@ -11,7 +11,7 @@ namespace Kaizerwald
 {
     public class ProjectileManager : Singleton<ProjectileManager>, IGameSystem
     {
-        public int PriorityOrder => 0;
+        public int ExecutionOrderWeight => 0;
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                                ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                 ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝

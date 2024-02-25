@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Kaizerwald.Utilities;
@@ -6,26 +5,10 @@ using UnityEngine;
 
 namespace Kaizerwald
 {
-    public interface IGameSystem : IComparable<IGameSystem>
-    {
-        public int PriorityOrder { get; }
-        
-        public void OnStart();
-        
-        public void OnFixedUpdate();
-        public void OnUpdate();
-        public void OnLateUpdate();
-
-        int IComparable<IGameSystem>.CompareTo(IGameSystem other)
-        {
-            return PriorityOrder.CompareTo(other.PriorityOrder);
-        }
-    }
-    
-    
     public class GameSystemsManager : Singleton<GameSystemsManager>
     {
-        private List<IGameSystem> GameSystems;
+        protected List<IGameSystem> GameSystems;
+        
         protected override void OnAwake()
         {
             base.OnAwake();
@@ -34,43 +17,43 @@ namespace Kaizerwald
 
         private void Start()
         {
-            foreach (IGameSystem gameSystem in GameSystems)
+            for (int i = 0; i < GameSystems.Count; i++)
             {
-                gameSystem.OnStart();
+                GameSystems[i].OnStart();
             }
         }
         
         private void FixedUpdate()
         {
-            foreach (IGameSystem gameSystem in GameSystems)
+            for (int i = 0; i < GameSystems.Count; i++)
             {
-                gameSystem.OnFixedUpdate();
+                GameSystems[i].OnFixedUpdate();
             }
         }
 
         private void Update()
         {
-            foreach (IGameSystem gameSystem in GameSystems)
+            for (int i = 0; i < GameSystems.Count; i++)
             {
-                gameSystem.OnUpdate();
+                GameSystems[i].OnUpdate();
             }
         }
         
         private void LateUpdate()
         {
-            foreach (IGameSystem gameSystem in GameSystems)
+            for (int i = 0; i < GameSystems.Count; i++)
             {
-                gameSystem.OnLateUpdate();
+                GameSystems[i].OnLateUpdate();
             }
         }
 
-        public List<IGameSystem> FindGameSystemInterface()
+        private List<IGameSystem> FindGameSystemInterface()
         {
             MonoBehaviour[] monoBehaviours = GameObject.FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None);
             List<IGameSystem> gameSystems = monoBehaviours
             .SelectMany(behaviour => behaviour.GetComponents<IGameSystem>())
             .Distinct()
-            .OrderBy(system => system.PriorityOrder)
+            .OrderBy(system => system.ExecutionOrderWeight)
             .ToList();
             return gameSystems;
         }

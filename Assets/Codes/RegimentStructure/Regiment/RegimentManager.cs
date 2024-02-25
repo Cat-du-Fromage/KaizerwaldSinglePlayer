@@ -13,7 +13,7 @@ namespace Kaizerwald
 {
     public class RegimentManager : Singleton<RegimentManager>, IGameSystem
     {
-        public int PriorityOrder => 1;
+        public int ExecutionOrderWeight => 1;
         
         public const float RegimentFieldOfView = 60f;
         
@@ -28,8 +28,8 @@ namespace Kaizerwald
 //║                                              ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        [field:SerializeField] public LayerMask TerrainLayerMask { get; private set; }
-        [field:SerializeField] public LayerMask UnitLayerMask { get; private set; }
+        //[field:SerializeField] public LayerMask TerrainLayerMask { get; private set; }
+        //[field:SerializeField] public LayerMask UnitLayerMask { get; private set; }
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Containers ◈◈◈◈◈◈                                                                                       ║

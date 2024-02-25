@@ -3,6 +3,7 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using Unity.Mathematics;
+using UnityEngine;
 
 using static Unity.Mathematics.math;
 using static Unity.Mathematics.noise;
@@ -12,7 +13,7 @@ using static Unity.Collections.Allocator;
 using static Unity.Collections.NativeArrayOptions;
 
 using Kaizerwald.Utilities;
-using UnityEngine;
+
 using static Kaizerwald.Utilities.KzwMath;
 
 namespace Kaizerwald.TerrainBuilder
@@ -24,7 +25,10 @@ namespace Kaizerwald.TerrainBuilder
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
         public int2 NumCellXY { get; private set; }
         public Cell[] Cells { get; private set; }
-
+        
+    //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
+    //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║
+    //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
         public int Count => Cells.Length;
         public Cell this[int index] => Cells[index];
         

@@ -110,6 +110,15 @@ namespace Kaizerwald
             IsInactive = true;
             Animation.SetDead(); // need to track when animation finishes to disable collider
             LinkedRegiment.OnDeadUnit(this);
+            StartCoroutine(DisableCollider());
+        }
+        
+        private IEnumerator DisableCollider()
+        {
+            yield return new WaitForSeconds(3f);
+            unitCollider.enabled = false;
+            unitRigidBody.detectCollisions = false;
+            unitRigidBody.Sleep();
         }
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
@@ -134,10 +143,8 @@ namespace Kaizerwald
             //remove collider etc.. + inform highlight?
             //TODO: Find a way to link this event with Highlight.AfterRemoval
             DestroyHighlight();
-            //unitCollider.enabled = false;
-            //unitRigidBody.Sleep();
         }
-
+        
         public override void OnRearrangement(int newIndex)
         {
             IndexInFormation = newIndex;
