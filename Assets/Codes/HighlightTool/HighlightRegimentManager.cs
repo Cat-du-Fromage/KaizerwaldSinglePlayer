@@ -20,7 +20,7 @@ namespace Kaizerwald
         
         // IOwnershipInformation
         [field:SerializeField] public ulong OwnerPlayerID { get; private set; }
-        [field:SerializeField] public int TeamID { get; private set; }
+        [field:SerializeField] public short TeamID { get; private set; }
         
         [field:Header("Layer Masks")]
         [field:SerializeField] public LayerMask TerrainLayerMask { get; private set; }
@@ -167,7 +167,7 @@ namespace Kaizerwald
         }
 
         public void SetPlayerID(ulong playerID) => OwnerPlayerID = playerID;
-        public void SetTeamID(int teamID) => TeamID = teamID;
+        public void SetTeamID(int teamID) => TeamID = (short)teamID;
         
         public void SetPlayerInfos(ulong playerID, int teamID)
         {

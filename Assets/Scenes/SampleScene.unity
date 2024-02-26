@@ -734,12 +734,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 53da104ae2eb21242aa1f344c4c92d9e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  IsInitialized: 1
+  <MaxPlayer>k__BackingField: 0
   <TerrainLayerMask>k__BackingField:
     serializedVersion: 2
     m_Bits: 256
   <UnitLayerMask>k__BackingField:
     serializedVersion: 2
     m_Bits: 64
+  <PlayersInfo>k__BackingField:
+  - <OwnerPlayerID>k__BackingField: 0
+    <TeamID>k__BackingField: 0
+  - <OwnerPlayerID>k__BackingField: 1
+    <TeamID>k__BackingField: 1
 --- !u!43 &893420395
 Mesh:
   m_ObjectHideFlags: 0

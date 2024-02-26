@@ -31,7 +31,7 @@ namespace Kaizerwald
 
         // REGIMENT IDENTIFICATION (IOwnershipInformation)
         [field:SerializeField] public ulong OwnerPlayerID { get; private set; }
-        [field:SerializeField] public int TeamID { get; private set; }
+        [field:SerializeField] public short TeamID { get; private set; }
         [field:SerializeField] public int RegimentID { get; private set; }
         
         // REGIMENT STATS
@@ -122,7 +122,7 @@ namespace Kaizerwald
             //Properties
             RegimentID = transform.GetInstanceID();
             OwnerPlayerID = playerId;
-            TeamID = teamID;
+            TeamID = (short)teamID;
             name = $"Player({playerId})_Regiment({RegimentID})";
             
             //FormationMatrix
