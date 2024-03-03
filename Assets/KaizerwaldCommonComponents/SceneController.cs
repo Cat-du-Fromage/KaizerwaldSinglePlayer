@@ -10,7 +10,7 @@ namespace Kaizerwald
 {
     public enum EScene : int
     {
-        BootstrapScene,
+        //BootstrapScene,
         //StartupScene,
         MainMenuScene,
         //LobbyRoomScene,
@@ -19,7 +19,8 @@ namespace Kaizerwald
     
    public sealed class SceneController : Singleton<SceneController>
     {
-        private EScene sceneActive = EScene.BootstrapScene;
+        //private EScene sceneActive = EScene.BootstrapScene;
+        private EScene sceneActive = EScene.MainMenuScene;
         
         public EScene GetSceneActive()
         {

@@ -82,18 +82,6 @@ namespace Kaizerwald
                 if (regiment == null) continue;
                 RegimentKeyPairIndex[regiment] = i - indexOffset;
                 RegimentTypeKeyPairIndex[regiment.RegimentType] = i - indexOffset;
-                /*
-                
-                if (!RegimentKeyPairIndex.TryAdd(regiment, i))
-                {
-                    RegimentKeyPairIndex[regiment] = i - indexOffset;
-                }
-
-                if (!RegimentTypeKeyPairIndex.TryAdd(regiment.RegimentType, i))
-                {
-                    RegimentTypeKeyPairIndex[regiment.RegimentType] = i - indexOffset;
-                }
-                */
             }
 
             //not as elegant as a while it's safer
