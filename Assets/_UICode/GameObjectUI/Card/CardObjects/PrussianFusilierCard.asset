@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: PrussianFusilierCard
   m_EditorClassIdentifier: 
   Name: PrussianFusilier
+  Icon: {fileID: 21300000, guid: 6ea26638c25d0f046b22e386ecd91b22, type: 3}
+  RegimentType: {fileID: 11400000, guid: 76ef1c3bd4816bf49b1959e53fd23df3, type: 2}
   Id:
     Part1: 2644599385
     Part2: 1334228296
     Part3: 3499233668
     Part4: 2433145445
-  Icon: {fileID: 21300000, guid: 6ea26638c25d0f046b22e386ecd91b22, type: 3}
-  Description: 

@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &4715152093424123114
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3012034143774397034}
+  - component: {fileID: 6519464070564602126}
+  m_Layer: 0
+  m_Name: PlayerManagers
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3012034143774397034
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4715152093424123114}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6519464070564602126
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4715152093424123114}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 568bc1fb3e547ac489a9a856c0170ddf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  <CreationOrders>k__BackingField:
+  - PlayerID: 0
+    TeamID: 0
+    Number: 2
+    RegimentType: {fileID: 11400000, guid: 1eec153d08be6b34e8cd69439347ebcd, type: 2}
+  - PlayerID: 1
+    TeamID: 1
+    Number: 3
+    RegimentType: {fileID: 11400000, guid: 76ef1c3bd4816bf49b1959e53fd23df3, type: 2}
+  - PlayerID: 0
+    TeamID: 0
+    Number: 3
+    RegimentType: {fileID: 11400000, guid: 6e632e066b3d19c40ac1f87c587b7412, type: 2}
+  - PlayerID: 1
+    TeamID: 1
+    Number: 2
+    RegimentType: {fileID: 11400000, guid: ff518aafe65427e45be4f679722c8f49, type: 2}

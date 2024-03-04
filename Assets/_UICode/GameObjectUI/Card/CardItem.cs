@@ -9,15 +9,16 @@ namespace Kaizerwald
     public class CardItem
     {
         public CardDetails CardDetails;
-        //Add Regiment Type
+        public RegimentType RegimentType;
         [field:SerializeField] public SerializableGuid UniqueId { get; private set; }
         [field:SerializeField] public SerializableGuid DetailsId { get; private set; }
         
         public CardItem(CardDetails details) 
         {
+            CardDetails = details;
+            RegimentType = details.RegimentType;
             UniqueId = SerializableGuid.NewGuid();
             DetailsId = details.Id;
-            CardDetails = details;
         }
     }
 }

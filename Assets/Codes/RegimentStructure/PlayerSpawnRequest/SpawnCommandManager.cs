@@ -9,19 +9,20 @@ namespace Kaizerwald
     public class SpawnCommandManager : Singleton<SpawnCommandManager>, IPlayersRegimentsCommand
     {
         // Use for convieniance/debug purpose
-        [field: SerializeField] public RegimentSpawner[] CreationOrders { get; private set; }
+        //[field: SerializeField] public RegimentSpawner[] CreationOrders { get; private set; }
+        [field: SerializeField] public List<RegimentSpawner> CreationOrders { get; private set; } = new ();
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                              ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        public Dictionary<ulong, List<RegimentSpawner>> PlayerKeyPairSpawners { get; private set; }
-        public Dictionary<int, Dictionary<ulong, List<RegimentSpawner>>> TeamKeyPairPlayerSpawners { get; private set; }
+        public Dictionary<ulong, List<RegimentSpawner>> PlayerKeyPairSpawners { get; private set; } = new();
+        public Dictionary<int, Dictionary<ulong, List<RegimentSpawner>>> TeamKeyPairPlayerSpawners { get; private set; } = new();
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ UNITY EVENTS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-
+        
         protected override void OnAwake()
         {
             base.OnAwake();
@@ -33,7 +34,25 @@ namespace Kaizerwald
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        private Dictionary<int, Dictionary<ulong, List<RegimentSpawner>>> DivideSpawnOrdersByTeam(RegimentSpawner[] orders)
+        public void AddRegimentSpawner(ulong playerId, int teamId, RegimentType regimentType)
+        {
+            RegimentSpawner spawner = new RegimentSpawner
+            {
+                PlayerID = playerId,
+                TeamID = teamId,
+                Number = 1,
+                RegimentType = regimentType
+            };
+            CreationOrders.Add(spawner);
+        }
+
+        public void Initialize()
+        {
+            TeamKeyPairPlayerSpawners = DivideSpawnOrdersByTeam(CreationOrders);
+            PlayerKeyPairSpawners = GetSpawnersPerPlayerID(TeamKeyPairPlayerSpawners);
+        }
+
+        private Dictionary<int, Dictionary<ulong, List<RegimentSpawner>>> DivideSpawnOrdersByTeam(IEnumerable<RegimentSpawner> orders)
         {
             Dictionary<int, Dictionary<ulong, List<RegimentSpawner>>> spawnerByTeam = new (4);
             foreach (RegimentSpawner order in orders)

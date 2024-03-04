@@ -407,26 +407,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 4860241725157553304, guid: d443a22c97934af429f1433f19fa8e61,
-        type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
-      value: 
-      objectReference: {fileID: 617213889}
-    - target: {fileID: 4860241725157553304, guid: d443a22c97934af429f1433f19fa8e61,
-        type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: OnPlayGame
-      objectReference: {fileID: 0}
-    - target: {fileID: 4860241725157553304, guid: d443a22c97934af429f1433f19fa8e61,
-        type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: Kaizerwald.SelectionMenuUI, Assembly-CSharp
-      objectReference: {fileID: 0}
-    - target: {fileID: 4860241725157553304, guid: d443a22c97934af429f1433f19fa8e61,
-        type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
-      value: UnityEngine.Object, UnityEngine
-      objectReference: {fileID: 0}
     - target: {fileID: 5488031540924458159, guid: d443a22c97934af429f1433f19fa8e61,
         type: 3}
       propertyPath: m_AnchorMax.y
@@ -572,18 +552,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d443a22c97934af429f1433f19fa8e61, type: 3}
---- !u!114 &617213889 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 3414238025278386843, guid: d443a22c97934af429f1433f19fa8e61,
-    type: 3}
-  m_PrefabInstance: {fileID: 617213888}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 107a6fa1a59cf8541a97aa708a3c2829, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1392001894
 GameObject:
   m_ObjectHideFlags: 0
@@ -926,12 +894,58 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &3012034143114759006
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4715152092221318622}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &4715152092221318622
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3012034143114759006}
+  - component: {fileID: 6519464069347260474}
+  m_Layer: 0
+  m_Name: PlayerManagers
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &6519464069347260474
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4715152092221318622}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 568bc1fb3e547ac489a9a856c0170ddf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  <CreationOrders>k__BackingField: []
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 2109313807}
   - {fileID: 1895420208}
+  - {fileID: 3012034143114759006}
   - {fileID: 617213888}
   - {fileID: 1392001896}
   - {fileID: 1694478833}

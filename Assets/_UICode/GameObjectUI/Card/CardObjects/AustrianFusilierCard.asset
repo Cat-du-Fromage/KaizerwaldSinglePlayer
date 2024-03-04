@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: AustrianFusilierCard
   m_EditorClassIdentifier: 
   Name: AustrianFusilier
+  Icon: {fileID: 21300000, guid: 08cd2dc309f9b9741bacf4b5376bd918, type: 3}
+  RegimentType: {fileID: 11400000, guid: 1eec153d08be6b34e8cd69439347ebcd, type: 2}
   Id:
     Part1: 1019203848
     Part2: 1275572023
     Part3: 1115682215
     Part4: 4129356552
-  Icon: {fileID: 21300000, guid: 08cd2dc309f9b9741bacf4b5376bd918, type: 3}
-  Description: 

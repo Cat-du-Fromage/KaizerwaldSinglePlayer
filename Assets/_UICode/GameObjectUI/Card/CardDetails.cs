@@ -11,7 +11,7 @@ namespace Kaizerwald
     {
         public string Name;
         public Sprite Icon;
-        //Add Regiment Type
+        public RegimentType RegimentType;
         public SerializableGuid Id = SerializableGuid.NewGuid();
         
         private void AssignNewGuid()
