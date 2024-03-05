@@ -4,6 +4,7 @@ using System.Linq;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
+using Unity.Burst;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -210,12 +211,11 @@ namespace Kaizerwald
         private NativeArray<float3> GetDestinationsPosition()
         {
             float distanceWidth = clamp(mouseDistance, MinMaxSelectionWidth[0], MinMaxSelectionWidth[1]);
-            float singleWidthSpace = distanceWidth / SortedSelectedRegiments.Count;
-            float halfSingleWidthSpace = singleWidthSpace / 2f;
+            float singleWidthSpace = (distanceWidth / SortedSelectedRegiments.Count) * 1.5f;
             NativeArray<float3> mockedDestinationPoints = new (SortedSelectedRegiments.Count, Temp, UninitializedMemory);
             for (int i = 0; i < SortedSelectedRegiments.Count; i++)
             {
-                float distance = i * singleWidthSpace + halfSingleWidthSpace;
+                float distance = i * singleWidthSpace;
                 mockedDestinationPoints[i] = (float3)MouseStart + LineDirection * distance;
             }
             return mockedDestinationPoints;
@@ -239,7 +239,6 @@ namespace Kaizerwald
             NativeArray<float> costMatrix = GetCostMatrix();
             NativeArray<int> sortedIndex = HungarianAlgorithm.FindNativeAssignments(costMatrix, SelectedRegiments.Count);
             //CAREFULL sortedIndex express : At index  value = "sortedIndex[i]", I want current element index "i"!
-            //List<HighlightRegiment> tmpSorted = new (SortedSelectedRegiments);
             for (int i = 0; i < sortedIndex.Length; i++)
             {
                 if(SelectedRegiments[i] == null) Debug.Log($"SortSelections: null Selected regiment at {i}");
@@ -286,18 +285,19 @@ namespace Kaizerwald
 
         private int[] PlaceSingleUnitRegiment()
         {
-            Vector3 origin3D = new Vector3(MouseStart.x, ORIGIN_HEIGHT, MouseStart.y);
-            bool hitTerrain = Raycast(origin3D, Vector3.down, out RaycastHit hit, Infinity, TerrainLayer);
-            if (!hitTerrain || !DynamicRegister.ContainsKey(SelectedRegiments[0].RegimentID))
+            int regimentId = SelectedRegiments[0].RegimentID;
+            Ray ray = new Ray(new Vector3(MouseStart.x, ORIGIN_HEIGHT, MouseStart.y), Vector3.down);
+            if (!Raycast(ray, out RaycastHit hit, Infinity, TerrainLayer) || !DynamicRegister.ContainsKey(regimentId))
             {
                 return Array.Empty<int>();
             }
-            
-            int regimentId = SelectedRegiments[0].RegimentID;
-            Vector3 hitPoint = MouseStart + hit.normal * 0.05f;
-            Quaternion newRotation = LookRotationSafe(-DepthDirection, hit.normal);
-            DynamicRegister[regimentId][0].transform.SetPositionAndRotation(hitPoint, newRotation);
-            return new[]{1};
+            else
+            {
+                Vector3 hitPoint = MouseStart + hit.normal * 0.05f;
+                Quaternion newRotation = LookRotationSafe(-DepthDirection, hit.normal);
+                DynamicRegister[regimentId][0].transform.SetPositionAndRotation(hitPoint, newRotation);
+                return new []{1};
+            }
         }
         
         /// <summary>
@@ -351,88 +351,12 @@ namespace Kaizerwald
                 NativeSlice<float2> originSlice = tokensPositions.Slice(numUnitsRegimentBefore, numToken);
                 NativeSlice<RaycastCommand> commandsSlice = commands.Slice(numUnitsRegimentBefore, numToken);
                 jobHandles[i] = JRaycastsCommands.Process(commandsSlice, originSlice, queryParams, dependencies[i]);
-                /*
-                JRaycastsCommands rayCastJob = new()
-                {
-                    OriginHeight = ORIGIN_HEIGHT,
-                    RayDistance  = RAY_DISTANCE,
-                    QueryParams  = queryParams,
-                    Origins      = originSlice,//tokensPositions.Slice(numUnitsRegimentBefore, numToken),
-                    Commands     = commandsSlice//commands.Slice(numUnitsRegimentBefore, numToken)
-                };
-                jobHandles[i] = rayCastJob.ScheduleParallel(numToken, JobWorkerCount - 1, dependencies[i]);
-                */
                 numUnitsRegimentBefore += numToken;
             }
             JobHandle combinedDependency = JobHandle.CombineDependencies(jobHandles);
             JobHandle rayCastCommandJh = RaycastCommand.ScheduleBatch(commands, results, 1, 1, combinedDependency);
             rayCastCommandJh.Complete();
             tokensPositions.Dispose();
-            return results;
-        }
-        
-        private NativeArray<RaycastHit> GetPositionAndRotationOnTerrain(ref NativeArray<float2> tokensPositions, NativeList<JobHandle> dependencies)
-        {
-            int totalUnitsSelected = TotalUnitsSelected;
-            JobHandle.CompleteAll(dependencies.AsArray());
-            NativeArray<RaycastHit> results = new (totalUnitsSelected, Temp, UninitializedMemory);
-            NativeArray<Ray> rays = new (totalUnitsSelected, Temp, ClearMemory);
-
-            NativeHashMap<int, int> regimentKeyPairNumToken = new (SortedSelectedRegiments.Count, Temp);
-            
-            int numUnitsRegimentBefore = 0;
-            for (int i = 0; i < SortedSelectedRegiments.Count; i++)
-            {
-                int numToken = SortedSelectedRegiments[i].CurrentFormation.NumUnitsAlive;
-                
-                regimentKeyPairNumToken.Add(i, numToken);
-                
-                NativeSlice<float2> originSlice = tokensPositions.Slice(numUnitsRegimentBefore, numToken);
-                NativeSlice<Ray> raySlice = rays.Slice(numUnitsRegimentBefore, numToken);
-                for (int j = 0; j < numToken; j++)
-                {
-                    raySlice[j] = new Ray(originSlice[j].xay(ORIGIN_HEIGHT), Vector3.down);
-                }
-                numUnitsRegimentBefore += numToken;
-            }
-            tokensPositions.Dispose();
-
-            int startIndex = 0;
-            foreach (KVPair<int, int> kvPair in regimentKeyPairNumToken)
-            {
-                (int key, int value) = (kvPair.Key, kvPair.Value);
-                for (int i = 0; i < value; i++)
-                {
-                    int index = startIndex + i;
-                    bool hitTerrain = Raycast(rays[index], out RaycastHit hit, RAY_DISTANCE, TerrainLayer.value);
-                    results[index] = hitTerrain ? hit : results[index];
-                    if(!hitTerrain)
-                    {
-                        Debug.Log($"Sorted({key}): DONT HIT at {i} ray = {rays[index].origin}, Direction = {rays[index].direction} (num units = {SortedSelectedRegiments[key].Count} vs value used = {value})");
-                    }
-                }
-                startIndex += value;
-            }
-
-            //Erreur ou parfois TotalUnitsSelected a UN element en plus..
-            if (results.Length != startIndex)
-            {
-                Debug.Log($"({results.Length}/{startIndex}) results.Length != startIndex => TotalUnitsSelected iw WRONG! ({TotalUnitsSelected})");
-            }
-            /*
-            for (int i = 0; i < results.Length; i++)
-            {
-                bool hitTerrain = Raycast(rays[i], out RaycastHit hit, RAY_DISTANCE, TerrainLayer.value);
-                if(hitTerrain)
-                {
-                    results[i] = hit;
-                }
-                else
-                {
-                    Debug.Log($"GetPositionAndRotationOnTerrain DONT HIT at {i}");
-                }
-            }
-            */
             return results;
         }
         
@@ -443,8 +367,6 @@ namespace Kaizerwald
             foreach (HighlightRegiment regiment in SortedSelectedRegiments)
             {
                 if(!DynamicRegister.Records.TryGetValue(regiment.RegimentID, out HighlightBehaviour[] tokens)) continue;
-                //if (!DynamicRegister.ContainsKey(regiment.RegimentID)) continue;
-                //int regimentId = regiment.RegimentID;
                 int numToken = regiment.CurrentFormation.NumUnitsAlive;
                 NativeSlice<RaycastHit> raycastHits = results.Slice(numUnitsRegimentBefore, numToken);
                 for (int unitIndex = 0; unitIndex < numToken; unitIndex++)
@@ -453,27 +375,10 @@ namespace Kaizerwald
                     Vector3 hitPoint = currentHit.point + currentHit.normal * 0.05f;
                     Quaternion newRotation = LookRotationSafe(-depthDirection, currentHit.normal);
                     tokens[unitIndex].transform.SetPositionAndRotation(hitPoint, newRotation);
-                    //DynamicRegister.Records[regimentId][unitIndex].transform.SetPositionAndRotation(hitPoint, newRotation);
                 }
                 numUnitsRegimentBefore += numToken;
             }
         }
-        
-        //==============================================================================================================
-        //What was that for ????
-        //OK SO bug because WE NEED to take Sorted width here!
-        public NativeArray<int> GetSortedMinWidths()
-        {
-            NativeArray<int> sortedMinWidths = new (SortedSelectedRegiments.Count, Temp, UninitializedMemory);
-            for (int i = 0; i < SortedSelectedRegiments.Count; i++)
-            {
-                //Convert to FormationData So MinRow take in account NumUnitsAlive
-                FormationData formationData = SortedSelectedRegiments[i].CurrentFormation;
-                sortedMinWidths[i] = formationData.MinRow;
-            }
-            return sortedMinWidths;
-        }
-        //==============================================================================================================
         
         private NativeArray<int> GetUpdatedFormationWidths(ref float unitsToAddLength)
         {
@@ -500,7 +405,7 @@ namespace Kaizerwald
         {
             bool isMaxDistanceReach = mouseDistance < MinMaxSelectionWidth.y;
             float leftOver = isMaxDistanceReach ? unitsToAddLength / (SortedSelectedRegiments.Count - 1) : 0;
-            NativeArray<float2> starts = new (SortedSelectedRegiments.Count, Temp, UninitializedMemory);
+            NativeArray<float2> starts = new (SortedSelectedRegiments.Count, Temp, ClearMemory);
             if (SortedSelectedRegiments.Count == 0) return starts;
             
             starts[0] = ((float3)MouseStart).xz;
@@ -589,7 +494,7 @@ namespace Kaizerwald
 //║                                                 ◆◆◆◆◆◆ JOBS ◆◆◆◆◆◆                                                 ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        //[BurstCompile(OptimizeFor = OptimizeFor.Performance)]
+        [BurstCompile(OptimizeFor = OptimizeFor.Performance)]
         private struct JRaycastsCommands : IJobFor
         {
             [ReadOnly] public int OriginHeight;
@@ -601,7 +506,7 @@ namespace Kaizerwald
             [WriteOnly, NativeDisableParallelForRestriction, NativeDisableContainerSafetyRestriction]
             public NativeSlice<RaycastCommand> Commands;
 
-            public JRaycastsCommands(NativeSlice<RaycastCommand> commands, NativeSlice<float2> origins,QueryParameters queryParams)
+            public JRaycastsCommands(NativeSlice<RaycastCommand> commands, NativeSlice<float2> origins, QueryParameters queryParams)
             {
                 OriginHeight = ORIGIN_HEIGHT;
                 RayDistance = RAY_DISTANCE;
@@ -620,22 +525,12 @@ namespace Kaizerwald
             public static JobHandle Process(NativeSlice<RaycastCommand> commands, NativeSlice<float2> origins, QueryParameters queryParams, JobHandle dependency = default)
             {
                 JRaycastsCommands job = new JRaycastsCommands(commands, origins, queryParams);
-                /*
-                JRaycastsCommands job = new()
-                {
-                    OriginHeight = ORIGIN_HEIGHT,
-                    RayDistance  = RAY_DISTANCE,
-                    QueryParams  = queryParams,
-                    Origins      = origins,
-                    Commands     = commands
-                };
-                */
                 JobHandle jobHandle = job.ScheduleParallel(origins.Length, JobWorkerCount - 1, dependency);
                 return jobHandle;
             }
         }
 
-        //[BurstCompile(OptimizeFor = OptimizeFor.Performance)]
+        [BurstCompile(OptimizeFor = OptimizeFor.Performance)]
         private struct JGetInitialTokensPositions : IJobFor
         {
             [ReadOnly] public int NewWidth;
@@ -664,10 +559,71 @@ namespace Kaizerwald
                 float2 offsetStart = select(0, (float2)LineDirection * offset, isLastLine);
                 float2 position = Start + offsetStart + xOffset + yOffset;
                 
-                //float2 position = Start + GetStartOffset(y) + xOffset + yOffset;
                 TokensPositions[unitIndex] = position;
             }
         }
     }
     
 }
+
+/*
+private NativeArray<float3> GetDestinationsPosition2()
+{
+    float distanceWidth = clamp(mouseDistance, MinMaxSelectionWidth[0], MinMaxSelectionWidth[1]);
+    float singleWidthSpace = distanceWidth / SortedSelectedRegiments.Count;
+    float halfSingleWidthSpace = singleWidthSpace / 2f;
+    NativeArray<float3> mockedDestinationPoints = new (SortedSelectedRegiments.Count, Temp, UninitializedMemory);
+    for (int i = 0; i < SortedSelectedRegiments.Count; i++)
+    {
+        float distance = i * singleWidthSpace + halfSingleWidthSpace;
+        mockedDestinationPoints[i] = (float3)MouseStart + LineDirection * distance;
+    }
+    return mockedDestinationPoints;
+}
+ 
+private NativeArray<RaycastHit> GetPositionAndRotationOnTerrain(ref NativeArray<float2> tokensPositions, NativeList<JobHandle> dependencies)
+{
+    int totalUnitsSelected = TotalUnitsSelected;
+    JobHandle.CompleteAll(dependencies.AsArray());
+    NativeArray<RaycastHit> results = new (totalUnitsSelected, Temp, UninitializedMemory);
+    NativeArray<Ray> rays = new (totalUnitsSelected, Temp, ClearMemory);
+    NativeHashMap<int, int> regimentKeyPairNumToken = new (SortedSelectedRegiments.Count, Temp);
+    int numUnitsRegimentBefore = 0;
+    for (int i = 0; i < SortedSelectedRegiments.Count; i++)
+    {
+        int numToken = SortedSelectedRegiments[i].CurrentFormation.NumUnitsAlive;
+        regimentKeyPairNumToken.Add(i, numToken);
+        NativeSlice<float2> originSlice = tokensPositions.Slice(numUnitsRegimentBefore, numToken);
+        NativeSlice<Ray> raySlice = rays.Slice(numUnitsRegimentBefore, numToken);
+        for (int j = 0; j < numToken; j++)
+        {
+            raySlice[j] = new Ray(originSlice[j].xay(ORIGIN_HEIGHT), Vector3.down);
+        }
+        numUnitsRegimentBefore += numToken;
+    }
+    tokensPositions.Dispose();
+
+    int startIndex = 0;
+    foreach (KVPair<int, int> kvPair in regimentKeyPairNumToken)
+    {
+        (int key, int value) = (kvPair.Key, kvPair.Value);
+        for (int i = 0; i < value; i++)
+        {
+            int index = startIndex + i;
+            bool hitTerrain = Raycast(rays[index], out RaycastHit hit, RAY_DISTANCE, TerrainLayer.value);
+            results[index] = hitTerrain ? hit : results[index];
+            if(!hitTerrain)
+            {
+                Debug.Log($"Sorted({key}): DONT HIT at {i} ray = {rays[index].origin}, Direction = {rays[index].direction} (num units = {SortedSelectedRegiments[key].Count} vs value used = {value})");
+            }
+        }
+        startIndex += value;
+    }
+    //Erreur ou parfois TotalUnitsSelected a UN element en plus..
+    if (results.Length != startIndex)
+    {
+        Debug.Log($"({results.Length}/{startIndex}) results.Length != startIndex => TotalUnitsSelected iw WRONG! ({TotalUnitsSelected})");
+    }
+    return results;
+}
+*/

@@ -64,10 +64,8 @@ namespace Kaizerwald
             {
                 HighlightRegiment regiment = PlacementController.SortedSelectedRegiments[i];
                 if (regiment == null || !Registers[registerIndexUsed].ContainsKey(regiment.RegimentID)) continue;
-                //int currentFormationWidth = regiment.CurrentFormation.Width;
                 int width = keepSameFormation ? regiment.CurrentFormation.Width : min(regiment.CurrentFormation.NumUnitsAlive, PlacementController.DynamicsTempWidth[i]);
-                int numUnitsAlive = regiment.CurrentFormation.NumUnitsAlive;
-                width = width > numUnitsAlive ? numUnitsAlive : width;
+                width = width > regiment.CurrentFormation.NumUnitsAlive ? regiment.CurrentFormation.NumUnitsAlive : width;
                 
                 moveOrders[i] = PackOrder(registerIndexUsed, regiment, width, marchOrdered);
                 regiment.SetDestination(moveOrders[i].LeaderDestination, moveOrders[i].TargetFormation);
@@ -79,24 +77,21 @@ namespace Kaizerwald
         {
             Transform firstUnit = Registers[registerIndexUsed][regiment.RegimentID][0].transform;
             Transform lastUnit = Registers[registerIndexUsed][regiment.RegimentID][width-1].transform;
-            
+            //float3 leaderDestination = width == 1 ? firstUnit.position : (firstUnit.position + lastUnit.position) / 2f;
+            //FormationData formationDestination = new FormationData(regiment.CurrentFormation, width, direction);
             float3 direction = width == 1 ? firstUnit.forward : normalizesafe(cross(down(), lastUnit.position - firstUnit.position));
-            FormationData formationDestination = new (regiment.CurrentFormation, width, direction);
-            float3 leaderDestination = width == 1 ? firstUnit.position : (firstUnit.position + lastUnit.position) / 2f;
-            
             PlayerOrderData orderData = new PlayerOrderData
             {
-                RegimentID = regiment.RegimentID,
-                OrderType = EOrderType.Move,
-                MovePace = marchOrdered ? EMovePace.March : EMovePace.Run,
-                LeaderDestination = leaderDestination,
-                TargetFormation = formationDestination,
-                TargetEnemyID = -1
+                RegimentID        = regiment.RegimentID,
+                OrderType         = EOrderType.Move,
+                MovePace          = marchOrdered ? EMovePace.March : EMovePace.Run,
+                LeaderDestination= width == 1 ? firstUnit.position : (firstUnit.position + lastUnit.position) / 2f,
+                TargetFormation   = new FormationData(regiment.CurrentFormation, width, direction),
+                TargetEnemyID     = -1
             };
             return orderData;
         }
         
-
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Initialization Methods ◈◈◈◈◈◈                                                                           ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
@@ -221,25 +216,12 @@ namespace Kaizerwald
             {
                 for (int i = 0; i < numHighlightToKeep; i++)
                 {
-                    HighlightBehaviour highlight = newRecordArray[i];
-                    highlight.LinkToUnit(regiment.HighlightUnits[i].gameObject);
+                    //HighlightBehaviour highlight = newRecordArray[i];
+                    newRecordArray[i].LinkToUnit(regiment.HighlightUnits[i].gameObject);
                     (float3 leaderPosition, FormationData tempFormation) = isDynamicRegister
                         ? GetPlacementPreviewFormation(regiment, numHighlightToKeep)
                         : (regiment.TargetPosition, (FormationData)regiment.TargetFormation);
-                    highlight.transform.position = tempFormation.GetUnitRelativePositionToRegiment3D(i, leaderPosition);
-                    /*
-                    Vector3 position;
-                    if (registerIndex == (int)EPlacementRegister.Dynamic)
-                    {
-                        (float3 leaderPos, FormationData tmpFormation) = GetPlacementPreviewFormation(regiment, numHighlightToKeep);
-                        position = tmpFormation.GetUnitRelativePositionToRegiment3D(i, leaderPos);
-                    }
-                    else
-                    {
-                        position = regiment.TargetFormation.GetUnitRelativePositionToRegiment3D(i, regiment.TargetPosition);
-                    }
-                    highlight.transform.position = position;
-                    */
+                    newRecordArray[i].transform.position = tempFormation.GetUnitRelativePositionToRegiment3D(i, leaderPosition);
                 }
             }
             Registers[registerIndex][regiment.RegimentID] = newRecordArray;
