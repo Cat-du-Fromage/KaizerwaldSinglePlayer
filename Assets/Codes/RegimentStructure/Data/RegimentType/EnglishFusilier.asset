@@ -19,7 +19,7 @@ MonoBehaviour:
   Range: 20
   Accuracy: 10
   ReloadingSkill: 10
-  MarchSpeed: 2
+  MarchSpeed: 1
   RunSpeed: 4
   Moral: 1
   PlacementPrefabOverride: {fileID: 0}

@@ -80,7 +80,7 @@ namespace Kaizerwald
         //│  ◇◇◇◇◇◇ Static Constructor ◇◇◇◇◇◇                                                                          │
         //└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
         // Meant to be instantiate this way AND NO OTHER WAY
-        public static Unit InstantiateUnit(int indexInRegiment, int layerIndex, Regiment linkedRegiment, GameObject prefab, Vector3 position, Quaternion rotation)
+        public static Unit InstantiateUnit(GameObject prefab, Regiment linkedRegiment, Vector3 position, Quaternion rotation, int indexInRegiment, int layerIndex)
         {
             GameObject unitGameObject = Instantiate(prefab, position, rotation);
             if (!unitGameObject.TryGetComponent(out Unit unit))
@@ -148,9 +148,9 @@ namespace Kaizerwald
         public override void OnRearrangement(int newIndex)
         {
             IndexInFormation = newIndex;
-            if (IsInactive) return;
-            MoveOrder moveOrder = new (LinkedRegiment.CurrentFormation, LinkedRegiment.TargetPosition, EMoveType.March);
-            BehaviourTree.RequestChangeState(moveOrder);
+            //if (IsInactive) return;
+            //MoveOrder moveOrder = new (LinkedRegiment.CurrentFormation, LinkedRegiment.TargetPosition, EMoveType.March);
+            //BehaviourTree.RequestChangeState(moveOrder, false);
         }
     }
 }

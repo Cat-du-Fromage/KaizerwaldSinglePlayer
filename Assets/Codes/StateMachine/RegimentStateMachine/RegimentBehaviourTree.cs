@@ -26,6 +26,8 @@ namespace Kaizerwald.StateMachine
 //║                                              ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
+        public EnemyRegimentTargetData EnemyRegimentTargetData { get; private set; } = new EnemyRegimentTargetData();
+
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
@@ -64,12 +66,12 @@ namespace Kaizerwald.StateMachine
             deadUnitsBehaviourTrees.Clear();
         }
         
-        public override void RequestChangeState(Order order)
+        public override void RequestChangeState(Order order, bool overrideState = true)
         {
-            base.RequestChangeState(order);// Propagate Order to Units
+            base.RequestChangeState(order, overrideState);// Propagate Order to Units
             foreach (UnitBehaviourTree unitBehaviourTree in unitsBehaviourTrees)
             {
-                unitBehaviourTree.RequestChangeState(order);
+                unitBehaviourTree.RequestChangeState(order, overrideState);
             }
         }
         

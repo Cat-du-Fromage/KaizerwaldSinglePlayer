@@ -49,7 +49,7 @@ namespace Kaizerwald.StateMachine
         
         public abstract void OnExit();
         
-        public abstract EStates ShouldExit();
+        public abstract bool ShouldExit(out EStates state);
 
         public virtual void OnDestroy() { return; }
     }

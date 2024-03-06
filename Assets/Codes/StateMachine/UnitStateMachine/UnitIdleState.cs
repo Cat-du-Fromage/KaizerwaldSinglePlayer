@@ -1,9 +1,13 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Kaizerwald.FormationModule;
 using Unity.Mathematics;
 using UnityEngine;
+
+using static Unity.Mathematics.math;
+
+using Kaizerwald.FormationModule;
+using Kaizerwald.Utilities;
 
 namespace Kaizerwald.StateMachine
 {
@@ -17,7 +21,8 @@ namespace Kaizerwald.StateMachine
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        
+        private float3 LeaderPosition => LinkedParentRegiment.Position;
+        private FormationData CurrentFormationData => LinkedParentRegiment.CurrentFormationData;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ CONSTRUCTOR ◆◆◆◆◆◆                                              ║
@@ -47,22 +52,34 @@ namespace Kaizerwald.StateMachine
             //Rien?
         }
 
-        public override EStates ShouldExit()
+        public override bool ShouldExit(out EStates nextState)
         {
-            //if (FireExit()) return EStates.Fire;
-            return TryReturnToRegimentState();
+            if (RearrangeExit())
+            {
+                nextState = EStates.Move;
+            }
+            else if (!IsRegimentStateIdentical)
+            {
+                TryReturnToRegimentState(out nextState);
+            }
+            else
+            {
+                nextState = StateIdentity;
+            }
+            return nextState != StateIdentity;
         }
-        
-        protected override EStates TryReturnToRegimentState()
-        {
-            if (IsRegimentStateIdentical) return StateIdentity;
-            
-            return BehaviourTree.States[RegimentState].ConditionEnter() ? RegimentState : StateIdentity;
-        }
-        
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
+        public bool RearrangeExit()
+        {
+            float2 positionInFormation = CurrentFormationData.GetUnitRelativePositionToRegiment(IndexInFormation, LeaderPosition.xz);
+            float distanceToPosition = distancesq(Position.xz, positionInFormation);
+            bool isInPosition = distanceToPosition <= 0.016f; //CANT USE REACH_DISTANCE_THRESHOLD?
+            //bool isInPosition = distanceToPosition <= REACH_DISTANCE_THRESHOLD;
+            //if (!isInPosition) Debug.Log($"RearrangeExit (isInPosition = {isInPosition}) : distanceToPosition = {distanceToPosition}");
+            return !isInPosition;
+        }
     }
 }

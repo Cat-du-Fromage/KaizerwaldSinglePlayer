@@ -6,10 +6,11 @@ namespace Kaizerwald.StateMachine
 {
     public sealed class RangeAttackOrder : Order
     {
-        public Regiment TargetEnemyRegiment { get; private set; }
-        public RangeAttackOrder(Regiment enemyRegiment) : base(EStates.Fire)
+        public int TargetEnemyId { get; private set; }
+        
+        public RangeAttackOrder(PlayerOrderData playerOrder) : base(EStates.Fire)
         {
-            TargetEnemyRegiment = enemyRegiment;
+            TargetEnemyId = playerOrder.TargetEnemyID;
         }
     }
 }

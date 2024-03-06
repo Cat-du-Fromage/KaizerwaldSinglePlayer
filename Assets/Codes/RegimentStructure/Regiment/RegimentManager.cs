@@ -110,17 +110,10 @@ namespace Kaizerwald
         public bool RegimentExist(int regimentID) => RegimentsByID.ContainsKey(regimentID);
         public bool RegimentExist(Regiment regiment)
         {
-            if (regiment == null) return false;
-            return RegimentsByID.ContainsKey(regiment.RegimentID);
+            return regiment != null && RegimentsByID.ContainsKey(regiment.RegimentID);
         }
 
         public bool TryGetRegiment(int regimentID, out Regiment regiment) => RegimentsByID.TryGetValue(regimentID, out regiment);
-        public bool TryGetRegiment(Regiment regiment, out Regiment enemyRegiment)
-        {
-            if (regiment != null) return RegimentsByID.TryGetValue(regiment.RegimentID, out enemyRegiment);
-            enemyRegiment = null;
-            return false;
-        }
 
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Num Units ◈◈◈◈◈◈                                                                                        ║
@@ -144,19 +137,12 @@ namespace Kaizerwald
         private void CleanupEmptyRegiments()
         {
             if (Regiments.Count == 0) return;
-            //HashSet<Regiment> toDestroy = new HashSet<Regiment>(1);
             for (int i = Regiments.Count - 1; i > -1; i--)
             {
                 Regiment regiment = Regiments[i];
                 if(regiment.Count > 0) continue;
-                //Debug.Log($"RegimentManager.CleanupEmptyRegiments : regiment.Count = {regiment.Count}, formation num alive : {regiment.CurrentFormation.NumUnitsAlive}");
-                //toDestroy.Add(regiment);
                 UnRegisterRegiment(regiment);
-                //Destroy(regiment.gameObject);
             }
-            
-            //if (toDestroy.Count == 0) return;
-            //foreach (Regiment regimentToDestroy in toDestroy) Destroy(regimentToDestroy.gameObject);
         }
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖

@@ -157,9 +157,9 @@ namespace Kaizerwald
         
         private void OrdersCallbackChoice(int registerIndex)
         {
+            bool marchOrdered = Keyboard.current.ctrlKey.isPressed;
             if (PlacementsVisible)
             {
-                bool marchOrdered = Keyboard.current.ctrlKey.isPressed;
                 PlacementSystem.OnMoveOrderEvent(registerIndex, marchOrdered);
             }
             else
@@ -169,9 +169,10 @@ namespace Kaizerwald
                     //TODO : Implement Move while keeping same Formation(Width)
                     //Carefull WAY More complicated than it looks.. How will it work when multiple selection?
                 }
-                else
+                else if(PlacementSystem.PreselectedRegiments[0].TeamID != HighlightRegimentManager.Instance.TeamID) //enemy is preselected
                 {
-                    //OnAttackCallback();
+                    //PlacementSystem.PreselectedRegiments[0].OwnerID
+                    PlacementSystem.OnAttackOrderEvent(PlacementSystem.PreselectedRegiments[0].RegimentID, marchOrdered);
                 }
             }
         }

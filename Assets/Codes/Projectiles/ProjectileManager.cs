@@ -15,8 +15,6 @@ namespace Kaizerwald
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                                ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                 ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-
-        //private bool initialized;
         
         //TODO MAKE POOL BY REGIMENT!!!! so we can destroy them
         private Dictionary<int, ObjectPool<ProjectileComponent>> RegimentBulletsPool = new();
@@ -119,7 +117,6 @@ namespace Kaizerwald
         private void RegisterPool(Regiment regiment)
         {
             GameObject prefab = regiment.RegimentType.BulletPrefab;
-            //Remplacer par width??!! car seul la première ligne pouvant tirer?
             int unitCount = regiment.CurrentFormation.MaxRow;
             RegimentBulletsPool.TryAdd(regiment.RegimentID, new ObjectPool<ProjectileComponent>(prefab, CallOnPull, unitCount));
         }

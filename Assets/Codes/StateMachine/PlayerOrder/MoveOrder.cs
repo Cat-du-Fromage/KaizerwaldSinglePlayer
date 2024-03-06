@@ -26,6 +26,13 @@ namespace Kaizerwald.StateMachine
             LeaderTargetPosition = leaderTargetPosition;
             MoveType = moveType;
         }
+        
+        public MoveOrder(PlayerOrderData playerOrder) : base(EStates.Move)
+        {
+            TargetFormation = playerOrder.TargetFormation;
+            LeaderTargetPosition = playerOrder.LeaderDestination;
+            MoveType = playerOrder.MoveType;
+        }
 
         public override string ToString()
         {

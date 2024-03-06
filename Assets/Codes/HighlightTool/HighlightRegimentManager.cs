@@ -90,21 +90,15 @@ namespace Kaizerwald
         {
             base.OnAwake();
             HighlightControls = new PlayerControls();
-            Selection = new SelectionSystem(this);
-            Placement = new PlacementSystem(this);
-            highlightSystems = new List<HighlightSystem>() { Selection, Placement };
-            Controllers = new List<HighlightController>() { Selection.Controller, Placement.Controller };
+            Selection         = new SelectionSystem(this);
+            Placement         = new PlacementSystem(this);
+            highlightSystems  = new List<HighlightSystem>() { Selection, Placement };
+            Controllers       = new List<HighlightController>() { Selection.Controller, Placement.Controller };
         }
-        /*
-        private void Start()
-        {
-            RegimentManager.Instance.OnNewRegiment += InitAndRegisterRegiment<Regiment, Unit>;
-        }
-        */
+        
         public void OnStart()
         {
-            //Debug.Log($"HighlightRegimentManager PriorityOrder = {PriorityOrder}");
-            RegimentManager.Instance.OnNewRegiment += InitAndRegisterRegiment<Regiment, Unit>;
+            RegimentManager.Instance.OnNewRegiment  += InitAndRegisterRegiment<Regiment, Unit>;
             RegimentManager.Instance.OnDeadRegiment += UnRegisterRegiment;
         }
 
@@ -168,12 +162,6 @@ namespace Kaizerwald
 
         public void SetPlayerID(ulong playerID) => OwnerPlayerID = playerID;
         public void SetTeamID(int teamID) => TeamID = (short)teamID;
-        
-        public void SetPlayerInfos(ulong playerID, int teamID)
-        {
-            SetPlayerID(playerID);
-            SetTeamID(teamID);
-        }
 
         public bool RegimentExist(int regimentID)
         {

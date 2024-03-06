@@ -54,14 +54,15 @@ namespace Kaizerwald.StateMachine
         public override void OnSetup(Order order)
         {
             RangeAttackOrder rangeAttackOrder = (RangeAttackOrder)order;
-            if (!RegimentManager.Instance.TryGetRegiment(rangeAttackOrder.TargetEnemyRegiment, out Regiment target)) return;
-            EnemyRegimentTargetData.SetEnemyTarget(target);
+            //Missing:
+            //- targetId instead of Regiment
+            //- March Type
+            
+            if (!RegimentManager.Instance.RegimentExist(rangeAttackOrder.TargetEnemyId)) return;
+            EnemyRegimentTargetData.SetEnemyTarget(rangeAttackOrder.TargetEnemyId);
         }
 
-        public override void OnEnter()
-        {
-            return;
-        }
+        public override void OnEnter() { return; }
 
         public override void OnUpdate()
         {
@@ -70,27 +71,46 @@ namespace Kaizerwald.StateMachine
 
         public override void OnExit() { return; }
 
-        public override EStates ShouldExit()
+        public override bool ShouldExit(out EStates nextState)
         {
-            if (IdleExit())
+            if (IdleExit() && !EnemyRegimentTargetData.IsTargetLocked)
             {
-                return EStates.Idle;
+                nextState = EStates.Idle;
             }
-            return StateIdentity;
+            else if (MoveExit())
+            {
+                nextState = EStates.Move;
+            }
+            else
+            {
+                nextState = StateIdentity;
+            }
+            return nextState != StateIdentity;
         }
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
+        private bool IdleExit()
+        {
+            return !HasTarget || (!IsTargetInRange() && !TryChangeTarget());
+        }
+
+        private bool MoveExit()
+        {
+            bool chaseEnemy = EnemyRegimentTargetData.IsTargetLocked;
+            return false;
+        }
+
         private bool IsTargetInRange()
         {
-            return StateExtension.IsTargetRegimentInRange(LinkedRegiment, CurrentEnemyTarget, MaxRange, FOV_ANGLE);
+            return StateExtension2.IsTargetRegimentInRange(LinkedRegiment, CurrentEnemyTarget, MaxRange, FOV_ANGLE);
         }
         
         private bool TryChangeTarget()
         {
-            bool hasOtherTargetInRange = StateExtension.CheckEnemiesAtRange(LinkedRegiment, MaxRange, out int targetID, FOV_ANGLE);
+            bool hasOtherTargetInRange = StateExtension2.CheckEnemiesAtRange(LinkedRegiment, MaxRange, out int targetID, FOV_ANGLE);
             if (hasOtherTargetInRange)
             {
                 EnemyRegimentTargetData.SetEnemyTarget(RegimentManager.Instance.RegimentsByID[targetID]);
@@ -100,11 +120,6 @@ namespace Kaizerwald.StateMachine
                 EnemyRegimentTargetData.Clear();
             }
             return hasOtherTargetInRange;
-        }
-
-        private bool IdleExit()
-        {
-            return (!HasTarget || !IsTargetInRange()) && !TryChangeTarget();
         }
     }
 }

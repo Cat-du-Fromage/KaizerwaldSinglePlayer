@@ -34,6 +34,7 @@ namespace Kaizerwald.StateMachine
         // RegimentStateReference
         public bool LeaderReachDestination => RegimentStateReference.LeaderReachTargetPosition;
         public float3 LeaderTargetPosition => RegimentStateReference.LeaderTargetPosition;
+        public FormationData TargetFormationData => RegimentStateReference.TargetFormation;
         
         public float MarchSpeed => RegimentStateReference.MarchSpeed;
         public float RunSpeed => RegimentStateReference.RunSpeed;
@@ -60,22 +61,20 @@ namespace Kaizerwald.StateMachine
 
         public override void OnSetup(Order order)
         {
-            UnitReachTargetPosition = false;
+            //UnitReachTargetPosition = false;
             MoveOrder moveOrder = (MoveOrder)order;
-            float3 targetPosition = moveOrder.LeaderTargetPosition;
-            FormationData targetFormation = moveOrder.TargetFormation;
-            unitTargetPosition = targetFormation.GetUnitRelativePositionToRegiment3D(IndexInFormation, targetPosition);
+            //float3 targetPosition = moveOrder.LeaderTargetPosition;
+            //FormationData targetFormation = moveOrder.TargetFormation;
+            //unitTargetPosition = targetFormation.GetUnitRelativePositionToRegiment3D(IndexInFormation, targetPosition);
             
             //TODO: remove this once automatic speed adaptation is implemented
-            // IsDestinationReach(): avoid last line animation when already on position
-            if (!IsDestinationReach() && !IsAlreadyMoving)
-            {
-                UpdateMoveType(moveOrder.MoveType); 
-            }
+            UpdateMoveType(moveOrder.MoveType); 
         }
 
         public override void OnEnter()
         {
+            UnitReachTargetPosition = false;
+            unitTargetPosition = TargetFormationData.GetUnitRelativePositionToRegiment3D(IndexInFormation, LeaderTargetPosition);
             UpdateProgressToTargetPosition();
             UpdateMoveSpeed();
             AdaptSpeed();
@@ -91,39 +90,55 @@ namespace Kaizerwald.StateMachine
 
         public override void OnExit()
         {
+            currentMoveType = EMoveType.None;
             return;
         }
 
-        public override EStates ShouldExit()
+        public override bool ShouldExit(out EStates nextState)
         {
             UpdateProgressToTargetPosition();
-            return TryReturnToRegimentState();
+            if (!IsRegimentStateIdentical && UnitReachTargetPosition && LeaderReachDestination)
+            {
+                TryReturnToRegimentState(out nextState);
+            }
+            else
+            {
+                nextState = StateIdentity;
+            }
+            //TryReturnToRegimentState(out nextState);
+            return nextState != StateIdentity;
         }
         
-        protected override EStates TryReturnToRegimentState()
+        protected override bool TryReturnToRegimentState(out EStates nextState)
         {
-            if (IsRegimentStateIdentical || !UnitReachTargetPosition || !LeaderReachDestination) return StateIdentity;
-            
-            bool canEnterNextState = BehaviourTree.States[RegimentState].ConditionEnter();
-            EStates nextState = canEnterNextState ? RegimentState : DefaultNextState;
-            return nextState;
+            nextState = StateIdentity;
+            if (IsRegimentStateIdentical || !UnitReachTargetPosition || !LeaderReachDestination) return false;
+            return base.TryReturnToRegimentState(out nextState);
         }
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 //TODO : Function that adapt speed depending on the distance from destination to current leader Position(GetUnitRelativePositionToRegiment3D), NOT final target position (unitTargetPosition)
+        private bool IsDestinationReach()
+        {
+            return !IsRegimentStateIdentical && UnitReachTargetPosition && LeaderReachDestination;
+        }
+        
         private float3 GetDestinationInFormation()
         {
             FormationData formation = LinkedParentRegiment.TargetFormation;
             return formation.GetUnitRelativePositionToRegiment3D(IndexInFormation, LeaderTargetPosition);
         }
-        
+        /*
         private bool IsDestinationReach()
         {
-            return distancesq(Position, unitTargetPosition) <= REACH_DISTANCE_THRESHOLD;
+            if (UnitReachTargetPosition) return true;
+            UnitReachTargetPosition = distancesq(Position, unitTargetPosition) <= REACH_DISTANCE_THRESHOLD;
+            return UnitReachTargetPosition;
+            //return distancesq(Position, unitTargetPosition) <= REACH_DISTANCE_THRESHOLD;
         }
-        
+        */
         private void UpdateMoveType(EMoveType moveType)
         {
             currentMoveType = moveType;
@@ -133,7 +148,8 @@ namespace Kaizerwald.StateMachine
         private void UpdateProgressToTargetPosition()
         {
             if (UnitReachTargetPosition) return;
-            UnitReachTargetPosition = IsDestinationReach();
+            UnitReachTargetPosition = distancesq(Position.xz, unitTargetPosition.xz) <= REACH_DISTANCE_THRESHOLD;
+            
         }
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖

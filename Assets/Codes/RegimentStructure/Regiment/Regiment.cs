@@ -39,7 +39,7 @@ namespace Kaizerwald
         [field:SerializeField] public RegimentBehaviourTree BehaviourTree { get; private set; }
         
         //"BlackBoard"
-        public EnemyRegimentTargetData EnemyRegimentTargetData { get; private set; } = new EnemyRegimentTargetData();
+        //public EnemyRegimentTargetData EnemyRegimentTargetData { get; private set; } = new EnemyRegimentTargetData();
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║
@@ -107,7 +107,6 @@ namespace Kaizerwald
         {
             GameObject newRegiment = Instantiate(regimentPrefab, position, rotation);
             Regiment regiment = newRegiment.GetOrAddComponent<Regiment>();
-            //if (!newRegiment.TryGetComponent(out Regiment regiment)) { regiment = newRegiment.AddComponent<Regiment>(); }
             regiment.InitializeProperties(playerId, teamID, terrainLayer);
             return regiment;
         }
@@ -120,7 +119,7 @@ namespace Kaizerwald
         public Regiment InitializeProperties(ulong playerId, int teamID, LayerMask terrainLayer, float3 regimentDirection)
         {
             //Properties
-            RegimentID = transform.GetInstanceID();
+            RegimentID = gameObject.GetInstanceID();
             OwnerPlayerID = playerId;
             TeamID = (short)teamID;
             name = $"Player({playerId})_Regiment({RegimentID})";
@@ -146,26 +145,11 @@ namespace Kaizerwald
                 List<Unit> tmpUnits = new(formation.BaseNumUnits);
                 for (int i = 0; i < positions.Length; i++)
                 {
-                    Unit unit = Unit.InstantiateUnit(i, unitLayerIndex, this, prefab, positions[i], Rotation);
+                    Unit unit = Unit.InstantiateUnit(prefab, this, positions[i], Rotation, i, unitLayerIndex);
                     tmpUnits.Add(unit);
                 }
                 return tmpUnits;
             }
-        }
-        
-        private List<Unit> CreateRegimentsUnit2(Formation formation, LayerMask terrainLayer)
-        {
-            GameObject prefab = RegimentType.UnitPrefab;
-            int unitLayerIndex = KaizerwaldGameManager.Instance.UnitLayerIndex;
-            using NativeArray<float3> positions = formation.GetPositionsInFormationByRaycast(Position, terrainLayer);
-                
-            List<Unit> tmpUnits = new(formation.BaseNumUnits);
-            for (int i = 0; i < positions.Length; i++)
-            {
-                Unit unit = Unit.InstantiateUnit(i, unitLayerIndex, this, prefab, positions[i], Rotation);
-                tmpUnits.Add(unit);
-            }
-            return tmpUnits;
         }
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
@@ -184,23 +168,13 @@ namespace Kaizerwald
         //└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
         public void OnOrderReceived(PlayerOrderData playerOrder)
         {
-            EMoveType moveType = GetMoveType(playerOrder.MovePace);
             Order packedOrder = playerOrder.OrderType switch
             {
-                EOrderType.Move => new MoveOrder(playerOrder.TargetFormation, playerOrder.LeaderDestination, moveType),
+                EOrderType.Move => new MoveOrder(playerOrder.TargetFormation, playerOrder.LeaderDestination, playerOrder.MoveType),
+                EOrderType.Attack => new RangeAttackOrder(playerOrder),
                 _ => default
             };
             BehaviourTree.RequestChangeState(packedOrder);
-        }
-
-        private EMoveType GetMoveType(EMovePace movePace)
-        {
-            return movePace switch
-            {
-                EMovePace.March => EMoveType.March,
-                EMovePace.Run => EMoveType.Run,
-                _ => default
-            };
         }
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
@@ -215,23 +189,25 @@ namespace Kaizerwald
             Elements[swapIndex].OnRearrangement(swapIndex);
             HandleElementSwapped(deadIndex, swapIndex);
         }
-
+        
+        /*
         private void LastLineRearrangement(int numElementAfterResize)
         {
             if (CurrentFormation.IsLastLineComplete) return;
             MoveOrder moveOrder = new (CurrentFormationData, TargetPosition, EMoveType.March);
             for (int i = CurrentFormation.LastRowFirstIndex; i < numElementAfterResize; i++)
             {
-                Elements[i].BehaviourTree.RequestChangeState(moveOrder);
+                Elements[i].BehaviourTree.RequestChangeState(moveOrder, false);
             }
         }
         
         protected override void HandleFormationResized(int numElementAfterResize)
         {
-            LastLineRearrangement(numElementAfterResize);
+            //LastLineRearrangement(numElementAfterResize);
             base.HandleFormationResized(numElementAfterResize);
         }
-
+        */
+        
         //TODO: Find a way without Memory allocation (Unit[] tmpUnits = new Unit[Elements.Count])
         //Here was the issue
         //We receive sorted Indices [2,0,3,1], Which translate to:

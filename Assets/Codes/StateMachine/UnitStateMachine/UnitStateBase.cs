@@ -11,7 +11,7 @@ namespace Kaizerwald.StateMachine
     {
         protected const EStates DefaultNextState = EStates.Idle;
         
-        protected const float REACH_DISTANCE_THRESHOLD = 0.0125f;
+        protected const float REACH_DISTANCE_THRESHOLD = 0.0125f; //was 0.0125f
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                               ║
@@ -28,8 +28,7 @@ namespace Kaizerwald.StateMachine
     
         // Regiment
         protected Regiment LinkedParentRegiment => RegimentStateReference.LinkedRegiment;
-        //protected RegimentType RegimentType => RegimentStateReference.RegimentType;
-        //protected EnemyRegimentTargetData EnemyRegimentTargetData => RegimentStateReference.EnemyRegimentTargetData;
+        protected Formation TargetFormation => RegimentStateReference.TargetFormation;
     
         // Unit
         protected Unit LinkedUnit => BehaviourTree.LinkedUnit;
@@ -49,15 +48,12 @@ namespace Kaizerwald.StateMachine
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-        /*
-        protected bool ShouldRearrange()
+        
+        protected virtual bool TryReturnToRegimentState(out EStates nextState)
         {
-            float3 targetPosition = LinkedParentRegiment.TargetPosition;
-            FormationData formation = LinkedParentRegiment.TargetFormation;
-            float3 positionInFormation = formation.GetUnitRelativePositionToRegiment3D(IndexInFormation, targetPosition);
-            return math.distancesq(Position.xz, positionInFormation.xz) > REACH_DISTANCE_THRESHOLD;
+            bool canEnterNextState = BehaviourTree.States[RegimentState].ConditionEnter();
+            nextState = canEnterNextState ? RegimentState : DefaultNextState;
+            return canEnterNextState;
         }
-        */
-        protected abstract EStates TryReturnToRegimentState();
     }
 }

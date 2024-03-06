@@ -66,7 +66,7 @@ namespace Kaizerwald
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
         public void InitializeHighlight(ulong ownerID, int teamID, List<GameObject> units, int2 minMaxRow, float2 unitSize, float spaceBetweenUnit, float3 direction)
         {
-            RegimentID = transform.GetInstanceID();
+            RegimentID = gameObject.GetInstanceID();
             OwnerID = ownerID;
             TeamID = teamID;
             Formation formation = new Formation(units.Count, minMaxRow, unitSize, spaceBetweenUnit, direction);

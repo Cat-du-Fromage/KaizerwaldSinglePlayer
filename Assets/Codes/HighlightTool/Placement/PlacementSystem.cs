@@ -11,6 +11,7 @@ using static Unity.Mathematics.quaternion;
 using static Unity.Collections.Allocator;
 
 using Kaizerwald.FormationModule;
+using Kaizerwald.StateMachine;
 using Kaizerwald.Utilities;
 
 namespace Kaizerwald
@@ -73,6 +74,25 @@ namespace Kaizerwald
             Manager.OnPlayerOrder(moveOrders);
         }
 
+        public void OnAttackOrderEvent(int targetEnemyID, bool marchOrdered)
+        {
+            PlayerOrderData[] attackOrders = new PlayerOrderData[SelectedRegiments.Count];
+            for (int i = 0; i < SelectedRegiments.Count; i++)
+            {
+                HighlightRegiment regiment = SelectedRegiments[i];
+                attackOrders[i] = new PlayerOrderData
+                {
+                    RegimentID        = regiment.RegimentID,
+                    OrderType         = EOrderType.Attack,
+                    MoveType          = marchOrdered ? EMoveType.March : EMoveType.Run,
+                    LeaderDestination = regiment.CurrentPosition,
+                    TargetFormation   = (FormationData)regiment.CurrentFormation,
+                    TargetEnemyID     = targetEnemyID
+                };
+            }
+            Manager.OnPlayerOrder(attackOrders);
+        }
+
         private PlayerOrderData PackOrder(int registerIndexUsed, HighlightRegiment regiment, int width, bool marchOrdered)
         {
             Transform firstUnit = Registers[registerIndexUsed][regiment.RegimentID][0].transform;
@@ -84,7 +104,7 @@ namespace Kaizerwald
             {
                 RegimentID        = regiment.RegimentID,
                 OrderType         = EOrderType.Move,
-                MovePace          = marchOrdered ? EMovePace.March : EMovePace.Run,
+                MoveType          = marchOrdered ? EMoveType.March : EMoveType.Run,
                 LeaderDestination= width == 1 ? firstUnit.position : (firstUnit.position + lastUnit.position) / 2f,
                 TargetFormation   = new FormationData(regiment.CurrentFormation, width, direction),
                 TargetEnemyID     = -1

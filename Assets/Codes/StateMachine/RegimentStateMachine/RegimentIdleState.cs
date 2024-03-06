@@ -35,11 +35,14 @@ namespace Kaizerwald.StateMachine
 
         public override void OnExit() { return; }
 
-        public override EStates ShouldExit()
+        public override bool ShouldExit(out EStates nextState)
         {
-            if (FireExit()) return EStates.Fire;
-            
-            return StateIdentity;
+            nextState = StateIdentity;
+            if (FireExit())
+            {
+                nextState = EStates.Fire;
+            }
+            return nextState != StateIdentity;
         }
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
@@ -47,11 +50,8 @@ namespace Kaizerwald.StateMachine
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
         private bool FireExit()
         {
-            const float fovAngle = RegimentManager.RegimentFieldOfView;
-            
-            bool enemyInRange = StateExtension.CheckEnemiesAtRange(LinkedRegiment, AttackRange, out int targetID, fovAngle);
-            if (enemyInRange) LinkedRegiment.EnemyRegimentTargetData.SetEnemyTarget(targetID);
-            
+            bool enemyInRange = StateExtension.CheckEnemiesAtRange(LinkedRegiment, AttackRange, out int targetID, FOV_ANGLE);
+            if (enemyInRange) EnemyRegimentTargetData.SetEnemyTarget(targetID);
             return enemyInRange;
         }
         

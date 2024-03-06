@@ -75,10 +75,5 @@ namespace Kaizerwald.StateMachine
             };
             State = EStates.Idle;
         }
-
-        public override void RequestChangeState(Order order)
-        {
-            base.RequestChangeState(order);
-        }
     }
 }

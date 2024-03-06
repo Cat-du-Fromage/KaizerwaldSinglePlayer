@@ -64,29 +64,32 @@ namespace Kaizerwald.StateMachine
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
         private bool TryChangeState()
         {
-            EStates nextState = CurrentState.ShouldExit();
-            if (nextState == CurrentState.StateIdentity) return false;
+            if (!CurrentState.ShouldExit(out EStates nextState)) return false;
             CurrentState.OnExit();
             State = nextState;
             CurrentState.OnEnter();
             return true;
         }
 
-        public virtual void RequestChangeState(Order order)
+        public virtual void RequestChangeState(Order order, bool overrideState = true)
         {
-            EStates stateOrdered = order.StateOrdered;
-            States[stateOrdered].OnSetup(order);
+            //EStates stateOrdered = order.StateOrdered;
+            if (order.StateOrdered == State && !overrideState)
+            {
+                return;
+            }
             CurrentState.OnExit();
-            State = stateOrdered;
+            State = order.StateOrdered;
+            CurrentState.OnSetup(order);
+            //State = stateOrdered;
             CurrentState.OnEnter();
         }
 
         public virtual void ForceChangeState(Order order)
         {
-            EStates stateOrdered = order.StateOrdered;
-            States[stateOrdered].OnSetup(order);
             CurrentState.OnExit();
-            State = stateOrdered;
+            State = order.StateOrdered;
+            CurrentState.OnSetup(order);
             CurrentState.OnEnter();
         }
 

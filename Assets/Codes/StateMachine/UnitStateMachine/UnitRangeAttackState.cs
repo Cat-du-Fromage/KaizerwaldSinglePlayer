@@ -22,7 +22,6 @@ namespace Kaizerwald.StateMachine
     
     public class UnitRangeAttackState : UnitStateBase<RegimentRangeAttackState>
     {
-        //private readonly LayerMask UnitLayerMask;
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                                ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                 ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
@@ -37,7 +36,6 @@ namespace Kaizerwald.StateMachine
         public Unit UnitEnemyTarget { get; private set; }
         public float2 CurrentRandomAimDirection { get; private set; }
         public float3 AimDirection { get; private set; }
-        //public FormationData CacheEnemyFormation { get; private set; }
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║
@@ -57,8 +55,6 @@ namespace Kaizerwald.StateMachine
 
         public UnitRangeAttackState(UnitBehaviourTree behaviourTree) : base(behaviourTree, EStates.Fire)
         {
-            //UnitLayerMask = KaizerwaldGameManager.Instance.UnitLayerMask;
-
             uint seed = (uint)(abs(LinkedUnit.GetInstanceID()) + IndexInFormation);
             randomState = Random.CreateFromIndex(seed);
             CurrentRandomAimDirection = randomState.NextFloat2Direction();
@@ -84,7 +80,7 @@ namespace Kaizerwald.StateMachine
             if (TryGetEnemyTarget(out Unit unit))
             {
                 UnitEnemyTarget = unit;
-                UnitAnimation.SetFullFireSequenceOn();
+                UnitTakeAim();
             }
         }
 
@@ -99,15 +95,10 @@ namespace Kaizerwald.StateMachine
             UnitAnimation.SetFullFireSequenceOff();
         }
 
-        public override EStates ShouldExit()
+        public override bool ShouldExit(out EStates nextState)
         {
-            // IL FAUT FORCER LE REARRANGEMENT
-            return IsRegimentStateIdentical ? StateIdentity : RegimentState;
-        }
-        
-        protected override EStates TryReturnToRegimentState()
-        {
-            return StateIdentity;
+            nextState = IsRegimentStateIdentical ? StateIdentity : RegimentState;
+            return nextState != StateIdentity;
         }
         
         public override void OnDestroy()
@@ -140,12 +131,7 @@ namespace Kaizerwald.StateMachine
         private void OnFireEvent(AnimationEvent animationEvent)
         {
             Vector3 bulletStartPosition = Position + up() + Forward;
-            //if (Physics.Raycast(bulletStartPosition, AimDirection, MaxRange, UnitLayerMask.value))
-            //{
-                int regimentID = LinkedParentRegiment.RegimentID;
-                ProjectileManager.Instance.RequestBullet(regimentID, bulletStartPosition).Fire(AimDirection);
-                //ProjectileManager.Instance.RequestAndFireBullet(regimentID, bulletStartPosition, AimDirection);
-            //}
+            ProjectileManager.Instance.RequestBullet(LinkedParentRegiment.RegimentID, bulletStartPosition).Fire(AimDirection);
             CurrentRandomAimDirection = randomState.NextFloat2Direction(); // Renew Random Direction
         }
 
@@ -176,19 +162,15 @@ namespace Kaizerwald.StateMachine
         //└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
         private bool TryGetEnemyTarget(out Unit target)
         {
-            //EnemyRegimentTargetData regimentTargetData = LinkedParentRegiment.EnemyRegimentTargetData;
             using NativeHashSet<int> hullIndices = GetUnitsHullIndices(EnemyRegimentTargetData.CacheEnemyFormation);
-            
             (int index, float minDistance) = (-1, INFINITY);
             foreach (int unitIndex in hullIndices)
             {
-                //if (regimentTargetData.EnemyTarget[unitIndex] == null) continue;
                 float2 enemyPosition = EnemyRegimentTargetData.EnemyTarget[unitIndex].Position.xz;
                 float distanceToTarget = distancesq(Position.xz, enemyPosition);
                 if (distanceToTarget > minDistance) continue;
                 (index, minDistance) = (unitIndex, distanceToTarget);
             }
-            
             bool hasTarget = index > -1;
             target = !hasTarget ? null : EnemyRegimentTargetData.EnemyTarget[index];
             return hasTarget;
@@ -196,16 +178,15 @@ namespace Kaizerwald.StateMachine
         
         private NativeHashSet<int> GetUnitsHullIndices(in FormationData enemyFormation)
         {
-            (int numUnit, int width) = (enemyFormation.NumUnitsAlive, enemyFormation.Width);
             int2 maxWidthDepth = enemyFormation.WidthDepth - 1;
-            
             //TODO Vérifier si Correct!
-            int numIndices = max(enemyFormation.NumUnitsLastLine, enemyFormation.NumCompleteLine * width);
+            int numIndices = max(enemyFormation.NumUnitsLastLine, enemyFormation.NumCompleteLine * enemyFormation.Width);
             
             NativeHashSet<int> indices = new (numIndices, Temp);
-            for (int i = 0; i < numUnit; i++)
+            for (int i = 0; i < enemyFormation.NumUnitsAlive; i++)
             {
-                int2 coords = GetXY2(i, width);
+                int2 coords = GetXY2(i, enemyFormation.Width);
+                //if (all(coords) && !any(coords == maxWidthDepth)) continue; 
                 if (!any(coords == zero) && !any(coords == maxWidthDepth)) continue; 
                 indices.Add(i);
             }

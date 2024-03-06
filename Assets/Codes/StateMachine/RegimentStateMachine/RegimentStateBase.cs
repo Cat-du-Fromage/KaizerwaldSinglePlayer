@@ -20,8 +20,8 @@ namespace Kaizerwald.StateMachine
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
         public Regiment LinkedRegiment => BehaviourTree.LinkedRegiment;
         public RegimentType RegimentType => LinkedRegiment.RegimentType;
-        public EnemyRegimentTargetData EnemyRegimentTargetData => LinkedRegiment.EnemyRegimentTargetData;
-        //public OrderedFormationBehaviour<Unit> FormationMatrix => BehaviourTree.RegimentAttach;
+        public EnemyRegimentTargetData EnemyRegimentTargetData => BehaviourTree.EnemyRegimentTargetData;
+        
         public Formation CurrentFormation => LinkedRegiment.CurrentFormation;
         public Formation TargetFormation => LinkedRegiment.TargetFormation;
         

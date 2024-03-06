@@ -44,7 +44,7 @@ namespace Kaizerwald.StateMachine
         //│  ◇◇◇◇◇◇ Getters ◇◇◇◇◇◇                                                                                     │
         //└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
         public bool LeaderReachTargetPosition => leaderReachTargetPosition;
-        public float MoveSpeed => moveSpeed;
+        //public float MoveSpeed => moveSpeed;
         public bool IsRunning  => CurrentMoveType == EMoveType.Run;
         
         //┌────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -64,11 +64,6 @@ namespace Kaizerwald.StateMachine
         {
         }
 
-        public override bool ConditionEnter()
-        {
-            return base.ConditionEnter();
-        }
-
         public override void OnSetup(Order order)
         {
             MoveOrder moveOrder = (MoveOrder)order;
@@ -80,6 +75,9 @@ namespace Kaizerwald.StateMachine
 
         public override void OnEnter()
         {
+            //is chasing enemy ?
+            //has moveSpeed initialized ? (default is march ?)
+            
             leaderReachTargetPosition = false;
             UpdateProgressToTargetPosition();
             CurrentFormation.SetFromFormation(TargetFormation);
@@ -96,12 +94,18 @@ namespace Kaizerwald.StateMachine
             CurrentMoveType = EMoveType.None;
         }
 
-        public override EStates ShouldExit()
+        public override bool ShouldExit(out EStates nextState)
         {
             UpdateProgressToTargetPosition();
-            if (!leaderReachTargetPosition) return StateIdentity;
-            return EStates.Idle;
-            //return RegimentBlackboard.IsChasing ? EStates.Fire : EStates.Idle;
+            if (leaderReachTargetPosition)
+            {
+                nextState = EStates.Idle;
+            }
+            else
+            {
+                nextState = StateIdentity;
+            }
+            return nextState != StateIdentity;
         }
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗

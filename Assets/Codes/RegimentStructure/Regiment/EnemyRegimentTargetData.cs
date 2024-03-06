@@ -11,15 +11,16 @@ namespace Kaizerwald
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                                 ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-
-        private Regiment enemyTarget;
+        
         private int enemyTargetID; // avoid Null Check by caching it
+        private Regiment enemyTarget;
         private FormationData cacheEnemyFormation;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                              ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-        
+
+        public bool IsTargetLocked { get; private set; }
         public Regiment EnemyTarget => enemyTarget;
         public int EnemyTargetID => enemyTargetID;
         public FormationData CacheEnemyFormation => cacheEnemyFormation;
@@ -50,20 +51,28 @@ namespace Kaizerwald
             enemyTargetID = -1;
         }
 
-        public void SetEnemyTarget(int regimentID)
+        public void SetEnemyTarget(int regimentID, bool lockTarget = false)
         {
+            IsTargetLocked = lockTarget;
             enemyTargetID = -1;
             if (!RegimentManager.Instance.TryGetRegiment(regimentID, out enemyTarget)) return;
             enemyTargetID = enemyTarget.RegimentID;
             cacheEnemyFormation = enemyTarget.CurrentFormationData;
         }
         
-        public void SetEnemyTarget(Regiment enemyRegiment)
+        public void SetEnemyTarget(Regiment enemyRegiment, bool lockTarget = false)
         {
             bool isTargetNull = enemyRegiment == null;
+            if (isTargetNull) return;
+            IsTargetLocked = lockTarget;
             enemyTarget = enemyRegiment;
-            enemyTargetID = isTargetNull ? -1 : enemyRegiment.RegimentID;
+            enemyTargetID = enemyRegiment.RegimentID;
             cacheEnemyFormation = enemyRegiment.CurrentFormationData;
+        }
+
+        public void LockTarget(bool enable)
+        {
+            IsTargetLocked = enable;
         }
         
         public void SetFormation(FormationData formation)
