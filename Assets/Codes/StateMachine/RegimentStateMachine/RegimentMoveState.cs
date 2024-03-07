@@ -30,6 +30,7 @@ namespace Kaizerwald.StateMachine
 //║                                              ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
+        //TODO: a bouger dans BehaviourTree(sera récupéré via accesseur) "MotionStateBoard"
         public EMoveType CurrentMoveType { get; private set; }
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
@@ -44,7 +45,6 @@ namespace Kaizerwald.StateMachine
         //│  ◇◇◇◇◇◇ Getters ◇◇◇◇◇◇                                                                                     │
         //└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
         public bool LeaderReachTargetPosition => leaderReachTargetPosition;
-        //public float MoveSpeed => moveSpeed;
         public bool IsRunning  => CurrentMoveType == EMoveType.Run;
         
         //┌────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -82,9 +82,6 @@ namespace Kaizerwald.StateMachine
 
         public override void OnEnter()
         {
-            //is chasing enemy ?
-            //has moveSpeed initialized ? (default is march ?)
-            
             leaderReachTargetPosition = false;
             UpdateProgressToTargetPosition();
             CurrentFormation.SetFromFormation(TargetFormation);

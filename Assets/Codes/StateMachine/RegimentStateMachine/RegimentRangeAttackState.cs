@@ -19,7 +19,7 @@ using static Kaizerwald.Utilities.KzwMath;
 
 namespace Kaizerwald.StateMachine
 {
-    public class RegimentRangeAttackState : RegimentStateBase
+    public sealed class RegimentRangeAttackState : RegimentStateBase
     {
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                                 ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                ║
@@ -45,19 +45,10 @@ namespace Kaizerwald.StateMachine
         public RegimentRangeAttackState(RegimentBehaviourTree behaviourTree) : base(behaviourTree, EStates.Fire)
         {
         }
-        
-        public override bool ConditionEnter()
-        {
-            return base.ConditionEnter();
-        }
 
         public override void OnSetup(Order order)
         {
             RangeAttackOrder rangeAttackOrder = (RangeAttackOrder)order;
-            //Missing:
-            //- targetId instead of Regiment
-            //- March Type
-            
             if (!RegimentManager.Instance.RegimentExist(rangeAttackOrder.TargetEnemyId)) return;
             EnemyRegimentTargetData.SetEnemyTarget(rangeAttackOrder.TargetEnemyId);
         }
@@ -73,6 +64,27 @@ namespace Kaizerwald.StateMachine
 
         public override bool ShouldExit(out EStates nextState)
         {
+            /*
+            if (EnemyRegimentTargetData.IsTargetValid() && !IsTargetInRange())
+            {
+                if (EnemyRegimentTargetData.IsTargetLocked)
+                {
+                    nextState = EStates.Move;
+                }
+                else if(!TryChangeTarget())
+                {
+                    nextState = EStates.Idle;
+                }
+                else
+                {
+                    nextState = StateIdentity;
+                }
+            }
+            else
+            {
+                nextState = StateIdentity;
+            }
+            */
             if (IdleExit() && !EnemyRegimentTargetData.IsTargetLocked)
             {
                 nextState = EStates.Idle;
@@ -85,6 +97,7 @@ namespace Kaizerwald.StateMachine
             {
                 nextState = StateIdentity;
             }
+            
             return nextState != StateIdentity;
         }
         
@@ -101,6 +114,7 @@ namespace Kaizerwald.StateMachine
         {
             bool chaseEnemy = EnemyRegimentTargetData.IsTargetLocked;
             return false;
+            //return chaseEnemy && EnemyRegimentTargetData.EnemyTarget;
         }
 
         private bool IsTargetInRange()

@@ -170,7 +170,7 @@ namespace Kaizerwald
         {
             Order packedOrder = playerOrder.OrderType switch
             {
-                EOrderType.Move => new MoveOrder(playerOrder.TargetFormation, playerOrder.LeaderDestination, playerOrder.MoveType),
+                EOrderType.Move => new MoveOrder(playerOrder),
                 EOrderType.Attack => new RangeAttackOrder(playerOrder),
                 _ => default
             };

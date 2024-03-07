@@ -45,6 +45,11 @@ namespace Kaizerwald
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+        public bool IsTargetValid()
+        {
+            return enemyTargetID != -1 && RegimentManager.Instance.RegimentExist(enemyTargetID);
+        }
+        
         public void Clear()
         {
             enemyTarget = null;
