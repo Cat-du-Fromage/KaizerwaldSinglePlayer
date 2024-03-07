@@ -88,8 +88,7 @@ namespace Kaizerwald.StateMachine
             InitializeStates();//Here must be done before init Units, because we need states reference in units state
             foreach (Unit unit in linkedRegiment.Elements)
             {
-                unit.BehaviourTree.Initialize(this);
-                unitsBehaviourTrees.Add(unit.BehaviourTree);
+                unitsBehaviourTrees.Add(unit.BehaviourTree.Initialize(this));
             }
             IsInitialized = true;
         }

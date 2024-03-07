@@ -73,15 +73,10 @@ namespace Kaizerwald.StateMachine
 
         public virtual void RequestChangeState(Order order, bool overrideState = true)
         {
-            //EStates stateOrdered = order.StateOrdered;
-            if (order.StateOrdered == State && !overrideState)
-            {
-                return;
-            }
+            if (order.StateOrdered == State && !overrideState) return;
             CurrentState.OnExit();
             State = order.StateOrdered;
             CurrentState.OnSetup(order);
-            //State = stateOrdered;
             CurrentState.OnEnter();
         }
 

@@ -19,8 +19,8 @@ namespace Kaizerwald
         public int Range = 0;
         public int Accuracy = 0;
         public int ReloadingSkill = 0;
-        public int MarchSpeed = 1;
-        public int RunSpeed = 2;
+        public float MarchSpeed = 1;
+        public float RunSpeed = 2;
         public int Moral = 1;
         
         [Header("Optional")]

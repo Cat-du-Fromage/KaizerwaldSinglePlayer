@@ -76,7 +76,7 @@ namespace Kaizerwald.StateMachine
         {
             float2 positionInFormation = CurrentFormationData.GetUnitRelativePositionToRegiment(IndexInFormation, LeaderPosition.xz);
             float distanceToPosition = distancesq(Position.xz, positionInFormation);
-            bool isInPosition = distanceToPosition <= 0.016f; //CANT USE REACH_DISTANCE_THRESHOLD?
+            bool isInPosition = distanceToPosition <= 0.016f; //CANT USE REACH_DISTANCE_THRESHOLD dst calculated are differente from move state
             //bool isInPosition = distanceToPosition <= REACH_DISTANCE_THRESHOLD;
             //if (!isInPosition) Debug.Log($"RearrangeExit (isInPosition = {isInPosition}) : distanceToPosition = {distanceToPosition}");
             return !isInPosition;

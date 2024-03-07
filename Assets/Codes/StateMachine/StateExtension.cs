@@ -250,10 +250,6 @@ namespace Kaizerwald.StateMachine
             float2 directionRight = mul(AngleAxis(fovAngleInDegrees, up()), forward).xz;
 
             FieldOfViewData fovData = new(unitLeft, unitRight, directionLeft, directionRight);
-
-            //wrapper for more readable value passed
-            //float2x2 leftStartDir = float2x2(unitLeft, directionLeft);
-            //float2x2 rightStartDir = float2x2(unitRight, directionRight);
             
             //Get tip of the cone formed by the intersection made by the 2 previous directions calculated
             float2 intersection = GetIntersection(unitLeft, unitRight, directionLeft, directionRight);
@@ -307,7 +303,6 @@ namespace Kaizerwald.StateMachine
         }
         
         // GET CLOSEST ENEMY
-        
         public static bool CheckEnemiesAtRange(Regiment regimentAttach, int attackRange, out int regimentTargeted, float fovAngleInDegrees)
         {
             float2 position = regimentAttach.BehaviourTree.Position.xz;
@@ -323,16 +318,13 @@ namespace Kaizerwald.StateMachine
             //Rotation of the direction the regiment is facing (around Vector3.up) to get both direction of the vision cone
             float2 directionLeft = mul(AngleAxis(-fovAngleInDegrees, up()), forward).xz;
             float2 directionRight = mul(AngleAxis(fovAngleInDegrees, up()), forward).xz;
-
-            //wrapper for more readable value passed
-            //float2x2 leftStartDir = float2x2(unitLeft, directionLeft);
-            //float2x2 rightStartDir = float2x2(unitRight, directionRight);
-            
-            FieldOfViewData fovData = new(unitLeft, unitRight, directionLeft, directionRight);
             
             //Get tip of the cone formed by the intersection made by the 2 previous directions calculated
             float2 intersection = GetIntersection(unitLeft, unitRight, directionLeft, directionRight);
             float radius = attackRange + distance(intersection, unitLeft); //unit left choisi arbitrairement(right va aussi)
+            
+            //wrapper for more readable value passed
+            FieldOfViewData fovData = new(unitLeft, unitRight, directionLeft, directionRight);
             
             //Get regiments units and sort their positions taking only the closest one to choose the target
             NativeHashMap<int, float> enemyRegimentDistances = GetEnemiesDistancesSorted(regimentAttach, intersection, fovData, radius);
@@ -387,17 +379,14 @@ namespace Kaizerwald.StateMachine
 
         private static NativeArray<float2> GetTrianglePoints(in float2 position2D, in float2 tipPoint, in FieldOfViewData fovData, float radius)
         {
-            NativeArray<float2> points = new(3, Temp, UninitializedMemory);
-            points[0] = tipPoint;
             float2 topForwardDirection = normalizesafe(position2D - tipPoint);
             float2 topForwardFov = tipPoint + topForwardDirection * radius;
-            
+            NativeArray<float2> points = new(3, Temp, UninitializedMemory);
+            points[0] = tipPoint;
             float2 leftCrossDir = topForwardDirection.CrossLeft();
             points[1] = GetIntersection(topForwardFov, fovData.LeftStartPosition, leftCrossDir, fovData.LeftDirection);
-            
             float2 rightCrossDir = topForwardDirection.CrossRight();
             points[2] = GetIntersection(topForwardFov, fovData.RightStartPosition, rightCrossDir, fovData.RightDirection);
-            
             return points;
         }
         

@@ -58,11 +58,12 @@ namespace Kaizerwald.StateMachine
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        public void Initialize(RegimentBehaviourTree parentBehaviourTree)
+        public UnitBehaviourTree Initialize(RegimentBehaviourTree parentBehaviourTree)
         {
             RegimentBehaviourTree = parentBehaviourTree;
             InitializeStates();// MUST BE DONE LAST! because we need RegimentBehaviourTree to be assigned first!
             IsInitialized = true;
+            return this;
         }
         
         protected override void InitializeStates()

@@ -49,13 +49,13 @@ namespace Kaizerwald
         {
             enemyTarget = null;
             enemyTargetID = -1;
+            IsTargetLocked = false;
         }
 
         public void SetEnemyTarget(int regimentID, bool lockTarget = false)
         {
-            IsTargetLocked = lockTarget;
-            enemyTargetID = -1;
             if (!RegimentManager.Instance.TryGetRegiment(regimentID, out enemyTarget)) return;
+            IsTargetLocked = lockTarget;
             enemyTargetID = enemyTarget.RegimentID;
             cacheEnemyFormation = enemyTarget.CurrentFormationData;
         }

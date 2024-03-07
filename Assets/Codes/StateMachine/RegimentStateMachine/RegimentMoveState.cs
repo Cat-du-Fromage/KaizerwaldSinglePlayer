@@ -67,10 +67,17 @@ namespace Kaizerwald.StateMachine
         public override void OnSetup(Order order)
         {
             MoveOrder moveOrder = (MoveOrder)order;
+            
             LinkedRegiment.SetDestination(moveOrder.LeaderTargetPosition, moveOrder.TargetFormation);
-            AssignIndexToUnits();
-            //AssignIndexToUnitsByRow();
+            AssignIndexToUnits(); //AssignIndexToUnitsByRow();
             SetMoveSpeed(moveOrder.MoveType);
+            
+            //CAREFULL! need to disable chase mode if player order move!
+            //Difference with Chase:
+            // - target is not a fixe point
+            // - 2 type (range objective vs melee objective)
+            // - objective need to be updated each frame (because it might be moving)
+            // - Objectiv might be lost (so no update during the frame)
         }
 
         public override void OnEnter()

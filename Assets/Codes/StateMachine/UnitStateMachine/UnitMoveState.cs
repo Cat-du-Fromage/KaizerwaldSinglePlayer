@@ -84,14 +84,13 @@ namespace Kaizerwald.StateMachine
         {
             if (UnitReachTargetPosition || LinkedUnit.IsInactive) return;
             
-            unitTargetPosition = GetDestinationInFormation();
+            unitTargetPosition = TargetFormationData.GetUnitRelativePositionToRegiment3D(IndexInFormation, LeaderTargetPosition);
             MoveUnit();
         }
 
         public override void OnExit()
         {
             currentMoveType = EMoveType.None;
-            return;
         }
 
         public override bool ShouldExit(out EStates nextState)
@@ -105,32 +104,25 @@ namespace Kaizerwald.StateMachine
             {
                 nextState = StateIdentity;
             }
-            //TryReturnToRegimentState(out nextState);
             return nextState != StateIdentity;
-        }
-        
-        protected override bool TryReturnToRegimentState(out EStates nextState)
-        {
-            nextState = StateIdentity;
-            if (IsRegimentStateIdentical || !UnitReachTargetPosition || !LeaderReachDestination) return false;
-            return base.TryReturnToRegimentState(out nextState);
         }
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 //TODO : Function that adapt speed depending on the distance from destination to current leader Position(GetUnitRelativePositionToRegiment3D), NOT final target position (unitTargetPosition)
+        /*
         private bool IsDestinationReach()
         {
             return !IsRegimentStateIdentical && UnitReachTargetPosition && LeaderReachDestination;
         }
-        
+
         private float3 GetDestinationInFormation()
         {
             FormationData formation = LinkedParentRegiment.TargetFormation;
-            return formation.GetUnitRelativePositionToRegiment3D(IndexInFormation, LeaderTargetPosition);
+            return TargetFormationData.GetUnitRelativePositionToRegiment3D(IndexInFormation, LeaderTargetPosition);
         }
-        /*
+
         private bool IsDestinationReach()
         {
             if (UnitReachTargetPosition) return true;

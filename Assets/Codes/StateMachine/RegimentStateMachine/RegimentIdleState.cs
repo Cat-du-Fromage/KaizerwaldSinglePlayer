@@ -50,7 +50,7 @@ namespace Kaizerwald.StateMachine
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
         private bool FireExit()
         {
-            bool enemyInRange = StateExtension.CheckEnemiesAtRange(LinkedRegiment, AttackRange, out int targetID, FOV_ANGLE);
+            bool enemyInRange = StateExtension2.CheckEnemiesAtRange(LinkedRegiment, AttackRange, out int targetID, FOV_ANGLE);
             if (enemyInRange) EnemyRegimentTargetData.SetEnemyTarget(targetID);
             return enemyInRange;
         }
