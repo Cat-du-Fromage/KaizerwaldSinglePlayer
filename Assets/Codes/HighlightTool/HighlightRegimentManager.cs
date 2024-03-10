@@ -17,7 +17,6 @@ namespace Kaizerwald
     {
         public int ExecutionOrderWeight => 0;
         
-        
         // IOwnershipInformation
         [field:SerializeField] public ulong OwnerPlayerID { get; private set; }
         [field:SerializeField] public short TeamID { get; private set; }
@@ -60,9 +59,10 @@ namespace Kaizerwald
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
         [field:SerializeField] public List<HighlightRegiment> Regiments { get; private set; } = new ();
         
+#if UNITY_EDITOR
         [field:SerializeField] public List<HighlightRegiment> DebugSelectedRegiment { get; private set; } = new ();
         [field:SerializeField] public List<HighlightRegiment> DebugSortedSelectedRegiment { get; private set; } = new ();
-        
+#endif
         
         //Allow to retrieve regiment By it's Instance ID
         public Dictionary<int, HighlightRegiment> RegimentsByID { get; private set; } = new ();
@@ -124,8 +124,10 @@ namespace Kaizerwald
         public void OnLateUpdate()
         {
             //CleanUp();
+#if UNITY_EDITOR
             DebugSelectedRegiment = SelectedRegiments;
             DebugSortedSelectedRegiment = Placement.PlacementController.SortedSelectedRegiments;
+#endif
         }
 
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
@@ -151,9 +153,8 @@ namespace Kaizerwald
             for (int i = 0; i < Regiments.Count; i++)
             {
                 HighlightRegiment highlightRegiment = Regiments[i];
-                int highlightCount = highlightRegiment.Count;
-                int countAt = Selection.PreselectionRegister.CountAt(highlightRegiment.RegimentID);
-                bool needResize = highlightCount == countAt;
+                int registerCount = Selection.PreselectionRegister.CountAt(highlightRegiment.RegimentID);
+                bool needResize = highlightRegiment.Count == registerCount;
                 if (needResize) continue;
                 ResizeHighlightsRegisters(highlightRegiment);
             }
@@ -174,10 +175,9 @@ namespace Kaizerwald
             for (int i = Regiments.Count - 1; i > -1; i--)
             {
                 HighlightRegiment regiment = Regiments[i];
-                if (regiment == null)
-                {
-                    Debug.Log($"Got a null Highlight regiment at {i}");
-                }
+#if UNITY_EDITOR
+                if (regiment == null) Debug.Log($"Got a null Highlight regiment at {i}");
+#endif
                 if (regiment.CurrentFormation.NumUnitsAlive > 0) continue;
                 UnRegisterRegiment(regiment);
                 Destroy(regiment);

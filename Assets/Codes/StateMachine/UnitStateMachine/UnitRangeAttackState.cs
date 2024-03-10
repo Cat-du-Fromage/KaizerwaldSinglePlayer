@@ -43,7 +43,7 @@ namespace Kaizerwald.StateMachine
         public float3 UnitTargetPosition => UnitEnemyTarget.Position;
         
         // EnemyRegimentTargetData
-        private EnemyRegimentTargetData EnemyRegimentTargetData => RegimentStateReference.EnemyRegimentTargetData;
+        private CombatStateBoard CombatStateBoard => RegimentStateReference.CombatStateBoard;
         
         // RegimentType
         private int MaxRange => RegimentStateReference.MaxRange;
@@ -71,8 +71,8 @@ namespace Kaizerwald.StateMachine
 
         public override void OnSetup(Order order)
         {
-            TryGetEnemyTarget(out Unit unit);
-            UnitEnemyTarget = unit;
+            //TryGetEnemyTarget(out Unit unit);
+            //UnitEnemyTarget = unit;
         }
 
         public override void OnEnter()
@@ -162,17 +162,17 @@ namespace Kaizerwald.StateMachine
         //└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
         private bool TryGetEnemyTarget(out Unit target)
         {
-            using NativeHashSet<int> hullIndices = GetUnitsHullIndices(EnemyRegimentTargetData.CacheEnemyFormation);
+            using NativeHashSet<int> hullIndices = GetUnitsHullIndices(CombatStateBoard.CacheEnemyFormation);
             (int index, float minDistance) = (-1, INFINITY);
             foreach (int unitIndex in hullIndices)
             {
-                float2 enemyPosition = EnemyRegimentTargetData.EnemyTarget[unitIndex].Position.xz;
+                float2 enemyPosition = CombatStateBoard.EnemyTarget[unitIndex].Position.xz;
                 float distanceToTarget = distancesq(Position.xz, enemyPosition);
                 if (distanceToTarget > minDistance) continue;
                 (index, minDistance) = (unitIndex, distanceToTarget);
             }
             bool hasTarget = index > -1;
-            target = !hasTarget ? null : EnemyRegimentTargetData.EnemyTarget[index];
+            target = !hasTarget ? null : CombatStateBoard.EnemyTarget[index];
             return hasTarget;
         }
         

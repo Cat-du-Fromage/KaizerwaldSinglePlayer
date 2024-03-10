@@ -62,6 +62,12 @@ namespace Kaizerwald.StateMachine
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+        public bool CanEnterState(EStates state)
+        {
+            return States[state].ConditionEnter();
+        }
+
         private bool TryChangeState()
         {
             if (!CurrentState.ShouldExit(out EStates nextState)) return false;
@@ -74,14 +80,6 @@ namespace Kaizerwald.StateMachine
         public virtual void RequestChangeState(Order order, bool overrideState = true)
         {
             if (order.StateOrdered == State && !overrideState) return;
-            CurrentState.OnExit();
-            State = order.StateOrdered;
-            CurrentState.OnSetup(order);
-            CurrentState.OnEnter();
-        }
-
-        public virtual void ForceChangeState(Order order)
-        {
             CurrentState.OnExit();
             State = order.StateOrdered;
             CurrentState.OnSetup(order);

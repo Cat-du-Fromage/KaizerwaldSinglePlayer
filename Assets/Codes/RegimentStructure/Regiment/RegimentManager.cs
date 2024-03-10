@@ -75,9 +75,11 @@ namespace Kaizerwald
             //Debug.Log($"RegimentManager PriorityOrder = {PriorityOrder}");
             List<Regiment> regiments = RegimentFactory.Instance.RequestRegiments(SpawnCommandManager.Instance);
             regiments.ForEach(RegisterRegiment);
+            
             HighlightRegimentManager.Instance.OnPlayerOrders += OnPlayerOrdersReceived;
+            HighlightAbilityController.Instance.OnAbilityTriggered += OnPlayerInput;
         }
-        
+
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Update | Late Update ◈◈◈◈◈◈                                                                             ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
@@ -174,8 +176,20 @@ namespace Kaizerwald
         {
             foreach (PlayerOrderData order in orders)
             {
-                if (!RegimentExist(order.RegimentID)) continue;
-                RegimentsByID[order.RegimentID].OnOrderReceived(order);
+                //if (!RegimentExist(order.RegimentID)) continue;
+                if (!RegimentsByID.TryGetValue(order.RegimentID, out Regiment regiment)) continue;
+                regiment.OnOrderReceived(order);
+            }
+            
+            // if OrderType == Move => Mettre a 0 les variables lié à une poursuite
+        }
+        
+        private void OnPlayerInput(AbilityTrigger[] abilities)
+        {
+            foreach (AbilityTrigger ability in abilities)
+            {
+                if (!RegimentsByID.TryGetValue(ability.RegimentID, out Regiment regiment)) continue;
+                regiment.OnAbilityTriggered(ability.AbilityType);
             }
         }
     }

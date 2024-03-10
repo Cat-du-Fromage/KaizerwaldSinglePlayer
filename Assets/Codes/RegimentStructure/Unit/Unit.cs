@@ -136,6 +136,7 @@ namespace Kaizerwald
         public override void BeforeRemoval()
         {
             IsInactive = true;
+            Destroy(BehaviourTree);
         }
 
         public override void AfterRemoval()

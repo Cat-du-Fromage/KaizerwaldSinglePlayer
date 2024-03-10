@@ -350,6 +350,15 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""AutoFire"",
+                    ""type"": ""Button"",
+                    ""id"": ""56c2dd0f-ee79-44ec-a468-506634d72357"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -361,6 +370,17 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""MarchRun"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""7044bb11-f362-4e3c-b8b4-b486531e5dbc"",
+                    ""path"": ""<Keyboard>/e"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""AutoFire"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -387,6 +407,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         // RegimentAbility
         m_RegimentAbility = asset.FindActionMap("RegimentAbility", throwIfNotFound: true);
         m_RegimentAbility_MarchRun = m_RegimentAbility.FindAction("MarchRun", throwIfNotFound: true);
+        m_RegimentAbility_AutoFire = m_RegimentAbility.FindAction("AutoFire", throwIfNotFound: true);
     }
 
     ~@PlayerControls()
@@ -643,11 +664,13 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     private readonly InputActionMap m_RegimentAbility;
     private List<IRegimentAbilityActions> m_RegimentAbilityActionsCallbackInterfaces = new List<IRegimentAbilityActions>();
     private readonly InputAction m_RegimentAbility_MarchRun;
+    private readonly InputAction m_RegimentAbility_AutoFire;
     public struct RegimentAbilityActions
     {
         private @PlayerControls m_Wrapper;
         public RegimentAbilityActions(@PlayerControls wrapper) { m_Wrapper = wrapper; }
         public InputAction @MarchRun => m_Wrapper.m_RegimentAbility_MarchRun;
+        public InputAction @AutoFire => m_Wrapper.m_RegimentAbility_AutoFire;
         public InputActionMap Get() { return m_Wrapper.m_RegimentAbility; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -660,6 +683,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @MarchRun.started += instance.OnMarchRun;
             @MarchRun.performed += instance.OnMarchRun;
             @MarchRun.canceled += instance.OnMarchRun;
+            @AutoFire.started += instance.OnAutoFire;
+            @AutoFire.performed += instance.OnAutoFire;
+            @AutoFire.canceled += instance.OnAutoFire;
         }
 
         private void UnregisterCallbacks(IRegimentAbilityActions instance)
@@ -667,6 +693,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @MarchRun.started -= instance.OnMarchRun;
             @MarchRun.performed -= instance.OnMarchRun;
             @MarchRun.canceled -= instance.OnMarchRun;
+            @AutoFire.started -= instance.OnAutoFire;
+            @AutoFire.performed -= instance.OnAutoFire;
+            @AutoFire.canceled -= instance.OnAutoFire;
         }
 
         public void RemoveCallbacks(IRegimentAbilityActions instance)
@@ -705,5 +734,6 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     public interface IRegimentAbilityActions
     {
         void OnMarchRun(InputAction.CallbackContext context);
+        void OnAutoFire(InputAction.CallbackContext context);
     }
 }

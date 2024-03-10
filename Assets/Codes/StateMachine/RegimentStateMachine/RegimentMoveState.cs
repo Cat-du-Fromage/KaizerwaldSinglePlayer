@@ -1,3 +1,4 @@
+using System;
 using Kaizerwald.FormationModule;
 using Kaizerwald.Utilities;
 using Unity.Burst;
@@ -24,38 +25,40 @@ namespace Kaizerwald.StateMachine
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
         private bool leaderReachTargetPosition = true;
-        private float moveSpeed;
+        //private float moveSpeed;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                              ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
         //TODO: a bouger dans BehaviourTree(sera récupéré via accesseur) "MotionStateBoard"
-        public EMoveType CurrentMoveType { get; private set; }
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        public bool IsAlreadyMoving => CurrentMoveType != EMoveType.None;
+        //public bool IsAlreadyMoving => CurrentMoveType != EMoveType.None;
         public float3 LeaderTargetPosition => LinkedRegiment.TargetPosition;
         public float MarchSpeed => RegimentType.MarchSpeed;
-        public float RunSpeed   => RegimentType.RunSpeed;
+        public float RunSpeed => RegimentType.RunSpeed;
+        public bool IsRunning => BehaviourTree.InputStateBoard.Run;
+        
+        public float CurrentSpeed => IsRunning ? RunSpeed : MarchSpeed;
     
         //┌────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
         //│  ◇◇◇◇◇◇ Getters ◇◇◇◇◇◇                                                                                     │
         //└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
         public bool LeaderReachTargetPosition => leaderReachTargetPosition;
-        public bool IsRunning  => CurrentMoveType == EMoveType.Run;
         
         //┌────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
         //│  ◇◇◇◇◇◇ Setters ◇◇◇◇◇◇                                                                                     │
         //└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+        /*
         private void SetMoveSpeed(EMoveType moveType)
         {
             CurrentMoveType = moveType;
             moveSpeed = moveType == EMoveType.Run ? RunSpeed : MarchSpeed;
         }
-        
+        */
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ CONSTRUCTOR ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
@@ -63,21 +66,19 @@ namespace Kaizerwald.StateMachine
         public RegimentMoveState(RegimentBehaviourTree behaviourTree) : base(behaviourTree,EStates.Move)
         {
         }
+        
+//╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+//║                                            ◆◆◆◆◆◆ STATE METHODS ◆◆◆◆◆◆                                             ║
+//╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
         public override void OnSetup(Order order)
         {
             MoveOrder moveOrder = (MoveOrder)order;
+            CombatStateBoard.Clear();
+            BehaviourTree.InputStateBoard.SetRun(moveOrder.MoveType == EMoveType.Run);
             
             LinkedRegiment.SetDestination(moveOrder.LeaderTargetPosition, moveOrder.TargetFormation);
             AssignIndexToUnits(); //AssignIndexToUnitsByRow();
-            SetMoveSpeed(moveOrder.MoveType);
-            
-            //CAREFULL! need to disable chase mode if player order move!
-            //Difference with Chase:
-            // - target is not a fixe point
-            // - 2 type (range objective vs melee objective)
-            // - objective need to be updated each frame (because it might be moving)
-            // - Objectiv might be lost (so no update during the frame)
         }
 
         public override void OnEnter()
@@ -85,31 +86,57 @@ namespace Kaizerwald.StateMachine
             leaderReachTargetPosition = false;
             UpdateProgressToTargetPosition();
             CurrentFormation.SetFromFormation(TargetFormation);
+
+            if (CombatStateBoard.IsChasingValidTarget())
+            {
+                ChaseMoveLogic();
+            }
         }
 
         public override void OnUpdate()
         {
             if (leaderReachTargetPosition) return;
+            
+            if (CombatStateBoard.IsChasingValidTarget())
+            {
+                ChaseMoveLogic();
+            }
+            
             MoveRegiment();
         }
 
         public override void OnExit()
         {
-            CurrentMoveType = EMoveType.None;
+            BehaviourTree.InputStateBoard.SetRun(false);
         }
 
         public override bool ShouldExit(out EStates nextState)
         {
+            //missing exit if target not valid anymore!
+            //we may want to introduce 2 separate function Chase/Move
             UpdateProgressToTargetPosition();
-            if (leaderReachTargetPosition)
+            if (CombatStateBoard.IsChasingTarget)
             {
-                nextState = EStates.Idle;
+                nextState = ChaseExit();
             }
             else
             {
-                nextState = StateIdentity;
+                nextState = NormalMoveExit();
             }
             return nextState != StateIdentity;
+        }
+
+        private EStates ChaseExit()
+        {
+            if (!CombatStateBoard.IsChasingValidTarget()) return EStates.Idle;
+            //EStates chaseRelatedState = CombatStateBoard.CombatMode == ECombatMode.Range ? EStates.Fire : EStates.Melee;
+            EStates chaseRelatedState = EStates.Fire;
+            return leaderReachTargetPosition ? chaseRelatedState : StateIdentity;
+        }
+
+        private EStates NormalMoveExit()
+        {
+            return leaderReachTargetPosition ? EStates.Idle : StateIdentity;
         }
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
@@ -125,10 +152,35 @@ namespace Kaizerwald.StateMachine
         private void MoveRegiment()
         {
             if (leaderReachTargetPosition) return; // Units may still be on their way
-            float3 translation = Time.deltaTime * moveSpeed * Position.DirectionTo(LeaderTargetPosition);
+            //Debug.Log($"MoveRegiment: IsRunning = {IsRunning} vs BehaviourTree.InputStateBoard.Run = {BehaviourTree.InputStateBoard.Run}");
+            float3 translation = Time.deltaTime * CurrentSpeed * Position.DirectionTo(LeaderTargetPosition);
+            //float3 translation = Time.deltaTime * moveSpeed * Position.DirectionTo(LeaderTargetPosition);
             
             BehaviourTree.CachedTransform.Translate(translation, Space.World);
             BehaviourTree.CachedTransform.LookAt(Position + TargetFormation.DirectionForward);
+        }
+        
+    //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
+    //║ ◈◈◈◈◈◈ Chase Movement ◈◈◈◈◈◈                                                                                   ║
+    //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
+
+        private void ChaseMoveLogic()
+        {
+            if (distance(LeaderTargetPosition.xz, CombatStateBoard.EnemyTarget.Position.xz) < RegimentType.Range) return;
+            float3 closestPosition = RecalculatePathToTarget();
+            LinkedRegiment.SetTargetPosition(closestPosition);
+        }
+    
+        private float3 RecalculatePathToTarget()
+        {
+            float offset = 2;
+            float3 enemyPosition = CombatStateBoard.EnemyTarget.Position;
+            return CombatStateBoard.CombatMode switch
+            {
+                ECombatMode.Range => enemyPosition + enemyPosition.DirectionTo(Position) * (RegimentType.Range - offset),
+                ECombatMode.Melee => enemyPosition,
+                _ => default
+            };
         }
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖

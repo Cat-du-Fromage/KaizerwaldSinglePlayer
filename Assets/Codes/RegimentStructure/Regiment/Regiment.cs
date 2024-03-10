@@ -32,6 +32,7 @@ namespace Kaizerwald
         // REGIMENT IDENTIFICATION (IOwnershipInformation)
         [field:SerializeField] public ulong OwnerPlayerID { get; private set; }
         [field:SerializeField] public short TeamID { get; private set; }
+        
         [field:SerializeField] public int RegimentID { get; private set; }
         
         // REGIMENT STATS
@@ -39,7 +40,6 @@ namespace Kaizerwald
         [field:SerializeField] public RegimentBehaviourTree BehaviourTree { get; private set; }
         
         //"BlackBoard"
-        //public EnemyRegimentTargetData EnemyRegimentTargetData { get; private set; } = new EnemyRegimentTargetData();
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║
@@ -164,8 +164,12 @@ namespace Kaizerwald
         }
         
         //┌────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-        //│  ◇◇◇◇◇◇ Player Orders ◇◇◇◇◇◇                                                                               │
+        //│  ◇◇◇◇◇◇ Player Inputs ◇◇◇◇◇◇                                                                               │
         //└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+        
+        //TODO: Rework a faire! Changements de Data qui vont entraîner naturellement les changement d'états
+        // - Move: 
+        
         public void OnOrderReceived(PlayerOrderData playerOrder)
         {
             Order packedOrder = playerOrder.OrderType switch
@@ -175,6 +179,11 @@ namespace Kaizerwald
                 _ => default
             };
             BehaviourTree.RequestChangeState(packedOrder);
+        }
+
+        public void OnAbilityTriggered(EAbilityType ability)
+        {
+            BehaviourTree.InputStateBoard.SetInput(ability);
         }
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗

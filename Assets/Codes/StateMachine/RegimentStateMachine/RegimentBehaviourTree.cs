@@ -26,7 +26,8 @@ namespace Kaizerwald.StateMachine
 //║                                              ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
         //Ajouter 
-        public EnemyRegimentTargetData EnemyRegimentTargetData { get; private set; } = new EnemyRegimentTargetData();
+        public InputStateBoard InputStateBoard { get; private set; } = new InputStateBoard();
+        public CombatStateBoard CombatStateBoard { get; private set; } = new CombatStateBoard();
 
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║
@@ -59,6 +60,12 @@ namespace Kaizerwald.StateMachine
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+        public void OnUnitDestroyed(UnitBehaviourTree unit)
+        {
+            deadUnitsBehaviourTrees.Add(unit);
+        }
+
         private void CleanUpNullUnitsStateMachine()
         {
             if (deadUnitsBehaviourTrees.Count == 0) return;
@@ -68,11 +75,11 @@ namespace Kaizerwald.StateMachine
         
         public override void RequestChangeState(Order order, bool overrideState = true)
         {
+            CleanUpNullUnitsStateMachine();
             base.RequestChangeState(order, overrideState);// Propagate Order to Units
-            foreach (UnitBehaviourTree unitBehaviourTree in unitsBehaviourTrees)
-            {
-                unitBehaviourTree.RequestChangeState(order, overrideState);
-            }
+            
+            //MAY BE OBSOLETE!
+            //foreach (UnitBehaviourTree unitBehaviourTree in unitsBehaviourTrees) { unitBehaviourTree.RequestChangeState(order, overrideState); }
         }
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────╖

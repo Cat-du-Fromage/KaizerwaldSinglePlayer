@@ -15,6 +15,7 @@ using static Unity.Collections.NativeArrayOptions;
 using float2 = Unity.Mathematics.float2;
 
 using Kaizerwald.FormationModule;
+using Unity.VisualScripting;
 using static Kaizerwald.Utilities.KzwMath;
 
 namespace Kaizerwald.StateMachine
@@ -32,8 +33,8 @@ namespace Kaizerwald.StateMachine
 //║                                              ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
         // EnemyRegimentTargetData
-        private Regiment CurrentEnemyTarget => EnemyRegimentTargetData.EnemyTarget;
-        public bool HasTarget => EnemyRegimentTargetData.EnemyTargetID != -1;
+        private Regiment CurrentEnemyTarget => CombatStateBoard.EnemyTarget;
+        public bool HasTarget => CombatStateBoard.EnemyTargetID != -1;
         
         // RegimentType
         public int MaxRange => RegimentType.Range;
@@ -45,47 +46,33 @@ namespace Kaizerwald.StateMachine
         public RegimentRangeAttackState(RegimentBehaviourTree behaviourTree) : base(behaviourTree, EStates.Fire)
         {
         }
+        
+//╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+//║                                            ◆◆◆◆◆◆ STATE METHODS ◆◆◆◆◆◆                                             ║
+//╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
+        // Order to attack a specific Units
         public override void OnSetup(Order order)
         {
             RangeAttackOrder rangeAttackOrder = (RangeAttackOrder)order;
             if (!RegimentManager.Instance.RegimentExist(rangeAttackOrder.TargetEnemyId)) return;
-            EnemyRegimentTargetData.SetEnemyTarget(rangeAttackOrder.TargetEnemyId);
+            CombatStateBoard.SetEnemyTarget(rangeAttackOrder.TargetEnemyId, true);
         }
 
         public override void OnEnter() { return; }
 
         public override void OnUpdate()
         {
-            EnemyRegimentTargetData.UpdateCachedFormation();
+            CombatStateBoard.UpdateCachedFormation();
         }
 
         public override void OnExit() { return; }
 
         public override bool ShouldExit(out EStates nextState)
         {
+            Exit(out nextState);
             /*
-            if (EnemyRegimentTargetData.IsTargetValid() && !IsTargetInRange())
-            {
-                if (EnemyRegimentTargetData.IsTargetLocked)
-                {
-                    nextState = EStates.Move;
-                }
-                else if(!TryChangeTarget())
-                {
-                    nextState = EStates.Idle;
-                }
-                else
-                {
-                    nextState = StateIdentity;
-                }
-            }
-            else
-            {
-                nextState = StateIdentity;
-            }
-            */
-            if (IdleExit() && !EnemyRegimentTargetData.IsTargetLocked)
+            if (IdleExit() && !CombatStateBoard.IsChasingTarget)
             {
                 nextState = EStates.Idle;
             }
@@ -97,13 +84,37 @@ namespace Kaizerwald.StateMachine
             {
                 nextState = StateIdentity;
             }
-            
+            */
             return nextState != StateIdentity;
         }
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+        private void Exit(out EStates nextState)
+        {
+            if (!CombatStateBoard.IsTargetValid())
+            {
+                nextState = EStates.Idle;
+            }
+            else if (IsTargetInRange())
+            {
+                nextState = StateIdentity;
+            }
+            else if (CombatStateBoard.IsChasingTarget)
+            {
+                nextState = EStates.Move;
+            }
+            else if (!TryChangeTarget())
+            {
+                nextState = EStates.Idle;
+            }
+            else
+            {
+                nextState = StateIdentity;
+            }
+        }
 
         private bool IdleExit()
         {
@@ -112,7 +123,7 @@ namespace Kaizerwald.StateMachine
 
         private bool MoveExit()
         {
-            bool chaseEnemy = EnemyRegimentTargetData.IsTargetLocked;
+            bool chaseEnemy = CombatStateBoard.IsChasingTarget;
             return false;
             //return chaseEnemy && EnemyRegimentTargetData.EnemyTarget;
         }
@@ -127,11 +138,11 @@ namespace Kaizerwald.StateMachine
             bool hasOtherTargetInRange = StateExtension2.CheckEnemiesAtRange(LinkedRegiment, MaxRange, out int targetID, FOV_ANGLE);
             if (hasOtherTargetInRange)
             {
-                EnemyRegimentTargetData.SetEnemyTarget(RegimentManager.Instance.RegimentsByID[targetID]);
+                CombatStateBoard.SetEnemyTarget(RegimentManager.Instance.RegimentsByID[targetID]);
             }
             else
             {
-                EnemyRegimentTargetData.Clear();
+                CombatStateBoard.Clear();
             }
             return hasOtherTargetInRange;
         }

@@ -327,6 +327,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "AutoFire",
+                    "type": "Button",
+                    "id": "56c2dd0f-ee79-44ec-a468-506634d72357",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -338,6 +347,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "MarchRun",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "7044bb11-f362-4e3c-b8b4-b486531e5dbc",
+                    "path": "<Keyboard>/e",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "AutoFire",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

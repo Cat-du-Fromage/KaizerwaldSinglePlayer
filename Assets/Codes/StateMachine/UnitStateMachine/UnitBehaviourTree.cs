@@ -47,6 +47,7 @@ namespace Kaizerwald.StateMachine
 
         public void OnDestroy()
         {
+            RegimentBehaviourTree.OnUnitDestroyed(this);
             if (States == null) return;
             foreach (UnitState state in States.Values)
             {
@@ -65,7 +66,13 @@ namespace Kaizerwald.StateMachine
             IsInitialized = true;
             return this;
         }
-        
+
+        public override void RequestChangeState(Order order, bool overrideState = true)
+        {
+            if (!States[order.StateOrdered].ConditionEnter()) return;
+            base.RequestChangeState(order, overrideState);
+        }
+
         protected override void InitializeStates()
         {
             States = new Dictionary<EStates, UnitState>()

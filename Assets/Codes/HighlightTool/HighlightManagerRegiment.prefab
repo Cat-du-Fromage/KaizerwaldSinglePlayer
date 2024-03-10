@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5534050833136415287}
   - component: {fileID: 1886885482450021849}
+  - component: {fileID: 3237469944637051068}
   m_Layer: 0
   m_Name: HighlightManagerRegiment
   m_TagString: Untagged
@@ -44,7 +45,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17178e080dae6ea40b185ff7f7b89a69, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  <PlayerID>k__BackingField: 0
+  <OwnerPlayerID>k__BackingField: 0
+  <TeamID>k__BackingField: 0
   <TerrainLayerMask>k__BackingField:
     serializedVersion: 2
     m_Bits: 256
@@ -57,3 +59,18 @@ MonoBehaviour:
     type: 3}
   <PlacementDefaultPrefab>k__BackingField: {fileID: 6969508022250319429, guid: 5f28dfd2826d70e408b33fe4d04df0f2,
     type: 3}
+  <Regiments>k__BackingField: []
+  <DebugSelectedRegiment>k__BackingField: []
+  <DebugSortedSelectedRegiment>k__BackingField: []
+--- !u!114 &3237469944637051068
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8958506857886098473}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74999e15cc7fa1641807342aac8f440c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

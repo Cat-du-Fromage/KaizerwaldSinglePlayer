@@ -4,91 +4,107 @@ using UnityEngine;
 
 using Kaizerwald.FormationModule;
 
-namespace Kaizerwald
+namespace Kaizerwald.StateMachine
 {
-    public class EnemyRegimentTargetData
+    public enum ECombatMode
+    {
+        Range,
+        Melee,
+    }
+    
+    public class CombatStateBoard
     {
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                                 ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
         
-        private int enemyTargetID; // avoid Null Check by caching it
-        private Regiment enemyTarget;
         private FormationData cacheEnemyFormation;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                              ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        public bool IsTargetLocked { get; private set; }
-        public Regiment EnemyTarget => enemyTarget;
-        public int EnemyTargetID => enemyTargetID;
+        public ECombatMode CombatMode { get; private set; }
+        public bool IsChasingTarget { get; private set; }
+        
+        public int EnemyTargetID { get; private set; }
+        public Regiment EnemyTarget { get; private set; }
+        
+    //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
+    //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║
+    //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
+        public void SetChasingTarget(bool enable)
+        {
+            IsChasingTarget = enable;
+        }
+            
+        public void SetFormation(FormationData formation)
+        {
+            cacheEnemyFormation = formation;
+        }
+    
         public FormationData CacheEnemyFormation => cacheEnemyFormation;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ CONSTRUCTOR ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        public EnemyRegimentTargetData(Regiment enemyRegiment = null)
+        public CombatStateBoard(Regiment enemyRegiment = null)
         {
             bool isTargetNull = enemyRegiment == null;
-            enemyTarget = enemyRegiment;
-            enemyTargetID = isTargetNull ? -1 : enemyRegiment.RegimentID;
-            cacheEnemyFormation = isTargetNull ? default : enemyTarget.CurrentFormationData;
-        }
-        
-        public EnemyRegimentTargetData(Regiment enemyRegiment, FormationData cacheEnemyFormation) : this(enemyRegiment)
-        {
-            this.cacheEnemyFormation = cacheEnemyFormation;
+            EnemyTarget = enemyRegiment;
+            EnemyTargetID = isTargetNull ? -1 : enemyRegiment.RegimentID;
+            cacheEnemyFormation = isTargetNull ? default : EnemyTarget.CurrentFormationData;
         }
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+        public bool IsChasingValidTarget()
+        {
+            if (IsChasingTarget && !IsTargetValid())
+            {
+                IsChasingTarget = false;
+            }
+            return IsChasingTarget;
+        }
+        
         public bool IsTargetValid()
         {
-            return enemyTargetID != -1 && RegimentManager.Instance.RegimentExist(enemyTargetID);
+            return EnemyTargetID != -1 && RegimentManager.Instance.RegimentExist(EnemyTargetID);
         }
         
         public void Clear()
         {
-            enemyTarget = null;
-            enemyTargetID = -1;
-            IsTargetLocked = false;
+            EnemyTarget = null;
+            EnemyTargetID = -1;
+            IsChasingTarget = false;
         }
 
-        public void SetEnemyTarget(int regimentID, bool lockTarget = false)
+        public void SetEnemyTarget(int regimentID, bool chaseTarget = false)
         {
-            if (!RegimentManager.Instance.TryGetRegiment(regimentID, out enemyTarget)) return;
-            IsTargetLocked = lockTarget;
-            enemyTargetID = enemyTarget.RegimentID;
+            if (!RegimentManager.Instance.TryGetRegiment(regimentID, out Regiment enemyTarget)) return;
+            EnemyTarget = enemyTarget;
+            IsChasingTarget = chaseTarget;
+            EnemyTargetID = EnemyTarget.RegimentID;
+            cacheEnemyFormation = EnemyTarget.CurrentFormationData;
+        }
+        
+        public void SetEnemyTarget(Regiment enemyTarget, bool chaseTarget = false)
+        {
+            //bool isTargetNull = enemyTarget == null;
+            if (enemyTarget == null) return;
+            IsChasingTarget = chaseTarget;
+            EnemyTarget = enemyTarget;
+            EnemyTargetID = enemyTarget.RegimentID;
             cacheEnemyFormation = enemyTarget.CurrentFormationData;
         }
         
-        public void SetEnemyTarget(Regiment enemyRegiment, bool lockTarget = false)
-        {
-            bool isTargetNull = enemyRegiment == null;
-            if (isTargetNull) return;
-            IsTargetLocked = lockTarget;
-            enemyTarget = enemyRegiment;
-            enemyTargetID = enemyRegiment.RegimentID;
-            cacheEnemyFormation = enemyRegiment.CurrentFormationData;
-        }
-
-        public void LockTarget(bool enable)
-        {
-            IsTargetLocked = enable;
-        }
-        
-        public void SetFormation(FormationData formation)
-        {
-            cacheEnemyFormation = formation;
-        }
-
         public void UpdateCachedFormation()
         {
-            if (cacheEnemyFormation.EqualComposition(enemyTarget.CurrentFormation)) return;
-            cacheEnemyFormation = enemyTarget.CurrentFormation;
+            if (cacheEnemyFormation.EqualComposition(EnemyTarget.CurrentFormation)) return;
+            cacheEnemyFormation = EnemyTarget.CurrentFormation;
         }
     }
 }
