@@ -13,10 +13,9 @@ using Kaizerwald.FormationModule;
 namespace Kaizerwald
 {
     //FAIRE de régiment manager une partie intégrante de l'outil "HighlightRegimentManager"
-    public sealed class HighlightRegimentManager : Singleton<HighlightRegimentManager>, IOwnershipInformation, IGameSystem
+    [ExecuteBefore(typeof(RegimentManager), OrderDecrease = 1)]
+    public sealed class HighlightRegimentManager : Singleton<HighlightRegimentManager>, IOwnershipInformation
     {
-        public int ExecutionOrderWeight => 0;
-        
         // IOwnershipInformation
         [field:SerializeField] public ulong OwnerPlayerID { get; private set; }
         [field:SerializeField] public short TeamID { get; private set; }
@@ -96,7 +95,7 @@ namespace Kaizerwald
             Controllers       = new List<HighlightController>() { Selection.Controller, Placement.Controller };
         }
         
-        public void OnStart()
+        public void Start()
         {
             RegimentManager.Instance.OnNewRegiment  += InitAndRegisterRegiment<Regiment, Unit>;
             RegimentManager.Instance.OnDeadRegiment += UnRegisterRegiment;
@@ -106,7 +105,7 @@ namespace Kaizerwald
     //║ ◈◈◈◈◈◈ Update | Late Update ◈◈◈◈◈◈                                                                             ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
 
-        public void OnFixedUpdate()
+        public void FixedUpdate()
         {
             CleanUp();
             Controllers.ForEach(controller => controller.OnFixedUpdate());
@@ -116,12 +115,12 @@ namespace Kaizerwald
             }
         }
 
-        public void OnUpdate()
+        public void Update()
         {
             Controllers.ForEach(controller => controller.OnUpdate());
         }
 
-        public void OnLateUpdate()
+        public void LateUpdate()
         {
             //CleanUp();
 #if UNITY_EDITOR

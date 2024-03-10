@@ -9,9 +9,9 @@ using Kaizerwald.Utilities;
 
 namespace Kaizerwald
 {
-    public class ProjectileManager : Singleton<ProjectileManager>, IGameSystem
+    [ExecuteBefore(typeof(RegimentManager), OrderDecrease = 1)]
+    public class ProjectileManager : Singleton<ProjectileManager>
     {
-        public int ExecutionOrderWeight => 0;
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                                ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                 ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
@@ -31,7 +31,7 @@ namespace Kaizerwald
     //║ ◈◈◈◈◈◈ Awake | Start ◈◈◈◈◈◈                                                                                    ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
     
-        public void OnStart()
+        public void Start()
         {
             RegimentManager.Instance.OnNewRegiment += RegisterPool;
             RegimentManager.Instance.OnDeadRegiment += UnRegisterPool;
@@ -42,7 +42,7 @@ namespace Kaizerwald
     //║ ◈◈◈◈◈◈ Update | Late Update ◈◈◈◈◈◈                                                                             ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
 
-        public void OnFixedUpdate()
+        public void FixedUpdate()
         {
             if (unitHits.Count != 0)
             {
@@ -55,7 +55,7 @@ namespace Kaizerwald
             }
         }
 
-        public void OnUpdate()
+        public void Update()
         {
             if (ActiveBullets.Count == 0) return;
             foreach (ProjectileComponent activeBullet in ActiveBullets)
@@ -64,7 +64,7 @@ namespace Kaizerwald
             }
         }
 
-        public void OnLateUpdate()
+        public void LateUpdate()
         {
             if (ActiveBullets.Count == 0) return;
             CleanActiveBullets();

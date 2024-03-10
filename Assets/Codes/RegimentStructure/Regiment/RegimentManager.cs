@@ -8,28 +8,22 @@ using UnityEngine;
 
 using Kaizerwald.Utilities;
 using Kaizerwald.FormationModule;
+using Kaizerwald.TerrainBuilder;
 
 namespace Kaizerwald
 {
-    public class RegimentManager : Singleton<RegimentManager>, IGameSystem
+    [ExecuteAfter(typeof(SimpleTerrain), OrderIncrease = 1)]
+    public class RegimentManager : Singleton<RegimentManager>
     {
-        public int ExecutionOrderWeight => 1;
-        
         public const float RegimentFieldOfView = 60f;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                                ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                 ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-
-        //public bool Initialized { get; private set; }
-        //public event Action OnManagerInitialized;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                              ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-
-        //[field:SerializeField] public LayerMask TerrainLayerMask { get; private set; }
-        //[field:SerializeField] public LayerMask UnitLayerMask { get; private set; }
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Containers ◈◈◈◈◈◈                                                                                       ║
@@ -70,9 +64,8 @@ namespace Kaizerwald
             HighlightRegimentManager.Instance.OnPlayerOrders += OnPlayerOrdersReceived;
         }
         */
-        public void OnStart()
+        private void Start()
         {
-            //Debug.Log($"RegimentManager PriorityOrder = {PriorityOrder}");
             List<Regiment> regiments = RegimentFactory.Instance.RequestRegiments(SpawnCommandManager.Instance);
             regiments.ForEach(RegisterRegiment);
             
@@ -84,7 +77,7 @@ namespace Kaizerwald
     //║ ◈◈◈◈◈◈ Update | Late Update ◈◈◈◈◈◈                                                                             ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
 
-        public void OnFixedUpdate()
+        public void FixedUpdate()
         {
             for (int i = 0; i < Regiments.Count; i++)
             {
@@ -92,7 +85,7 @@ namespace Kaizerwald
             }
         }
 
-        public void OnUpdate()
+        public void Update()
         {
             for (int i = 0; i < Regiments.Count; i++)
             {
@@ -100,7 +93,7 @@ namespace Kaizerwald
             }
         }
 
-        public void OnLateUpdate()
+        public void LateUpdate()
         {
             CleanupEmptyRegiments();
         }

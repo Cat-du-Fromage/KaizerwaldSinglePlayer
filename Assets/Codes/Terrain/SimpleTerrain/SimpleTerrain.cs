@@ -23,6 +23,7 @@ using Kaizerwald.Utilities;
 
 namespace Kaizerwald.TerrainBuilder
 {
+    [ExecutionOrder(64)]
     [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider))]
     [RequireComponent(typeof(TerrainSettings), typeof(TerrainGridSystem))]
     public class SimpleTerrain : Singleton<SimpleTerrain>
