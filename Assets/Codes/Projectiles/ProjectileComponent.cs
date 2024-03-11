@@ -107,12 +107,14 @@ namespace Kaizerwald
 
         public void MakeReady(Vector3 positionInRifle)
         {
+            BulletRigidbody.MovePosition(positionInRifle);
             startPosition = positionInRifle;
             bulletTransform.position = positionInRifle;
         }
         
         public void Fire(Vector3 positionInRifle, Vector3 direction)
         {
+            BulletRigidbody.MovePosition(positionInRifle);
             bulletTransform.position = positionInRifle;
             startPosition = positionInRifle; //Made in Pull function!
             Fire(direction);
@@ -120,6 +122,7 @@ namespace Kaizerwald
         
         public void Fire(Vector3 direction)
         {
+            BulletRigidbody.MovePosition(transform.position);
             BulletRigidbody.velocity = direction * Velocity;
             Trail.emitting = true;
             BulletRigidbody.AddForce(BulletRigidbody.velocity * MuzzleVelocity, ForceMode.Impulse);

@@ -1,13 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
 using Kaizerwald.FormationModule;
+using Kaizerwald.Utilities;
 using Unity.Mathematics;
 using UnityEngine;
 
 namespace Kaizerwald
 {
-    public struct RegimentBlackboard
+    public class RegimentBlackboard
     {
+        public const float REACH_DISTANCE_THRESHOLD = 0.0125f;
+        
         // ===== MotionStateBoard =====
         // FIXED DATA : contains in Nodes ?
         public float MinSpeed;
@@ -15,7 +18,8 @@ namespace Kaizerwald
         
         // DYNAMIC DATA
         public bool IsRunning; //player toggle
-        
+
+        public float3 TargetPosition;
         public bool TargetPositionReach;
         public int TargetFormationWidth;
         
@@ -33,5 +37,12 @@ namespace Kaizerwald
         
         public bool IsChasing;
         public int TargetEnemyId;
+        public Regiment TargetEnemy;
+
+        public void UpdateBoard(float3 currentPosition)
+        {
+            float reachThreshold = IsChasing && !IsInMeleeMode ? Range : REACH_DISTANCE_THRESHOLD;
+            TargetPositionReach = math.distance(currentPosition.xz, TargetPosition.xz) < reachThreshold;
+        }
     }
 }

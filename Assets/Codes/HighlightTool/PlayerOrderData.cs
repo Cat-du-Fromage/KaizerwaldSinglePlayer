@@ -11,12 +11,6 @@ namespace Kaizerwald
         Attack
     }
     
-    public enum EMovePace : int
-    {
-        March,
-        Run,
-    }
-    
     public struct PlayerOrderData
     {
         public int RegimentID;

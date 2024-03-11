@@ -102,13 +102,20 @@ namespace Kaizerwald
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        public bool RegimentExist(int regimentID) => RegimentsByID.ContainsKey(regimentID);
+        public bool RegimentExist(int regimentID)
+        {
+            return RegimentsByID.ContainsKey(regimentID);
+        }
+
         public bool RegimentExist(Regiment regiment)
         {
             return regiment != null && RegimentsByID.ContainsKey(regiment.RegimentID);
         }
 
-        public bool TryGetRegiment(int regimentID, out Regiment regiment) => RegimentsByID.TryGetValue(regimentID, out regiment);
+        public bool TryGetRegiment(int regimentID, out Regiment regiment)
+        {
+            return RegimentsByID.TryGetValue(regimentID, out regiment);
+        }
 
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Num Units ◈◈◈◈◈◈                                                                                        ║
@@ -116,9 +123,9 @@ namespace Kaizerwald
         public int GetEnemiesTeamNumUnits(int friendlyTeamID)
         {
             int numUnits = 0;
-            foreach ((int key, List<Regiment> regiments) in RegimentsByTeamID)
+            foreach ((int teamId, List<Regiment> regiments) in RegimentsByTeamID)
             {
-                bool isEnemyTeam = key != friendlyTeamID;
+                bool isEnemyTeam = teamId != friendlyTeamID;
                 numUnits += isEnemyTeam ? regiments.Sum(pair => pair.Count) : 0;
             }
             return numUnits;

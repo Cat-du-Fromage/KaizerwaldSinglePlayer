@@ -99,7 +99,8 @@ namespace Kaizerwald
         
         public ProjectileComponent RequestBullet(int regimentID, Vector3 positionInRifle)
         {
-            return RegimentBulletsPool.TryGetValue(regimentID, out ObjectPool<ProjectileComponent> pool) ? pool.Pull(positionInRifle) : null;
+            bool hasValue = RegimentBulletsPool.TryGetValue(regimentID, out ObjectPool<ProjectileComponent> pool);
+            return hasValue ? pool.Pull(positionInRifle) : null;
         }
 
         private void CleanActiveBullets()
