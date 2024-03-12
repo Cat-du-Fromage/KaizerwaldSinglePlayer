@@ -34,7 +34,6 @@ namespace Kaizerwald.StateMachine
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
         // EnemyRegimentTargetData
         private Regiment CurrentEnemyTarget => CombatStateBoard.EnemyTarget;
-        public bool HasTarget => CombatStateBoard.EnemyTargetID != -1;
         
         // RegimentType
         public int MaxRange => RegimentType.Range;
@@ -56,7 +55,7 @@ namespace Kaizerwald.StateMachine
         {
             RangeAttackOrder rangeAttackOrder = (RangeAttackOrder)order;
             if (!RegimentManager.Instance.RegimentExist(rangeAttackOrder.TargetEnemyId)) return;
-            CombatStateBoard.SetEnemyTarget(rangeAttackOrder.TargetEnemyId, true);
+            CombatStateBoard.TrySetEnemyTarget(rangeAttackOrder.TargetEnemyId, true);
         }
 
         public override void OnEnter() { return; }
@@ -70,7 +69,8 @@ namespace Kaizerwald.StateMachine
 
         public override bool ShouldExit(out EStates nextState)
         {
-            Exit(out nextState);
+            // RANGE -> Move
+            nextState = GetExitState();
             /*
             if (IdleExit() && !CombatStateBoard.IsChasingTarget)
             {
@@ -92,33 +92,62 @@ namespace Kaizerwald.StateMachine
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        private void Exit(out EStates nextState)
+        private EStates GetExitState()
         {
-            if (!CombatStateBoard.IsTargetValid())
+            /*
+            EStates nextState = EStates.Idle;
+            if (CombatStateBoard.IsTargetValid())
             {
-                nextState = EStates.Idle;
+                if (IsTargetInRange())
+                {
+                    nextState = StateIdentity;
+                }
+                else if (CombatStateBoard.IsChasingTarget)
+                {
+                    nextState = EStates.Move;
+                }
+                else if (InputStateBoard.AutoFire && TryChangeTarget())
+                {
+                    nextState = StateIdentity;
+                }
             }
-            else if (IsTargetInRange())
+            else //No Target => No Chase possible
             {
-                nextState = StateIdentity;
+                if (InputStateBoard.AutoFire && TryChangeTarget())
+                {
+                    nextState = StateIdentity;
+                }
             }
-            else if (CombatStateBoard.IsChasingTarget)
+            return nextState;
+            */
+            
+            if (!CombatStateBoard.IsTargetValid() && !InputStateBoard.AutoFire)
             {
-                nextState = EStates.Move;
+                return EStates.Idle;
             }
-            else if (!TryChangeTarget())
+
+            if (IsTargetInRange())
             {
-                nextState = EStates.Idle;
+                return StateIdentity;
             }
-            else
+
+            if (CombatStateBoard.IsChasingTarget)
             {
-                nextState = StateIdentity;
+                return EStates.Move;
             }
+
+            if (!InputStateBoard.AutoFire || !TryChangeTarget())
+            {
+                return EStates.Idle;
+            }
+            
+            return StateIdentity;
+            
         }
 
         private bool IdleExit()
         {
-            return !HasTarget || (!IsTargetInRange() && !TryChangeTarget());
+            return !CombatStateBoard.IsTargetValid() || (!IsTargetInRange() && (!InputStateBoard.AutoFire || !TryChangeTarget()));
         }
 
         private bool MoveExit()
@@ -138,7 +167,7 @@ namespace Kaizerwald.StateMachine
             bool hasOtherTargetInRange = StateExtension2.CheckEnemiesAtRange(LinkedRegiment, MaxRange, out int targetID, FOV_ANGLE);
             if (hasOtherTargetInRange)
             {
-                CombatStateBoard.SetEnemyTarget(RegimentManager.Instance.RegimentsByID[targetID]);
+                CombatStateBoard.TrySetEnemyTarget(RegimentManager.Instance.RegimentsByID[targetID]);
             }
             else
             {

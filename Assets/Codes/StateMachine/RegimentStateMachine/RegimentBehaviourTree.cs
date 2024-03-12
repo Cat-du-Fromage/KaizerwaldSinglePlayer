@@ -28,6 +28,8 @@ namespace Kaizerwald.StateMachine
         //Ajouter 
         public InputStateBoard InputStateBoard { get; private set; } = new InputStateBoard();
         public CombatStateBoard CombatStateBoard { get; private set; } = new CombatStateBoard();
+        
+        public MotionStateBoard MotionStateBoard { get; private set; } = new MotionStateBoard();
 
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║

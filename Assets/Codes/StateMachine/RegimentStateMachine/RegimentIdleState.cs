@@ -48,10 +48,18 @@ namespace Kaizerwald.StateMachine
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+        private EStates GetExitState()
+        {
+            // if(!DestinationReach) => Move
+            // if()
+            return StateIdentity;
+        }
+
         private bool FireExit()
         {
             bool enemyInRange = StateExtension2.CheckEnemiesAtRange(LinkedRegiment, AttackRange, out int targetID, FOV_ANGLE);
-            if (enemyInRange) CombatStateBoard.SetEnemyTarget(targetID);
+            if (enemyInRange) CombatStateBoard.TrySetEnemyTarget(targetID);
             return enemyInRange;
         }
         

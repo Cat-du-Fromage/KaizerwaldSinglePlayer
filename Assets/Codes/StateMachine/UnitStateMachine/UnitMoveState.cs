@@ -88,9 +88,9 @@ namespace Kaizerwald.StateMachine
             UpdateProgressToTargetPosition();
             if (UnitReachTargetPosition)
             {
+                currentSpeed = previousSpeed = 0;
                 if (UnitAnimation.IsPlayingIdle) return;
                 UnitAnimation.SetIdle();
-                currentSpeed = previousSpeed = 0;
             }
             else
             {
@@ -100,6 +100,7 @@ namespace Kaizerwald.StateMachine
 
         public override void OnExit()
         {
+            currentSpeed = previousSpeed = 0;
             //currentMoveType = EMoveType.None;
         }
 
@@ -162,8 +163,8 @@ namespace Kaizerwald.StateMachine
             {
                 float animationSpeed = remap(MarchSpeed, RunSpeed, 2, 6, currentSpeed);
                 UnitAnimation.SetSpeed(animationSpeed);
+                previousSpeed = currentSpeed;
             }
-            previousSpeed = currentSpeed;
         }
 
         private void MoveUnit()
@@ -174,12 +175,11 @@ namespace Kaizerwald.StateMachine
             float3 translation = Time.deltaTime * currentSpeed * Position.DirectionTo(unitTargetPosition);
             UnitTransform.Translate(translation, Space.World);
             UnitTransform.LookAt(Position + RegimentStateReference.TargetFormation.DirectionForward);
-            
         }
 
         private void AdaptSpeed()
         {
-            if (currentSpeed.IsAlmostEqual(MarchSpeed) || distancesq(Position.xz, unitTargetPosition.xz) > ADAPT_DISTANCE_THRESHOLD) return; 
+            if (distancesq(Position.xz, unitTargetPosition.xz) > ADAPT_DISTANCE_THRESHOLD) return; 
             currentSpeed = SetMarching();
         }
     }

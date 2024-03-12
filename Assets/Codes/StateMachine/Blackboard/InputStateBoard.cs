@@ -9,7 +9,7 @@ namespace Kaizerwald
     {
         public bool AutoFire { get; private set; } = true;
         public bool Run { get; private set; }
-        public bool RangeMode { get; private set; } = true;
+        public bool IsInMeleeMode { get; private set; } = true;
 
         public void SetInput(EAbilityType abilityType)
         {

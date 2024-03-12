@@ -6,11 +6,6 @@ using Kaizerwald.FormationModule;
 
 namespace Kaizerwald.StateMachine
 {
-    public enum ECombatMode
-    {
-        Range,
-        Melee,
-    }
     
     public class CombatStateBoard
     {
@@ -24,8 +19,7 @@ namespace Kaizerwald.StateMachine
 //║                                              ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        public ECombatMode CombatMode { get; private set; }
-        public bool IsChasingTarget { get; private set; }
+        public bool IsChasingTarget { get; private set; } = false;
         
         public int EnemyTargetID { get; private set; }
         public Regiment EnemyTarget { get; private set; }
@@ -63,10 +57,7 @@ namespace Kaizerwald.StateMachine
 
         public bool IsChasingValidTarget()
         {
-            if (IsChasingTarget && !IsTargetValid())
-            {
-                IsChasingTarget = false;
-            }
+            IsChasingTarget = IsChasingTarget && IsTargetValid();
             return IsChasingTarget;
         }
         
@@ -81,24 +72,27 @@ namespace Kaizerwald.StateMachine
             EnemyTargetID = -1;
             IsChasingTarget = false;
         }
-
-        public void SetEnemyTarget(int regimentID, bool chaseTarget = false)
+        
+        public void SetEnemyTarget(Regiment enemyTarget, bool chaseTarget = false)
         {
-            if (!RegimentManager.Instance.TryGetRegiment(regimentID, out Regiment enemyTarget)) return;
             EnemyTarget = enemyTarget;
             IsChasingTarget = chaseTarget;
             EnemyTargetID = EnemyTarget.RegimentID;
             cacheEnemyFormation = EnemyTarget.CurrentFormationData;
         }
         
-        public void SetEnemyTarget(Regiment enemyTarget, bool chaseTarget = false)
+        public bool TrySetEnemyTarget(int regimentID, bool chaseTarget = false)
         {
-            //bool isTargetNull = enemyTarget == null;
-            if (enemyTarget == null) return;
-            IsChasingTarget = chaseTarget;
-            EnemyTarget = enemyTarget;
-            EnemyTargetID = enemyTarget.RegimentID;
-            cacheEnemyFormation = enemyTarget.CurrentFormationData;
+            if (!RegimentManager.Instance.TryGetRegiment(regimentID, out Regiment enemyTarget)) return false;
+            SetEnemyTarget(enemyTarget, chaseTarget);
+            return true;
+        }
+        
+        public bool TrySetEnemyTarget(Regiment enemyTarget, bool chaseTarget = false)
+        {
+            if (enemyTarget == null) return false;
+            SetEnemyTarget(enemyTarget, chaseTarget);
+            return true;
         }
         
         public void UpdateCachedFormation()

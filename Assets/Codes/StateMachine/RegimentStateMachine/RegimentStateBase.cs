@@ -20,7 +20,9 @@ namespace Kaizerwald.StateMachine
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
         public Regiment LinkedRegiment => BehaviourTree.LinkedRegiment;
         public RegimentType RegimentType => LinkedRegiment.RegimentType;
+        
         public CombatStateBoard CombatStateBoard => BehaviourTree.CombatStateBoard;
+        public InputStateBoard InputStateBoard => BehaviourTree.InputStateBoard;
         
         public Formation CurrentFormation => LinkedRegiment.CurrentFormation;
         public Formation TargetFormation => LinkedRegiment.TargetFormation;

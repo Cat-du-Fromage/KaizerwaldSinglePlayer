@@ -38,11 +38,5 @@ namespace Kaizerwald
         public bool IsChasing;
         public int TargetEnemyId;
         public Regiment TargetEnemy;
-
-        public void UpdateBoard(float3 currentPosition)
-        {
-            float reachThreshold = IsChasing && !IsInMeleeMode ? Range : REACH_DISTANCE_THRESHOLD;
-            TargetPositionReach = math.distance(currentPosition.xz, TargetPosition.xz) < reachThreshold;
-        }
     }
 }

@@ -25,7 +25,6 @@ namespace Kaizerwald.StateMachine
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
         private bool leaderReachTargetPosition = true;
-        //private float moveSpeed;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                              ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                              ║
@@ -40,9 +39,8 @@ namespace Kaizerwald.StateMachine
         public float3 LeaderTargetPosition => LinkedRegiment.TargetPosition;
         public float MarchSpeed => RegimentType.MarchSpeed;
         public float RunSpeed => RegimentType.RunSpeed;
-        public bool IsRunning => BehaviourTree.InputStateBoard.Run;
         
-        public float CurrentSpeed => IsRunning ? RunSpeed : MarchSpeed;
+        public float CurrentSpeed => InputStateBoard.Run ? RunSpeed : MarchSpeed;
     
         //┌────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
         //│  ◇◇◇◇◇◇ Getters ◇◇◇◇◇◇                                                                                     │
@@ -52,13 +50,7 @@ namespace Kaizerwald.StateMachine
         //┌────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
         //│  ◇◇◇◇◇◇ Setters ◇◇◇◇◇◇                                                                                     │
         //└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-        /*
-        private void SetMoveSpeed(EMoveType moveType)
-        {
-            CurrentMoveType = moveType;
-            moveSpeed = moveType == EMoveType.Run ? RunSpeed : MarchSpeed;
-        }
-        */
+        
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ CONSTRUCTOR ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
@@ -146,7 +138,7 @@ namespace Kaizerwald.StateMachine
         private void UpdateProgressToTargetPosition()
         {
             if (leaderReachTargetPosition) return;
-            leaderReachTargetPosition = distance(Position, LeaderTargetPosition) <= REACH_DISTANCE_THRESHOLD;
+            leaderReachTargetPosition = distance(Position.xz, LeaderTargetPosition.xz) <= REACH_DISTANCE_THRESHOLD;
         }
 
         private void MoveRegiment()
@@ -175,12 +167,7 @@ namespace Kaizerwald.StateMachine
         {
             float offset = 2;
             float3 enemyPosition = CombatStateBoard.EnemyTarget.Position;
-            return CombatStateBoard.CombatMode switch
-            {
-                ECombatMode.Range => enemyPosition + enemyPosition.DirectionTo(Position) * (RegimentType.Range - offset),
-                ECombatMode.Melee => enemyPosition,
-                _ => default
-            };
+            return InputStateBoard.IsInMeleeMode ? enemyPosition : enemyPosition + enemyPosition.DirectionTo(Position) * (RegimentType.Range - offset);
         }
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
