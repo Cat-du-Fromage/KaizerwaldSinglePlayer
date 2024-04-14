@@ -88,7 +88,7 @@ namespace Kaizerwald.StateMachine
     //║ ◈◈◈◈◈◈ Initialization Methods ◈◈◈◈◈◈                                                                       ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
         
-        public void InitializeAndRegisterUnits(Regiment regiment)
+        public RegimentBehaviourTree InitializeAndRegisterUnits(Regiment regiment)
         {
             linkedRegiment = regiment;
             unitsBehaviourTrees = new HashSet<UnitBehaviourTree>(linkedRegiment.Count);
@@ -100,6 +100,7 @@ namespace Kaizerwald.StateMachine
                 unitsBehaviourTrees.Add(unit.BehaviourTree.Initialize(this));
             }
             IsInitialized = true;
+            return this;
         }
         
         protected override void InitializeStates()

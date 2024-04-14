@@ -21,7 +21,6 @@ namespace Kaizerwald.StateMachine
         private float3 unitTargetPosition;
         private float previousSpeed;
         private float currentSpeed;
-        //private EMoveType currentMoveType;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                              ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                              ║
@@ -122,13 +121,6 @@ namespace Kaizerwald.StateMachine
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 //TODO : Function that adapt speed depending on the distance from destination to current leader Position(GetUnitRelativePositionToRegiment3D), NOT final target position (unitTargetPosition)
-        /*
-        private void UpdateMoveType(EMoveType moveType)
-        {
-            currentMoveType = moveType;
-            currentSpeed = IsRunning ? RunSpeed : MarchSpeed;
-        }
-        */
         private void UpdateProgressToTargetPosition()
         {
             UnitReachTargetPosition = distancesq(Position.xz, unitTargetPosition.xz) <= REACH_DISTANCE_THRESHOLD;
@@ -137,12 +129,6 @@ namespace Kaizerwald.StateMachine
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ State Logic ◈◈◈◈◈◈                                                                                      ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        /*
-        private void UpdateMoveSpeed()
-        {
-            currentSpeed = IsRunning ? SetRunning() : SetMarching();
-        }
-        */
         private float SetMarching()
         {
             UnitAnimation.SetMarching();
@@ -169,11 +155,17 @@ namespace Kaizerwald.StateMachine
 
         private void MoveUnit()
         {
+            if (UnitReachTargetPosition) return;
             UpdateBaseSpeed();
             AdaptSpeed();
             
-            float3 translation = Time.deltaTime * currentSpeed * Position.DirectionTo(unitTargetPosition);
-            UnitTransform.Translate(translation, Space.World);
+            //float3 translation = Time.deltaTime * currentSpeed * Position.DirectionTo(unitTargetPosition);
+            
+            float distanceMove = Time.deltaTime * currentSpeed;
+            UnitReachTargetPosition = distanceMove > distance(Position, unitTargetPosition);
+            
+            float3 translation = UnitReachTargetPosition ? unitTargetPosition : Position + distanceMove * Position.DirectionTo(unitTargetPosition);
+            UnitTransform.position = translation;
             UnitTransform.LookAt(Position + RegimentStateReference.TargetFormation.DirectionForward);
         }
 

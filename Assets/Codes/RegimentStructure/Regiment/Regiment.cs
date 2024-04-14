@@ -105,10 +105,10 @@ namespace Kaizerwald
         // Meant to be instantiate this way AND NO OTHER WAY
         public static Regiment InstantiateAndInitialize(GameObject regimentPrefab, Vector3 position, Quaternion rotation, ulong playerId, int teamID, LayerMask terrainLayer)
         {
-            GameObject newRegiment = Instantiate(regimentPrefab, position, rotation);
-            Regiment regiment = newRegiment.GetOrAddComponent<Regiment>();
-            regiment.InitializeProperties(playerId, teamID, terrainLayer);
-            return regiment;
+            //GameObject newRegiment = Instantiate(regimentPrefab, position, rotation);
+            //Regiment regiment = newRegiment.GetOrAddComponent<Regiment>();
+            //return regiment.InitializeProperties(playerId, teamID, terrainLayer);
+            return Instantiate(regimentPrefab, position, rotation).GetOrAddComponent<Regiment>().InitializeProperties(playerId, teamID, terrainLayer);
         }
         
         public Regiment InitializeProperties(ulong playerId, int teamID, LayerMask terrainLayer)
@@ -126,26 +126,24 @@ namespace Kaizerwald
             
             //FormationMatrix
             Formation formation = RegimentType.GetFormation(regimentDirection);
-            List<Unit> units = CreateRegimentsUnit();
+            List<Unit> units = CreateRegimentsUnit(KaizerwaldGameManager.Instance.UnitLayerIndex);
             InitializeFormation(formation, units, Position);
 
             //BehaviourTree
-            BehaviourTree = gameObject.GetOrAddComponent<RegimentBehaviourTree>();
-            BehaviourTree.InitializeAndRegisterUnits(this);
+            BehaviourTree = this.GetOrAddComponent<RegimentBehaviourTree>().InitializeAndRegisterUnits(this);
             return this;
             //┌▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁┐
             //▕  ◇◇◇◇◇◇ Internal Methods ◇◇◇◇◇◇                                                                        ▏
             //└▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔┘
-            List<Unit> CreateRegimentsUnit()
+            List<Unit> CreateRegimentsUnit(int unitLayerIndex)
             {
                 GameObject prefab = RegimentType.UnitPrefab;
-                int unitLayerIndex = KaizerwaldGameManager.Instance.UnitLayerIndex;
                 using NativeArray<float3> positions = formation.GetPositionsInFormationByRaycast(Position, terrainLayer);
                 
                 List<Unit> tmpUnits = new(formation.BaseNumUnits);
                 for (int i = 0; i < positions.Length; i++)
                 {
-                    Unit unit = Unit.InstantiateUnit(prefab, this, positions[i], Rotation, i, unitLayerIndex);
+                    Unit unit = Unit.InstantiateUnit(this, prefab, positions[i], Rotation, i, unitLayerIndex);
                     tmpUnits.Add(unit);
                 }
                 return tmpUnits;
@@ -189,7 +187,10 @@ namespace Kaizerwald
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                    ◆◆◆◆◆◆ FORMATION BEHAVIOUR APPENDIX ◆◆◆◆◆◆                                      ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-
+        public void ResetDestination()
+        {
+            SetDestination(Position, CurrentFormation);
+        }
         
         protected override void SwapElementByIndex(int deadIndex, int swapIndex)
         {

@@ -80,24 +80,24 @@ namespace Kaizerwald
         //│  ◇◇◇◇◇◇ Static Constructor ◇◇◇◇◇◇                                                                          │
         //└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
         // Meant to be instantiate this way AND NO OTHER WAY
-        public static Unit InstantiateUnit(GameObject prefab, Regiment linkedRegiment, Vector3 position, Quaternion rotation, int indexInRegiment, int layerIndex)
+        public static Unit InstantiateUnit(Regiment linkedRegiment, GameObject prefab, Vector3 position, Quaternion rotation, int indexInRegiment, int layerIndex)
         {
             GameObject unitGameObject = Instantiate(prefab, position, rotation);
             if (!unitGameObject.TryGetComponent(out Unit unit))
             {
                 unit = unitGameObject.AddComponent<Unit>();
             }
-            unit.Initialize(linkedRegiment, indexInRegiment, layerIndex);
-            return unit;
+            return unit.Initialize(linkedRegiment, indexInRegiment, layerIndex);
         }
         
-        public void Initialize(Regiment regiment, int indexInRegiment, int unitLayerIndex)
+        public Unit Initialize(Regiment regiment, int indexInRegiment, int unitLayerIndex)
         {
             name = $"{name}_{indexInRegiment}";
             LinkedRegiment = regiment;
             gameObject.layer = unitLayerIndex;
             IndexInFormation = indexInRegiment;
             BehaviourTree = gameObject.GetOrAddComponent<UnitBehaviourTree>();
+            return this;
         }
 
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖

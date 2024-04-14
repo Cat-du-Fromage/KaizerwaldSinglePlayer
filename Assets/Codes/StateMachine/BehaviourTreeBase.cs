@@ -68,7 +68,7 @@ namespace Kaizerwald.StateMachine
             return States[state].ConditionEnter();
         }
 
-        private bool TryChangeState()
+        protected bool TryChangeState()
         {
             if (!CurrentState.ShouldExit(out EStates nextState)) return false;
             CurrentState.OnExit();

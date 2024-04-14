@@ -7,36 +7,27 @@ using UnityEngine;
 
 namespace Kaizerwald
 {
+    public struct AbilityBoard
+    {
+        public bool AutoFire; //player toggle
+        public bool IsRunning; //player toggle
+        public bool IsInMeleeMode; //player toggle
+    }
+
+    public struct DynamicStatusBoard
+    {
+        public bool HasTarget;
+        public bool IsMoving; // ReachDestination
+        public bool IsChasing;
+        
+        public int TargetEnemyId;
+        public float3 TargetPosition;
+        public FormationData TargetFormationData;
+    }
+    
     public class RegimentBlackboard
     {
-        public const float REACH_DISTANCE_THRESHOLD = 0.0125f;
-        
-        // ===== MotionStateBoard =====
-        // FIXED DATA : contains in Nodes ?
-        public float MinSpeed;
-        public float MaxSpeed;
-        
-        // DYNAMIC DATA
-        public bool IsRunning; //player toggle
-
-        public float3 TargetPosition;
-        public bool TargetPositionReach;
-        public int TargetFormationWidth;
-        
-        // calcul made on Node ?
-        //public float CurrentSpeed => IsRunning ? MaxSpeed : MinSpeed;
-        
-        // ===== COMBAT =====
-        // FIXED DATA : contains in Nodes ? (Soucis: move a besoin de accuracy!)
-        public float Range;
-        public float Accuracy;
-        
-        // DYNAMIC DATA
-        public bool AutoFire; //player toggle
-        public bool IsInMeleeMode; //player toggle
-        
-        public bool IsChasing;
-        public int TargetEnemyId;
-        public Regiment TargetEnemy;
+        public AbilityBoard AbilityBoard;
+        public DynamicStatusBoard DynamicStatusBoard;
     }
 }

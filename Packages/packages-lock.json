@@ -27,7 +27,7 @@
         "com.unity.inputsystem": "1.7.0",
         "com.unity.collections": "2.1.4"
       },
-      "hash": "8e9af8a8ca85d2921231f20456c666add0e04a14"
+      "hash": "7d5c55bbecd7ce89bc4606ee35d39e8d6b1401f4"
     },
     "com.rotaryheart.serializabledictionarylite": {
       "version": "https://github.com/RotaryHeart/SerializableDictionaryLite.git",
@@ -100,7 +100,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.inputsystem": {
-      "version": "1.8.0-pre.2",
+      "version": "1.8.1",
       "depth": 0,
       "source": "registry",
       "dependencies": {
