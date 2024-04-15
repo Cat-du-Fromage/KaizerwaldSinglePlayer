@@ -11,7 +11,7 @@ namespace Kaizerwald.StateMachine
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        private int AttackRange => BehaviourTree.RegimentType.Range;
+        private int AttackRange => RegimentType.Range;
         
         //┌────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
         //│  ◇◇◇◇◇◇ Setters ◇◇◇◇◇◇                                                                                     │
@@ -22,7 +22,7 @@ namespace Kaizerwald.StateMachine
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ CONSTRUCTOR ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-        public RegimentIdleState(RegimentBehaviourTree behaviourTree) : base(behaviourTree, EStates.Idle)
+        public RegimentIdleState(RegimentStateMachine stateMachine) : base(stateMachine, EStates.Idle)
         {
         }
 
@@ -37,11 +37,7 @@ namespace Kaizerwald.StateMachine
 
         public override bool ShouldExit(out EStates nextState)
         {
-            nextState = StateIdentity;
-            if (FireExit())
-            {
-                nextState = EStates.Fire;
-            }
+            nextState = GetExitState();
             return nextState != StateIdentity;
         }
         
@@ -51,21 +47,13 @@ namespace Kaizerwald.StateMachine
 
         private EStates GetExitState()
         {
-            // if(!DestinationReach) => Move
-            // if()
+            // Later Melee will be check Too (Will be prioritary on Fire => first check made)
+            if (StateMachine.CanEnterState(EStates.Fire))
+            {
+                return EStates.Fire;
+            }
+            
             return StateIdentity;
-        }
-
-        private bool FireExit()
-        {
-            bool enemyInRange = StateExtension2.CheckEnemiesAtRange(LinkedRegiment, AttackRange, out int targetID, FOV_ANGLE);
-            if (enemyInRange) CombatStateBoard.TrySetEnemyTarget(targetID);
-            return enemyInRange;
-        }
-        
-        private bool MoveExit()
-        {
-            return false;
         }
     }
 }

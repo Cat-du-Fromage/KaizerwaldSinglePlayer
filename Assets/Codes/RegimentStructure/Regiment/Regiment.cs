@@ -37,7 +37,7 @@ namespace Kaizerwald
         
         // REGIMENT STATS
         [field:SerializeField] public RegimentType RegimentType { get; private set; }
-        [field:SerializeField] public RegimentBehaviourTree BehaviourTree { get; private set; }
+        [field:SerializeField] public RegimentStateMachine StateMachine { get; private set; }
         
         //"BlackBoard"
         
@@ -58,12 +58,12 @@ namespace Kaizerwald
         //│  ◇◇◇◇◇◇ Getters ◇◇◇◇◇◇                                                                                     │
         //└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
         public float3 Position => regimentTransform.position;
+        public Quaternion Rotation => regimentTransform.rotation;
         public float3 Forward  => regimentTransform.forward;
         public float3 Back     => -regimentTransform.forward;
         public float3 Right    => regimentTransform.right;
         public float3 Left     => -regimentTransform.right;
-        public Quaternion Rotation => regimentTransform.rotation;
-
+        
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ UNITY EVENTS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
@@ -88,7 +88,7 @@ namespace Kaizerwald
     
         public void OnUpdate()
         {
-            BehaviourTree.OnUpdate();
+            StateMachine.OnUpdate();
             for (int i = 0; i < Count; i++)
             {
                 Elements[i].UpdateUnit();
@@ -130,7 +130,7 @@ namespace Kaizerwald
             InitializeFormation(formation, units, Position);
 
             //BehaviourTree
-            BehaviourTree = this.GetOrAddComponent<RegimentBehaviourTree>().InitializeAndRegisterUnits(this);
+            StateMachine = this.GetOrAddComponent<RegimentStateMachine>().InitializeAndRegisterUnits(this);
             return this;
             //┌▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁┐
             //▕  ◇◇◇◇◇◇ Internal Methods ◇◇◇◇◇◇                                                                        ▏
@@ -166,22 +166,33 @@ namespace Kaizerwald
         //└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
         
         //TODO: Rework a faire! Changements de Data qui vont entraîner naturellement les changement d'états
-        // - Move: 
         
         public void OnOrderReceived(PlayerOrderData playerOrder)
         {
-            Order packedOrder = playerOrder.OrderType switch
+            Order order = new Order //Only Move can be ordered
             {
-                EOrderType.Move => new MoveOrder(playerOrder),
-                EOrderType.Attack => new RangeAttackOrder(playerOrder),
-                _ => default
+                StateOrdered = EStates.Move,
+                EnemyTargetId = playerOrder.TargetEnemyID,
+                TargetPosition = playerOrder.LeaderDestination,
+                TargetFormation = playerOrder.TargetFormation
             };
-            BehaviourTree.RequestChangeState(packedOrder);
+            StateMachine.RegimentBlackboard.IsRunning = playerOrder.IsRunning;
+            StateMachine.RequestChangeState(order);
         }
 
         public void OnAbilityTriggered(EAbilityType ability)
         {
-            BehaviourTree.InputStateBoard.SetInput(ability);
+            switch (ability)
+            {
+                case EAbilityType.MarchRun:
+                    StateMachine.RegimentBlackboard.IsRunning = !StateMachine.RegimentBlackboard.IsRunning;
+                    break;
+                case EAbilityType.AutoFire:
+                    StateMachine.RegimentBlackboard.AutoFire = !StateMachine.RegimentBlackboard.AutoFire;
+                    break;
+                default:
+                    return;
+            }
         }
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
@@ -199,24 +210,6 @@ namespace Kaizerwald
             Elements[swapIndex].OnRearrangement(swapIndex);
             HandleElementSwapped(deadIndex, swapIndex);
         }
-        
-        /*
-        private void LastLineRearrangement(int numElementAfterResize)
-        {
-            if (CurrentFormation.IsLastLineComplete) return;
-            MoveOrder moveOrder = new (CurrentFormationData, TargetPosition, EMoveType.March);
-            for (int i = CurrentFormation.LastRowFirstIndex; i < numElementAfterResize; i++)
-            {
-                Elements[i].BehaviourTree.RequestChangeState(moveOrder, false);
-            }
-        }
-        
-        protected override void HandleFormationResized(int numElementAfterResize)
-        {
-            //LastLineRearrangement(numElementAfterResize);
-            base.HandleFormationResized(numElementAfterResize);
-        }
-        */
         
         //TODO: Find a way without Memory allocation (Unit[] tmpUnits = new Unit[Elements.Count])
         //Here was the issue
@@ -257,8 +250,7 @@ namespace Kaizerwald
         public void ReorderElementsBySwap(NativeArray<int> indices)
         {
             if (indices.Length != Elements.Count) return;
-            //Find Cpp's Iota equivalent
-            //NativeArray<int> indicesPosition = new (Enumerable.Range(0, Elements.Count).ToArray(), Temp);
+            
             NativeArray<int> indicesPosition = new (Elements.Count, Temp, UninitializedMemory);
             for (int i = 0; i < Elements.Count; i++) indicesPosition[i] = i;
             
@@ -266,12 +258,10 @@ namespace Kaizerwald
             {
                 int sortedIndex = indices[i];
                 int indexElementToSwapWith = indicesPosition.IndexOf(i);
-                //Debug.Log($"sortedIndex = {sortedIndex} i = {i} position i = {indexElementToSwapWith} test indicesPosition[i] = {indicesPosition[i]}");
                 (Elements[sortedIndex], Elements[indexElementToSwapWith]) = (Elements[indexElementToSwapWith], Elements[sortedIndex]);
                 (indicesPosition[sortedIndex], indicesPosition[indexElementToSwapWith]) = (indicesPosition[indexElementToSwapWith], indicesPosition[sortedIndex]);
                 Elements[sortedIndex].SetIndexInFormation(sortedIndex);
             }
-            //for (int i = 0; i < Elements.Count; i++){Elements[i].SetIndexInFormation(i);}
             ResetTransformsIndicators();
         }
     }

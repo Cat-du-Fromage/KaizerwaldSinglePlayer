@@ -26,7 +26,7 @@ namespace Kaizerwald
         // Components
         [field: SerializeField] public Regiment LinkedRegiment { get; private set; }
         [field: SerializeField] public UnitAnimation Animation { get; private set; }
-        [field: SerializeField] public UnitBehaviourTree BehaviourTree { get; private set; }
+        [field: SerializeField] public UnitStateMachine StateMachine { get; private set; }
         
         // Variables
         [field: SerializeField] public int IndexInFormation { get; private set; }
@@ -69,7 +69,7 @@ namespace Kaizerwald
         public void UpdateUnit()
         {
             if (IsInactive) return;
-            BehaviourTree.OnUpdate();
+            StateMachine.OnUpdate();
         }
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
@@ -96,7 +96,7 @@ namespace Kaizerwald
             LinkedRegiment = regiment;
             gameObject.layer = unitLayerIndex;
             IndexInFormation = indexInRegiment;
-            BehaviourTree = gameObject.GetOrAddComponent<UnitBehaviourTree>();
+            StateMachine = gameObject.GetOrAddComponent<UnitStateMachine>();
             return this;
         }
 
@@ -136,7 +136,7 @@ namespace Kaizerwald
         public override void BeforeRemoval()
         {
             IsInactive = true;
-            Destroy(BehaviourTree);
+            Destroy(StateMachine);
         }
 
         public override void AfterRemoval()

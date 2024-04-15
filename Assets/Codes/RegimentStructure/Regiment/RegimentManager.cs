@@ -178,10 +178,9 @@ namespace Kaizerwald
             {
                 //if (!RegimentExist(order.RegimentID)) continue;
                 if (!RegimentsByID.TryGetValue(order.RegimentID, out Regiment regiment)) continue;
+                
                 regiment.OnOrderReceived(order);
             }
-            
-            // if OrderType == Move => Mettre a 0 les variables lié à une poursuite
         }
         
         private void OnPlayerInput(AbilityTrigger[] abilities)

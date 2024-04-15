@@ -6,8 +6,10 @@ using Unity.Mathematics;
 
 namespace Kaizerwald.StateMachine
 {
-    public abstract class BehaviourTreeBase<T> : MonoBehaviour where T : BehaviourTreeBase<T>
+    public abstract class StateMachineBase<T> : MonoBehaviour where T : StateMachineBase<T>
     {
+        public readonly EStates DefaultState = EStates.Idle;
+        
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                                ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                 ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
@@ -18,6 +20,7 @@ namespace Kaizerwald.StateMachine
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                               ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
         [field:SerializeField] public EStates State { get; protected set; }
         public Dictionary<EStates, StateBase<T>> States { get; protected set; }
         
@@ -38,6 +41,7 @@ namespace Kaizerwald.StateMachine
         //│  ◇◇◇◇◇◇ Transform Access ◇◇◇◇◇◇                                                                            │
         //└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
         public float3 Position => CachedTransform.position;
+        public Quaternion Rotation => CachedTransform.rotation;
         public float3 Forward  => CachedTransform.forward;
         public float3 Back     => -CachedTransform.forward;
         public float3 Right    => CachedTransform.right;
@@ -76,8 +80,20 @@ namespace Kaizerwald.StateMachine
             CurrentState.OnEnter();
             return true;
         }
+        
+        public virtual void RequestChangeState(Order order)
+        {
+            //Debug.Log($"RequestChangeState: was = {State}, then = {order.StateOrdered}");
+            if (order.StateOrdered != State)
+            {
+                CurrentState.OnExit();
+                State = order.StateOrdered;
+            }
+            CurrentState.OnSetup(order);
+            CurrentState.OnEnter();
+        }
 
-        public virtual void RequestChangeState(Order order, bool overrideState = true)
+        public virtual void RequestChangeState(Order order, bool overrideState)
         {
             if (order.StateOrdered == State && !overrideState) return;
             CurrentState.OnExit();

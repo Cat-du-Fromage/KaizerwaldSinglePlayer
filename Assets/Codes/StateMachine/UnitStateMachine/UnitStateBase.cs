@@ -6,7 +6,7 @@ using Unity.Mathematics;
 
 namespace Kaizerwald.StateMachine
 {
-    public abstract class UnitStateBase<T> : StateBase<UnitBehaviourTree>
+    public abstract class UnitStateBase<T> : StateBase<UnitStateMachine>
     where T : RegimentStateBase
     {
         protected const EStates DefaultNextState = EStates.Idle;
@@ -22,8 +22,8 @@ namespace Kaizerwald.StateMachine
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        protected RegimentBehaviourTree LinkedRegimentBehaviourTree => BehaviourTree.RegimentBehaviourTree;
-        protected EStates RegimentState => BehaviourTree.RegimentState;
+        protected RegimentStateMachine LinkedRegimentStateMachine => StateMachine.RegimentStateMachine;
+        protected EStates RegimentState => StateMachine.RegimentState;
         protected bool IsRegimentStateIdentical => StateIdentity == RegimentState;
     
         // Regiment
@@ -31,18 +31,18 @@ namespace Kaizerwald.StateMachine
         protected Formation TargetFormation => RegimentStateReference.TargetFormation;
     
         // Unit
-        protected Unit LinkedUnit => BehaviourTree.LinkedUnit;
-        protected Transform UnitTransform => BehaviourTree.CachedTransform;
-        protected UnitAnimation UnitAnimation => BehaviourTree.LinkedUnit.Animation;
-        protected int IndexInFormation => BehaviourTree.LinkedUnit.IndexInFormation;
+        protected Unit LinkedUnit => StateMachine.LinkedUnit;
+        protected Transform UnitTransform => StateMachine.CachedTransform;
+        protected UnitAnimation UnitAnimation => StateMachine.LinkedUnit.Animation;
+        protected int IndexInFormation => StateMachine.LinkedUnit.IndexInFormation;
 
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ CONSTRUCTOR ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        protected UnitStateBase(UnitBehaviourTree behaviourTree, EStates stateIdentity) : base(behaviourTree, stateIdentity)
+        protected UnitStateBase(UnitStateMachine stateMachine, EStates stateIdentity) : base(stateMachine, stateIdentity)
         {
-            RegimentStateReference = (T)behaviourTree.RegimentBehaviourTree.States[stateIdentity];
+            RegimentStateReference = (T)stateMachine.RegimentStateMachine.States[stateIdentity];
         }
 
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
@@ -51,7 +51,7 @@ namespace Kaizerwald.StateMachine
         
         protected virtual bool TryReturnToRegimentState(out EStates nextState)
         {
-            bool canEnterNextState = BehaviourTree.States[RegimentState].ConditionEnter();
+            bool canEnterNextState = StateMachine.States[RegimentState].ConditionEnter();
             nextState = canEnterNextState ? RegimentState : DefaultNextState;
             return canEnterNextState;
         }

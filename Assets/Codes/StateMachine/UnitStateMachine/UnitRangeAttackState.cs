@@ -11,6 +11,7 @@ using static Unity.Collections.NativeArrayOptions;
 using Random = Unity.Mathematics.Random;
 
 using Kaizerwald.FormationModule;
+using Unity.VisualScripting;
 using static Kaizerwald.Utilities.KzwMath;
 
 namespace Kaizerwald.StateMachine
@@ -42,9 +43,6 @@ namespace Kaizerwald.StateMachine
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
         public float3 UnitTargetPosition => UnitEnemyTarget.Position;
         
-        // EnemyRegimentTargetData
-        private CombatStateBoard CombatStateBoard => RegimentStateReference.CombatStateBoard;
-        
         // RegimentType
         private int MaxRange => RegimentStateReference.MaxRange;
         private int Accuracy => RegimentStateReference.Accuracy;
@@ -53,7 +51,7 @@ namespace Kaizerwald.StateMachine
 //║                                             ◆◆◆◆◆◆ CONSTRUCTOR ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        public UnitRangeAttackState(UnitBehaviourTree behaviourTree) : base(behaviourTree, EStates.Fire)
+        public UnitRangeAttackState(UnitStateMachine stateMachine) : base(stateMachine, EStates.Fire)
         {
             uint seed = (uint)(abs(LinkedUnit.GetInstanceID()) + IndexInFormation);
             randomState = Random.CreateFromIndex(seed);
@@ -64,15 +62,15 @@ namespace Kaizerwald.StateMachine
 
         public override bool ConditionEnter()
         {
-            bool regimentIsFiring = LinkedRegimentBehaviourTree.IsFiring;
+            bool regimentIsFiring = LinkedRegimentStateMachine.IsFiring;
             bool isFirstLine = IndexInFormation < RegimentStateReference.CurrentFormation.Width;
-            return regimentIsFiring && isFirstLine;
+            return regimentIsFiring && isFirstLine && IsInPosition();
         }
 
         public override void OnSetup(Order order)
         {
-            //TryGetEnemyTarget(out Unit unit);
-            //UnitEnemyTarget = unit;
+            TryGetEnemyTarget(out Unit unit);
+            UnitEnemyTarget = unit;
         }
 
         public override void OnEnter()
@@ -109,10 +107,18 @@ namespace Kaizerwald.StateMachine
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+        // TODO : Peut être généralisé pour toute UnitState? Idle + Fire l'utilisent
+        private bool IsInPosition()
+        {
+            float3 positionInFormation = LinkedParentRegiment.CurrentFormationData.GetUnitRelativePositionToRegiment3D(IndexInFormation, LinkedParentRegiment.Position);
+            float distanceToPosition = distancesq(Position, positionInFormation);
+            return distanceToPosition <= REACH_DISTANCE_THRESHOLD;
+        }
 
         private void Retarget()
         {
             if (IsTargetValid()) return;
+            
             if (TryGetEnemyTarget(out Unit unit))
             {
                 UnitEnemyTarget = unit;
@@ -160,26 +166,30 @@ namespace Kaizerwald.StateMachine
         //┌────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
         //│  ◇◇◇◇◇◇ Get Target Methods ◇◇◇◇◇◇                                                                          │
         //└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+        
         private bool TryGetEnemyTarget(out Unit target)
         {
-            using NativeHashSet<int> hullIndices = GetUnitsHullIndices(CombatStateBoard.CacheEnemyFormation);
+            target = null;
+            if (!RegimentManager.Instance.TryGetRegiment(RegimentStateReference.Blackboard.EnemyTarget, out Regiment regimentTarget)) return false;
+            
+            using NativeHashSet<int> hullIndices = GetUnitsHullIndices(regimentTarget.CurrentFormationData);
             (int index, float minDistance) = (-1, INFINITY);
             foreach (int unitIndex in hullIndices)
             {
-                float2 enemyPosition = CombatStateBoard.EnemyTarget[unitIndex].Position.xz;
-                float distanceToTarget = distancesq(Position.xz, enemyPosition);
+                float2 enemyUnitPosition = regimentTarget[unitIndex].Position.xz;
+                float distanceToTarget = distancesq(Position.xz, enemyUnitPosition);
                 if (distanceToTarget > minDistance) continue;
                 (index, minDistance) = (unitIndex, distanceToTarget);
             }
+            
             bool hasTarget = index > -1;
-            target = !hasTarget ? null : CombatStateBoard.EnemyTarget[index];
+            target = !hasTarget ? null : regimentTarget[index];
             return hasTarget;
         }
         
         private NativeHashSet<int> GetUnitsHullIndices(in FormationData enemyFormation)
         {
             int2 maxWidthDepth = enemyFormation.WidthDepth - 1;
-            //TODO Vérifier si Correct!
             int numIndices = max(enemyFormation.NumUnitsLastLine, enemyFormation.NumCompleteLine * enemyFormation.Width);
             
             NativeHashSet<int> indices = new (numIndices, Temp);

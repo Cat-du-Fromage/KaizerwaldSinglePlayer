@@ -8,6 +8,7 @@ using static Unity.Mathematics.math;
 
 using Kaizerwald.FormationModule;
 using Kaizerwald.Utilities;
+using UnityEngine.InputSystem;
 
 namespace Kaizerwald.StateMachine
 {
@@ -27,7 +28,7 @@ namespace Kaizerwald.StateMachine
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ CONSTRUCTOR ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-        public UnitIdleState(UnitBehaviourTree behaviourTree) : base(behaviourTree, EStates.Idle)
+        public UnitIdleState(UnitStateMachine stateMachine) : base(stateMachine, EStates.Idle)
         {
             
         }
@@ -44,23 +45,24 @@ namespace Kaizerwald.StateMachine
 
         public override void OnUpdate()
         {
-            //Rien?
+            return;
         }
 
         public override void OnExit()
         {
-            //Rien?
+            return;
         }
 
         public override bool ShouldExit(out EStates nextState)
         {
             if (RearrangeExit())
             {
+                //Debug.Log($"Idle.RearrangeExit");
                 nextState = EStates.Move;
             }
-            else if (!IsRegimentStateIdentical)
+            else if (!IsRegimentStateIdentical && TryReturnToRegimentState(out EStates tmpNextState))
             {
-                TryReturnToRegimentState(out nextState);
+                nextState = tmpNextState;
             }
             else
             {
@@ -74,13 +76,12 @@ namespace Kaizerwald.StateMachine
 
         public bool RearrangeExit()
         {
+            float3 positionInFormation = CurrentFormationData.GetUnitRelativePositionToRegiment3D(IndexInFormation, LeaderPosition);
+            float distanceToPosition = distancesq(Position, positionInFormation);
+            bool isInPosition = distanceToPosition <= REACH_DISTANCE_THRESHOLD;
             
-            float2 positionInFormation = CurrentFormationData.GetUnitRelativePositionToRegiment(IndexInFormation, LeaderPosition.xz);
-            float distanceToPosition = distancesq(Position.xz, positionInFormation);
-            bool isInPosition = distanceToPosition <= 0.016f; //CANT USE REACH_DISTANCE_THRESHOLD dst calculated are differente from move state
-            
-            //bool isInPosition = distanceToPosition <= REACH_DISTANCE_THRESHOLD;
-            //if (!isInPosition) Debug.Log($"RearrangeExit (isInPosition = {isInPosition}) : distanceToPosition = {distanceToPosition}");
+            //bool isInPosition = distanceToPosition <= 0.016f; //CANT USE REACH_DISTANCE_THRESHOLD dst calculated are differente from move state
+            //if (!isInPosition || Keyboard.current.tKey.wasPressedThisFrame) Debug.Log($"RearrangeExit (isInPosition = {isInPosition}) : distanceToPosition = {distanceToPosition}");
             return !isInPosition;
         }
     }

@@ -5,6 +5,7 @@ using UnityEngine.Serialization;
 
 namespace Kaizerwald
 {
+    
     public enum EOrderType : int
     {
         Move,
@@ -16,11 +17,12 @@ namespace Kaizerwald
         public int RegimentID;
         
         public EOrderType OrderType;
-        public EMoveType MoveType;
+        public bool IsRunning;
         
         public float3 LeaderDestination;
         public FormationData TargetFormation;
         
         public int TargetEnemyID;
     }
+    
 }

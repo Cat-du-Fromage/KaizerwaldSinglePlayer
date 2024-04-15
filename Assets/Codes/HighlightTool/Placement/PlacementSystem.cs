@@ -84,7 +84,7 @@ namespace Kaizerwald
                 {
                     RegimentID        = regiment.RegimentID,
                     OrderType         = EOrderType.Attack,
-                    MoveType          = marchOrdered ? EMoveType.March : EMoveType.Run,
+                    IsRunning         = !marchOrdered,
                     LeaderDestination = regiment.CurrentPosition,
                     TargetFormation   = (FormationData)regiment.CurrentFormation,
                     TargetEnemyID     = targetEnemyID
@@ -104,10 +104,10 @@ namespace Kaizerwald
             {
                 RegimentID        = regiment.RegimentID,
                 OrderType         = EOrderType.Move,
-                MoveType          = marchOrdered ? EMoveType.March : EMoveType.Run,
-                LeaderDestination= width == 1 ? firstUnit.position : (firstUnit.position + lastUnit.position) / 2f,
+                IsRunning         = !marchOrdered,
+                LeaderDestination = width == 1 ? firstUnit.position : (firstUnit.position + lastUnit.position) / 2f,
                 TargetFormation   = new FormationData(regiment.CurrentFormation, width, direction),
-                TargetEnemyID     = -1
+                TargetEnemyID     = 0
             };
             return orderData;
         }

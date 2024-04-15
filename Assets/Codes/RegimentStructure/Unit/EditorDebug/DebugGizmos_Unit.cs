@@ -23,8 +23,8 @@ namespace Kaizerwald
 
         private void Debug_FireState()
         {
-            if (!BehaviourTree.IsFiring || IsInactive) return;
-            UnitRangeAttackState fireState = (UnitRangeAttackState)BehaviourTree.CurrentState;
+            if (!StateMachine.IsFiring || IsInactive) return;
+            UnitRangeAttackState fireState = (UnitRangeAttackState)StateMachine.CurrentState;
             ShowGizmosTarget(fireState);
             ShowAimTarget(fireState);
         }

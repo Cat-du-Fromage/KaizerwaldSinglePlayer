@@ -7,9 +7,8 @@ using Kaizerwald.FormationModule;
 
 namespace Kaizerwald.StateMachine
 {
-    public abstract class RegimentStateBase : StateBase<RegimentBehaviourTree>
+    public abstract class RegimentStateBase : StateBase<RegimentStateMachine>
     {
-        protected const float FOV_ANGLE = RegimentManager.RegimentFieldOfView;
         protected const float REACH_DISTANCE_THRESHOLD = 0.0125f;
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                               ║
@@ -18,11 +17,8 @@ namespace Kaizerwald.StateMachine
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        public Regiment LinkedRegiment => BehaviourTree.LinkedRegiment;
+        public Regiment LinkedRegiment => StateMachine.LinkedRegiment;
         public RegimentType RegimentType => LinkedRegiment.RegimentType;
-        
-        public CombatStateBoard CombatStateBoard => BehaviourTree.CombatStateBoard;
-        public InputStateBoard InputStateBoard => BehaviourTree.InputStateBoard;
         
         public Formation CurrentFormation => LinkedRegiment.CurrentFormation;
         public Formation TargetFormation => LinkedRegiment.TargetFormation;
@@ -31,7 +27,7 @@ namespace Kaizerwald.StateMachine
 //║                                             ◆◆◆◆◆◆ CONSTRUCTOR ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        protected RegimentStateBase(RegimentBehaviourTree behaviourTree, EStates stateIdentity) : base(behaviourTree, stateIdentity)
+        protected RegimentStateBase(RegimentStateMachine stateMachine, EStates stateIdentity) : base(stateMachine, stateIdentity)
         {
             
         }

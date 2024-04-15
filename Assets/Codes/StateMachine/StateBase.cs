@@ -6,31 +6,32 @@ using Unity.Mathematics;
 
 namespace Kaizerwald.StateMachine
 {
-    public abstract class StateBase<T> where T : BehaviourTreeBase<T>
+    public abstract class StateBase<T> where T : StateMachineBase<T>
     {
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                              ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
         public EStates StateIdentity { get; private set; }
-        protected T BehaviourTree { get; private set; }
+        protected T StateMachine { get; private set; }
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        protected float3 Position => BehaviourTree.Position;
-        protected float3 Forward  => BehaviourTree.Forward;
-        protected float3 Back     => BehaviourTree.Back;
-        protected float3 Right    => BehaviourTree.Right;
-        protected float3 Left     => BehaviourTree.Left;
+        protected float3 Position => StateMachine.Position;
+        public Quaternion Rotation => StateMachine.Rotation;
+        protected float3 Forward  => StateMachine.Forward;
+        protected float3 Back     => StateMachine.Back;
+        protected float3 Right    => StateMachine.Right;
+        protected float3 Left     => StateMachine.Left;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ CONSTRUCTOR ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        protected StateBase(T behaviourTree, EStates stateIdentity)
+        protected StateBase(T stateMachine, EStates stateIdentity)
         {
-            BehaviourTree = behaviourTree;
+            StateMachine = stateMachine;
             StateIdentity = stateIdentity;
         }
         

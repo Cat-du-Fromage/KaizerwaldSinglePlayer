@@ -1,59 +1,55 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Unity.Mathematics;
 using UnityEngine;
-
-using Kaizerwald.FormationModule;
-using Kaizerwald.Utilities;
+using UnityEngine.Serialization;
 
 namespace Kaizerwald.StateMachine
 {
-    using RegimentState = StateBase<RegimentBehaviourTree>;
+    using UnitState = StateBase<UnitStateMachine>;
     
-    [RequireComponent(typeof(Regiment))]
-    public sealed class RegimentBehaviourTree : BehaviourTreeBase<RegimentBehaviourTree>
+    [RequireComponent(typeof(Unit))]
+    public sealed class UnitStateMachine : StateMachineBase<UnitStateMachine>
     {
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                                ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                 ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        private Regiment linkedRegiment;
-        private HashSet<UnitBehaviourTree> unitsBehaviourTrees;
-        private HashSet<UnitBehaviourTree> deadUnitsBehaviourTrees;
+        private Unit linkedUnit;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                              ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-        //Ajouter 
-        public InputStateBoard InputStateBoard { get; private set; } = new InputStateBoard();
-        public CombatStateBoard CombatStateBoard { get; private set; } = new CombatStateBoard();
-        
-        public MotionStateBoard MotionStateBoard { get; private set; } = new MotionStateBoard();
 
+        public Unit LinkedUnit => linkedUnit;
+        public RegimentStateMachine RegimentStateMachine { get; private set; }
+        
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        public Regiment LinkedRegiment => linkedRegiment;
-        public RegimentType RegimentType => linkedRegiment.RegimentType;
-
-        public HashSet<UnitBehaviourTree> UnitsBehaviourTrees => unitsBehaviourTrees;
+        public EStates RegimentState => RegimentStateMachine.State;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ UNITY EVENTS ◆◆◆◆◆◆                                             ║
-//╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝ 
+//╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+        protected override void Awake()
+        {
+            base.Awake();
+            linkedUnit = GetComponent<Unit>();
+        }
 
         public override void OnUpdate()
         {
             if (!IsInitialized) return;
-            CleanUpNullUnitsStateMachine();
             base.OnUpdate();
         }
 
         public void OnDestroy()
         {
+            RegimentStateMachine.OnUnitDestroyed(this);
             if (States == null) return;
-            foreach (RegimentState state in States.Values)
+            foreach (UnitState state in States.Values)
             {
                 state?.OnDestroy();
             }
@@ -63,55 +59,29 @@ namespace Kaizerwald.StateMachine
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        public void OnUnitDestroyed(UnitBehaviourTree unit)
+        public UnitStateMachine Initialize(RegimentStateMachine parentBehaviourTree)
         {
-            deadUnitsBehaviourTrees.Add(unit);
-        }
-
-        private void CleanUpNullUnitsStateMachine()
-        {
-            if (deadUnitsBehaviourTrees.Count == 0) return;
-            unitsBehaviourTrees.ExceptWith(deadUnitsBehaviourTrees);
-            deadUnitsBehaviourTrees.Clear();
-        }
-        
-        public override void RequestChangeState(Order order, bool overrideState = true)
-        {
-            CleanUpNullUnitsStateMachine();
-            base.RequestChangeState(order, overrideState);// Propagate Order to Units
-            
-            //MAY BE OBSOLETE!
-            //foreach (UnitBehaviourTree unitBehaviourTree in unitsBehaviourTrees) { unitBehaviourTree.RequestChangeState(order, overrideState); }
-        }
-        
-    //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
-    //║ ◈◈◈◈◈◈ Initialization Methods ◈◈◈◈◈◈                                                                       ║
-    //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        
-        public RegimentBehaviourTree InitializeAndRegisterUnits(Regiment regiment)
-        {
-            linkedRegiment = regiment;
-            unitsBehaviourTrees = new HashSet<UnitBehaviourTree>(linkedRegiment.Count);
-            deadUnitsBehaviourTrees = new HashSet<UnitBehaviourTree>(linkedRegiment.Count);
-            
-            InitializeStates();//Here must be done before init Units, because we need states reference in units state
-            foreach (Unit unit in linkedRegiment.Elements)
-            {
-                unitsBehaviourTrees.Add(unit.BehaviourTree.Initialize(this));
-            }
+            RegimentStateMachine = parentBehaviourTree;
+            InitializeStates();// MUST BE DONE LAST! because we need RegimentBehaviourTree to be assigned first!
             IsInitialized = true;
             return this;
         }
-        
+
+        public override void RequestChangeState(Order order, bool overrideState)
+        {
+            if (!States[order.StateOrdered].ConditionEnter()) return;
+            base.RequestChangeState(order, overrideState);
+        }
+
         protected override void InitializeStates()
         {
-            States = new Dictionary<EStates, RegimentState>()
+            States = new Dictionary<EStates, UnitState>()
             {
-                {EStates.Idle, new RegimentIdleState(this)},
-                {EStates.Move, new RegimentMoveState(this)},
-                {EStates.Fire, new RegimentRangeAttackState(this)},
+                {EStates.Idle, new UnitIdleState(this)},
+                {EStates.Move, new UnitMoveState(this)},
+                {EStates.Fire, new UnitRangeAttackState(this)},
             };
-            State = EStates.Idle; //CAREFULL was not set before? mistake or on purpose?
+            State = EStates.Idle;
         }
     }
 }
