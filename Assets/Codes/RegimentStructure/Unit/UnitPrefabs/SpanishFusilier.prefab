@@ -29308,6 +29308,7 @@ GameObject:
   - component: {fileID: 7932466961111927452}
   - component: {fileID: 8663113742019262016}
   - component: {fileID: 4010403346093044915}
+  - component: {fileID: 1130779256186108835}
   - component: {fileID: -1024040707877992573}
   m_Layer: 7
   m_Name: SpanishFusilier
@@ -29412,16 +29413,32 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7096930580367743502}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f18c0f3ee8ffa9c40bc179ed61aaabca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  MuzzleFlash: {fileID: 0}
+  MuzzleFlash: {fileID: 6039268825056100037}
   animationsSpeed: 0
-  speedIdle: 0
   shoot: 0
   aim: 0
+--- !u!114 &1130779256186108835
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7096930580367743502}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 86a442b9efafd8c4c9c19ee6e7ea3760, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  RifleParticleSystem: {fileID: 6039268825056100037}
+  IsShooting: 0
+  IsAiming: 0
+  IsDead: 0
+  IsInMelee: 0
 --- !u!114 &-1024040707877992573
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -29436,7 +29453,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <LinkedRegiment>k__BackingField: {fileID: 0}
   <Animation>k__BackingField: {fileID: 0}
-  <BehaviourTree>k__BackingField: {fileID: 0}
+  <StateMachine>k__BackingField: {fileID: 0}
   <IndexInFormation>k__BackingField: 0
 --- !u!1 &8035481410257535250
 GameObject:

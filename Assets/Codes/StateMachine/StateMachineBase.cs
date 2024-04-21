@@ -56,6 +56,11 @@ namespace Kaizerwald.StateMachine
             CachedTransform = transform;
             State = EStates.Idle;
         }
+        
+        public virtual void OnFixedUpdate()
+        {
+            CurrentState.OnFixedUpdate();
+        }
 
         public virtual void OnUpdate()
         {

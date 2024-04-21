@@ -45,6 +45,8 @@ namespace Kaizerwald.StateMachine
         public abstract void OnSetup(Order order);
         
         public abstract void OnEnter();
+
+        public virtual void OnFixedUpdate() { return;}
         
         public abstract void OnUpdate();
         

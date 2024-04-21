@@ -90,7 +90,7 @@ namespace Kaizerwald.StateMachine
 
         public override void OnExit()
         {
-            UnitAnimation.SetFullFireSequenceOff();
+            UnitAnimation.SetFullFireSequence(false);
         }
 
         public override bool ShouldExit(out EStates nextState)
@@ -160,7 +160,7 @@ namespace Kaizerwald.StateMachine
         private void CheckUnitIsFiring()
         {
             if (UnitAnimation.IsInFiringMode) return;
-            UnitAnimation.SetFullFireSequenceOn();
+            UnitAnimation.SetFullFireSequence(true);
         }
         
         //┌────────────────────────────────────────────────────────────────────────────────────────────────────────────┐

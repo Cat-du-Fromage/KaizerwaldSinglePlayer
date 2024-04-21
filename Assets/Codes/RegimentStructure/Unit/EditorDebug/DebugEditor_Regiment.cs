@@ -23,6 +23,8 @@ namespace Kaizerwald
 {
     public sealed partial class Regiment : OrderedFormationBehaviour<Unit>, IOwnershipInformation
     {
+        public bool DebugShowRegimentPosition = false;
+        
         public bool DebugShowUnitsAlive = false;
         
         public static bool FieldOfViewTriangle = false;
@@ -47,7 +49,15 @@ namespace Kaizerwald
                 TestDotProduct(intersect.x0y());
             }
 
+            ShowRegimentPosition();
             ShowUnitsAlive();
+        }
+
+        private void ShowRegimentPosition()
+        {
+            if (!DebugShowRegimentPosition) return;
+            Gizmos.color = Color.green;
+            Gizmos.DrawSphere(Position, 0.5f);
         }
 
         private void ShowUnitsAlive()

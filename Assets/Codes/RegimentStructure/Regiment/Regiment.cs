@@ -84,6 +84,11 @@ namespace Kaizerwald
         public void OnFixedUpdate()
         {
             UpdateFormation();
+            StateMachine.OnFixedUpdate();
+            for (int i = 0; i < Count; i++)
+            {
+                Elements[i].OnFixedUpdate();
+            }
         }
     
         public void OnUpdate()
@@ -91,7 +96,7 @@ namespace Kaizerwald
             StateMachine.OnUpdate();
             for (int i = 0; i < Count; i++)
             {
-                Elements[i].UpdateUnit();
+                Elements[i].OnUpdate();
             }
         }
         
@@ -105,9 +110,6 @@ namespace Kaizerwald
         // Meant to be instantiate this way AND NO OTHER WAY
         public static Regiment InstantiateAndInitialize(GameObject regimentPrefab, Vector3 position, Quaternion rotation, ulong playerId, int teamID, LayerMask terrainLayer)
         {
-            //GameObject newRegiment = Instantiate(regimentPrefab, position, rotation);
-            //Regiment regiment = newRegiment.GetOrAddComponent<Regiment>();
-            //return regiment.InitializeProperties(playerId, teamID, terrainLayer);
             return Instantiate(regimentPrefab, position, rotation).GetOrAddComponent<Regiment>().InitializeProperties(playerId, teamID, terrainLayer);
         }
         
@@ -132,6 +134,7 @@ namespace Kaizerwald
             //BehaviourTree
             StateMachine = this.GetOrAddComponent<RegimentStateMachine>().InitializeAndRegisterUnits(this);
             return this;
+            
             //┌▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁┐
             //▕  ◇◇◇◇◇◇ Internal Methods ◇◇◇◇◇◇                                                                        ▏
             //└▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔┘

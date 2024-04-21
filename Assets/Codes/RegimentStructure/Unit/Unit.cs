@@ -38,6 +38,7 @@ namespace Kaizerwald
         //┌────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
         //│  ◇◇◇◇◇◇ Getters ◇◇◇◇◇◇                                                                                     │
         //└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+        public Rigidbody UnitRigidBody => unitRigidBody;
         public Transform UnitTransform => unitTransform;
         public float3 Position => unitTransform.position;
         public float3 Forward  => unitTransform.forward;
@@ -66,7 +67,13 @@ namespace Kaizerwald
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        public void UpdateUnit()
+        public void OnFixedUpdate()
+        {
+            if (IsInactive) return;
+            StateMachine.OnFixedUpdate();
+        }
+
+        public void OnUpdate()
         {
             if (IsInactive) return;
             StateMachine.OnUpdate();

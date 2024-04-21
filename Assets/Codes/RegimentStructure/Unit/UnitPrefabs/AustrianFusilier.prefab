@@ -38931,6 +38931,7 @@ GameObject:
   - component: {fileID: 1260671794884093072}
   - component: {fileID: 193904006982238347}
   - component: {fileID: -8726083526664331182}
+  - component: {fileID: 4490099098143854889}
   - component: {fileID: -2913592293395322248}
   m_Layer: 7
   m_Name: AustrianFusilier
@@ -39035,16 +39036,32 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5683379749989411287}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f18c0f3ee8ffa9c40bc179ed61aaabca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   MuzzleFlash: {fileID: 7482328203842320866}
   animationsSpeed: 0
-  speedIdle: 0
   shoot: 0
   aim: 0
+--- !u!114 &4490099098143854889
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5683379749989411287}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 86a442b9efafd8c4c9c19ee6e7ea3760, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  RifleParticleSystem: {fileID: 7482328203842320866}
+  IsShooting: 0
+  IsAiming: 0
+  IsDead: 0
+  IsInMelee: 0
 --- !u!114 &-2913592293395322248
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -39059,7 +39076,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <LinkedRegiment>k__BackingField: {fileID: 0}
   <Animation>k__BackingField: {fileID: 0}
-  <BehaviourTree>k__BackingField: {fileID: 0}
+  <StateMachine>k__BackingField: {fileID: 0}
   <IndexInFormation>k__BackingField: 0
 --- !u!1 &7867509450720017030
 GameObject:

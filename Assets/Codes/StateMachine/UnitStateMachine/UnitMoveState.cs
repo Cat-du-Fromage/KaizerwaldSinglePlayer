@@ -18,19 +18,23 @@ namespace Kaizerwald.StateMachine
 //║                                                 ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        private float3 unitTargetPosition;
-        private float previousSpeed;
-        private float currentSpeed;
+        private float3 unitCurrentTargetPosition;
+        private float3 unitFinalTargetPosition;
+
+        private float acceleration = 0;
+        //private float distanceMultiplier = 0;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                              ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-        
-        public bool UnitReachTargetPosition { get; private set; }
+
+        public bool2 UnitReachTargetPosition;
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
+        public Rigidbody UnitRigidBody => LinkedUnit.UnitRigidBody;
+    
         // RegimentStateReference
         public bool LeaderReachDestination => RegimentStateReference.LeaderReachTargetPosition;
         public float3 LeaderTargetPosition => RegimentStateReference.LeaderTargetPosition;
@@ -39,10 +43,7 @@ namespace Kaizerwald.StateMachine
         public float MarchSpeed => RegimentStateReference.MarchSpeed;
         public float RunSpeed => RegimentStateReference.RunSpeed;
         
-        //┌────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-        //│  ◇◇◇◇◇◇ Setters ◇◇◇◇◇◇                                                                                     │
-        //└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-        
+        private float CurrentSpeed => RegimentStateReference.CurrentSpeed;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ CONSTRUCTOR ◆◆◆◆◆◆                                              ║
@@ -55,58 +56,78 @@ namespace Kaizerwald.StateMachine
 //║                                            ◆◆◆◆◆◆ STATE METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        public override bool ConditionEnter()
-        {
-            return true;
-        }
+        public override bool ConditionEnter() { return true; }
 
-        public override void OnSetup(Order order)
-        {
-            //MoveOrder moveOrder = (MoveOrder)order;
-            //float3 targetPosition = moveOrder.LeaderTargetPosition;
-            //FormationData targetFormation = moveOrder.TargetFormation;
-            //unitTargetPosition = targetFormation.GetUnitRelativePositionToRegiment3D(IndexInFormation, targetPosition);
-            
-            //TODO: remove this once automatic speed adaptation is implemented
-            //UpdateMoveType(moveOrder.MoveType); 
-        }
+        public override void OnSetup(Order order) { return; }
 
         public override void OnEnter()
         {
-            currentSpeed = previousSpeed = 0;
+            acceleration = 0;
             UnitReachTargetPosition = false;
-            unitTargetPosition = TargetFormationData.GetUnitRelativePositionToRegiment3D(IndexInFormation, LeaderTargetPosition);
+            unitFinalTargetPosition = TargetFormationData.GetUnitRelativePositionToRegiment3D(IndexInFormation, LeaderTargetPosition);
+            unitCurrentTargetPosition = unitFinalTargetPosition;
             UpdateProgressToTargetPosition();
-            AdaptSpeed();
+        }
+
+        public override void OnFixedUpdate()
+        {
+            if (LinkedUnit.IsInactive) return;
+            
+            unitFinalTargetPosition = TargetFormationData.GetUnitRelativePositionToRegiment3D(IndexInFormation, LeaderTargetPosition);
+            
+            unitCurrentTargetPosition = LeaderReachDestination 
+                ? unitFinalTargetPosition 
+                : TargetFormationData.GetUnitRelativePositionToRegiment3D(IndexInFormation, LinkedParentRegiment.Position);
+            
+            UpdateProgressToTargetPosition();
+            if (all(UnitReachTargetPosition))
+            {
+                //if (UnitAnimation.IsPlayingIdle || IsRegimentStateIdentical) return;
+                //if (LeaderReachDestination && !IsRegimentStateIdentical) return;
+                UnitAnimation.SetVelocity(0);
+            }
+            else
+            {
+                RotateEntity();
+                MoveEntity();
+            }
+
+            DebugMoveState();
+        }
+
+        private void DebugMoveState()
+        {
+            if (!IsRegimentStateIdentical)
+            {
+                Debug.Log($"position = {UnitReachTargetPosition.x}, rotation = {UnitReachTargetPosition.y}");
+                if (!UnitReachTargetPosition.x)
+                {
+                    //Debug.Log($"POSITION : unitFinalTargetPosition = {unitFinalTargetPosition}, unitCurrentTargetPosition = {unitCurrentTargetPosition}");
+                }
+                if (!UnitReachTargetPosition.y)
+                {
+                    int2 currentForward = (int2)ceil(Forward.xz * 100);
+                    int2 forwardTarget = (int2)ceil(RegimentStateReference.TargetFormation.DirectionForward.xz * 100);
+                    int2 diff = currentForward - forwardTarget;
+                    Debug.Log($"ROTATION : diff = {diff} currentForward = {currentForward}/{Forward.xz}, forwardTarget = {forwardTarget}/{RegimentStateReference.TargetFormation.DirectionForward.xz} = {all(currentForward == forwardTarget)}");
+                }
+            }
         }
 
         public override void OnUpdate()
         {
-            if (LinkedUnit.IsInactive) return;
-            
-            unitTargetPosition = TargetFormationData.GetUnitRelativePositionToRegiment3D(IndexInFormation, LeaderTargetPosition);
-            UpdateProgressToTargetPosition();
-            if (UnitReachTargetPosition)
-            {
-                currentSpeed = previousSpeed = 0;
-                if (UnitAnimation.IsPlayingIdle) return;
-                UnitAnimation.SetIdle();
-            }
-            else
-            {
-                MoveUnit();
-            }
+            return;
         }
 
         public override void OnExit()
         {
-            currentSpeed = previousSpeed = 0;
+            acceleration = 0;
         }
 
         public override bool ShouldExit(out EStates nextState)
         {
             UpdateProgressToTargetPosition();
-            if (!IsRegimentStateIdentical && UnitReachTargetPosition /*&& LeaderReachDestination*/ && TryReturnToRegimentState(out EStates tmpNextState))
+            if (LeaderReachDestination && !IsRegimentStateIdentical && all(UnitReachTargetPosition) && TryReturnToRegimentState(out EStates tmpNextState))
             {
                 nextState = tmpNextState;
             }
@@ -123,56 +144,43 @@ namespace Kaizerwald.StateMachine
 //TODO : Function that adapt speed depending on the distance from destination to current leader Position(GetUnitRelativePositionToRegiment3D), NOT final target position (unitTargetPosition)
         private void UpdateProgressToTargetPosition()
         {
-            UnitReachTargetPosition = distancesq(Position, unitTargetPosition) <= REACH_DISTANCE_THRESHOLD;
+            bool positionCheck = distancesq(Position, unitFinalTargetPosition) <= REACH_DISTANCE_THRESHOLD;
+            
+            int2 currentForward = (int2)ceil(Forward.xz * 100);
+            int2 forwardTarget = (int2)ceil(RegimentStateReference.TargetFormation.DirectionForward.xz * 100);
+            bool rotationCheck = all(abs(currentForward - forwardTarget) <= 1);
+            
+            UnitReachTargetPosition = new bool2(positionCheck, rotationCheck);
+            //if (!UnitReachTargetPosition[0] && !IsRegimentStateIdentical) Debug.Log($"Position = {Position}, unitFinalTargetPosition = {unitFinalTargetPosition}");
+            //if (!UnitReachTargetPosition[1] && !IsRegimentStateIdentical) Debug.Log($"currentForward = {currentForward}, forwardTarget = {forwardTarget}");
         }
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ State Logic ◈◈◈◈◈◈                                                                                      ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        private float SetMarching()
-        {
-            UnitAnimation.SetMarching();
-            return MarchSpeed;
-        }
 
-        private float SetRunning()
+        private void MoveEntity()
         {
-            UnitAnimation.SetRunning();
-            return RunSpeed;
-        }
-
-        //TODO: Find a way to make Run speed == Animation Running speed
-        private void UpdateBaseSpeed()
-        {
-            currentSpeed = RegimentStateReference.CurrentSpeed;
-            if (!currentSpeed.IsAlmostEqual(previousSpeed))
-            {
-                float animationSpeed = remap(MarchSpeed, RunSpeed, 2, 6, currentSpeed);
-                UnitAnimation.SetSpeed(animationSpeed);
-                previousSpeed = currentSpeed;
-            }
-        }
-
-        private void MoveUnit()
-        {
-            if (UnitReachTargetPosition) return;
-            UpdateBaseSpeed();
-            AdaptSpeed();
+            if (UnitReachTargetPosition[0]) return;
             
-            //float3 translation = Time.deltaTime * currentSpeed * Position.DirectionTo(unitTargetPosition);
+            float3 direction = Position.DirectionTo(unitCurrentTargetPosition);
+            float mappedVelocity = remap(MarchSpeed, RunSpeed, 1, 2, CurrentSpeed);
+
+            bool isNearFinalTarget = Position.DistanceTo(unitFinalTargetPosition) <= CurrentSpeed * Time.fixedDeltaTime;
+            float3 newPosition = Position + direction * CurrentSpeed * Time.fixedDeltaTime;
             
-            float distanceMove = Time.deltaTime * currentSpeed;
-            UnitReachTargetPosition = distanceMove > distance(Position, unitTargetPosition);
-            
-            float3 translation = UnitReachTargetPosition ? unitTargetPosition : Position + distanceMove * Position.DirectionTo(unitTargetPosition);
-            UnitTransform.position = translation;
-            UnitTransform.LookAt(Position + RegimentStateReference.TargetFormation.DirectionForward);
+            UnitAnimation.SetVelocity(mappedVelocity);
+            UnitRigidBody.MovePosition(isNearFinalTarget ? unitFinalTargetPosition : newPosition);
         }
 
-        private void AdaptSpeed()
+        private void RotateEntity()
         {
-            if (distance(Position, unitTargetPosition) > ADAPT_DISTANCE_THRESHOLD) return; 
-            currentSpeed = SetMarching();
+            if (UnitReachTargetPosition[1]) return;
+            
+            Quaternion targetRotation = Quaternion.LookRotation(RegimentStateReference.TargetFormation.DirectionForward, Vector3.up);
+            Quaternion newRotation = Quaternion.Slerp(Rotation, targetRotation, 1);
+            
+            UnitRigidBody.MoveRotation(newRotation);
         }
     }
 }

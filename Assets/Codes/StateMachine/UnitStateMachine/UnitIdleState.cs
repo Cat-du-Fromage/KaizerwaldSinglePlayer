@@ -40,7 +40,8 @@ namespace Kaizerwald.StateMachine
 
         public override void OnEnter()
         {
-            UnitAnimation.SetIdle();
+            UnitAnimation.SetVelocity(0);
+            //UnitAnimation.SetIdle();
         }
 
         public override void OnUpdate()

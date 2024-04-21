@@ -42,7 +42,7 @@ namespace Kaizerwald.StateMachine
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
         public RegimentBlackboard Blackboard => StateMachine.RegimentBlackboard;
         public float3 LeaderTargetPosition => LinkedRegiment.TargetPosition;
-        public float CurrentSpeed => true ? RunSpeed : MarchSpeed;
+        public float CurrentSpeed => Blackboard.IsRunning ? RunSpeed : MarchSpeed;
     
         //┌────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
         //│  ◇◇◇◇◇◇ Getters ◇◇◇◇◇◇                                                                                     │
@@ -76,6 +76,14 @@ namespace Kaizerwald.StateMachine
 
         public override void OnSetup(Order order)
         {
+            //Setup to correct rotation and forward position
+            float3 center = Position - CurrentFormation.DirectionForward * (CurrentFormation.DistanceUnitToUnitY * (CurrentFormation.Depth - 1));
+            float diameter = cmax(float2(CurrentFormation.WidthDepth - 1) * CurrentFormation.DistanceUnitToUnit);
+
+            Vector3 startPosition = center + center.DirectionTo(order.TargetPosition) * (diameter / 2f);
+            Quaternion startRotation = Quaternion.LookRotation(order.TargetFormation.Direction3DForward, Vector3.up);
+            RegimentTransform.SetPositionAndRotation(startPosition, startRotation);
+            
             LinkedRegiment.SetDestination(order.TargetPosition, order.TargetFormation);
             AssignIndexToUnits();
         }
@@ -88,7 +96,15 @@ namespace Kaizerwald.StateMachine
             //TODO: make it change over time NOT instantly!
             CurrentFormation.SetFromFormation(TargetFormation);
         }
-
+        /*
+        public override void OnFixedUpdate()
+        {
+            if (reachTargetPosition) return;
+            Vector3 position = MoveRegiment();
+            Quaternion rotation = RotateRegiment();
+            StateMachine.CachedTransform.SetPositionAndRotation(position, rotation);
+        }
+        */
         public override void OnUpdate()
         {
             if (reachTargetPosition) return;
@@ -150,18 +166,16 @@ namespace Kaizerwald.StateMachine
         private Vector3 MoveRegiment()
         {
             if (reachTargetPosition) return Position; // Units may still be on their way
+            
             float distanceMove = Time.deltaTime * CurrentSpeed;
             reachTargetPosition = distanceMove > distance(Position, LeaderTargetPosition);
-            
             Vector3 translation = reachTargetPosition ? LeaderTargetPosition : Position + distanceMove * Position.DirectionTo(LeaderTargetPosition);
             return translation;
-            //RegimentTransform.position = translation;
         }
 
         private Quaternion RotateRegiment()
         {
             return Quaternion.LookRotation(TargetFormation.DirectionForward, Vector3.up);
-            //RegimentTransform.LookAt(Position + TargetFormation.DirectionForward);
         }
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
