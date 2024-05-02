@@ -133,7 +133,7 @@ namespace Kaizerwald
         {
             if (!PlacementsVisible) return;
             Vector3 lastPosition = MouseEnd;
-            if (!TryUpdateMouseEnd(Mouse.current.position.value) || MouseEnd == lastPosition) return;
+            if (!TryUpdateMousePosition(Mouse.current.position.value, ref MouseEnd) || MouseEnd == lastPosition) return;
             mouseDistance = UpdateMouseDistance();
             tempWidths = PlaceRegiments();
         }
@@ -145,12 +145,12 @@ namespace Kaizerwald
         {
             if (SelectedRegiments.Count == 0) return;
             PlacementCancel = false;
-            MouseStartValid = TryUpdateMouseStart(context.ReadValue<Vector2>());
+            MouseStartValid = TryUpdateMousePosition(context.ReadValue<Vector2>(), ref MouseStart);
         }
 
         private void OnRightMouseClickAndMovePerform(CallbackContext context)
         {
-            if (SelectedRegiments.Count == 0 || !MouseStartValid || !TryUpdateMouseEnd(context.ReadValue<Vector2>())) return;
+            if (SelectedRegiments.Count == 0 || !MouseStartValid || !TryUpdateMousePosition(context.ReadValue<Vector2>(), ref MouseEnd)) return;
             mouseDistance = UpdateMouseDistance();
             tempWidths = PlaceRegiments();
         }
@@ -211,8 +211,9 @@ namespace Kaizerwald
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
         private NativeArray<float3> GetDestinationsPosition()
         {
-            float distanceWidth = clamp(mouseDistance, MinMaxSelectionWidth[0], MinMaxSelectionWidth[1]);
+            float distanceWidth    = clamp(mouseDistance, MinMaxSelectionWidth[0], MinMaxSelectionWidth[1]);
             float singleWidthSpace = (distanceWidth / SortedSelectedRegiments.Count) * 1.5f;
+            
             NativeArray<float3> mockedDestinationPoints = new (SortedSelectedRegiments.Count, Temp, UninitializedMemory);
             for (int i = 0; i < SortedSelectedRegiments.Count; i++)
             {
@@ -274,10 +275,12 @@ namespace Kaizerwald
             }
             
             SortSelections();
-            float unitsToAddLength = GetUnitsToAddLength();
+            
+            float unitsToAddLength     = GetUnitsToAddLength();
             NativeArray<int> newWidths = GetUpdatedFormationWidths(ref unitsToAddLength);
             NativeArray<float2> starts = GetStartsPosition(unitsToAddLength, newWidths);
             NativeList<JobHandle> jhs  = GetInitialTokensPosition(starts, newWidths, out NativeArray<float2> initialTokensPositions);
+            
             using NativeArray<RaycastHit> results = GetPositionAndRotationOnTerrainByJob(ref initialTokensPositions, jhs);
             MoveHighlightsTokens(results);
             
@@ -363,8 +366,8 @@ namespace Kaizerwald
         
         private void MoveHighlightsTokens(NativeArray<RaycastHit> results)
         {
-            float3 depthDirection = DepthDirection;
             int numUnitsRegimentBefore = 0;
+            float3 depthDirection = DepthDirection;
             foreach (HighlightRegiment regiment in SortedSelectedRegiments)
             {
                 if(!DynamicRegister.Records.TryGetValue(regiment.RegimentID, out HighlightBehaviour[] tokens)) continue;
@@ -441,20 +444,11 @@ namespace Kaizerwald
         //┌────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
         //│  ◇◇◇◇◇ Mouses Positions ◇◇◇◇◇                                                                              │
         //└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-        
-        private bool TryUpdateMouseStart(in Vector2 mouseInput)
+        private bool TryUpdateMousePosition(in Vector2 mouseInput, ref Vector3 mousePosition)
         {
             Ray singleRay = PlayerCamera.ScreenPointToRay(mouseInput);
             bool isHit = Raycast(singleRay, out RaycastHit hit, Infinity, TerrainLayer);
-            MouseStart = isHit ? hit.point : MouseStart;
-            return isHit;
-        }
-
-        private bool TryUpdateMouseEnd(in Vector2 mouseInput)
-        {
-            Ray singleRay = PlayerCamera.ScreenPointToRay(mouseInput);
-            bool isHit = Raycast(singleRay, out RaycastHit hit, Infinity, TerrainLayer);
-            MouseEnd = isHit ? hit.point : MouseEnd;
+            mousePosition = isHit ? hit.point : mousePosition;
             return isHit;
         }
         
@@ -518,8 +512,8 @@ namespace Kaizerwald
 
             public void Execute(int unitIndex)
             {
-                float2 origin = Origins[unitIndex];
-                Vector3 origin3D = new (origin.x, OriginHeight, origin.y);
+                float2 origin       = Origins[unitIndex];
+                Vector3 origin3D    = new (origin.x, OriginHeight, origin.y);
                 Commands[unitIndex] = new RaycastCommand(origin3D, Vector3.down, QueryParams, RayDistance);
             }
 
@@ -552,19 +546,18 @@ namespace Kaizerwald
                 float2 yOffset = y * DistanceUnitToUnit.y * (float2)DepthDirection;
                 float2 xOffset = x * DistanceUnitToUnit.x * (float2)LineDirection;
                 
-                int maxDepth = (int)ceil((float)NumUnitsAlive / NewWidth);
-                int numUnitLastLine = NumUnitsAlive - NewWidth * (maxDepth - 1);
+                int maxDepth          = (int)ceil((float)NumUnitsAlive / NewWidth);
+                int numUnitLastLine   = NumUnitsAlive - NewWidth * (maxDepth - 1);
                 int diffLastLineWidth = NewWidth - numUnitLastLine;
-                float offset = (diffLastLineWidth * 0.5f) * DistanceUnitToUnit.x;
-                bool isLastLine = y == maxDepth - 1;
-                float2 offsetStart = select(0, (float2)LineDirection * offset, isLastLine);
-                float2 position = Start + offsetStart + xOffset + yOffset;
+                float offset          = (diffLastLineWidth * 0.5f) * DistanceUnitToUnit.x;
+                bool isLastLine       = y == maxDepth - 1;
+                float2 offsetStart    = select(0, (float2)LineDirection * offset, isLastLine);
+                float2 position       = Start + offsetStart + xOffset + yOffset;
                 
                 TokensPositions[unitIndex] = position;
             }
         }
     }
-    
 }
 
 /*

@@ -78,8 +78,14 @@ namespace Kaizerwald
         
         public override void OnFixedUpdate()
         {
-            if (ClickDragPerformed) return;
-            CheckMouseHoverUnit();
+            if (ClickDragPerformed)
+            {
+                GroupPreselectionRegiments();
+            }
+            else
+            {
+                CheckMouseHoverUnit();
+            }
         }
 
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
