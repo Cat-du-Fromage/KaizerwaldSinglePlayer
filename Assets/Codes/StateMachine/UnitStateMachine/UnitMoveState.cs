@@ -9,6 +9,8 @@ using static Unity.Mathematics.math;
 using Kaizerwald.FormationModule;
 using Kaizerwald.Utilities;
 
+using quaternion = Unity.Mathematics.quaternion;
+
 namespace Kaizerwald.StateMachine
 {
     public sealed class UnitMoveState : UnitStateBase<RegimentMoveState>
@@ -88,29 +90,29 @@ namespace Kaizerwald.StateMachine
             }
             else
             {
-                RotateEntity();
-                MoveEntity();
+                bool doRotate = RotateEntity(out Quaternion newRotation);
+                bool doMove = MoveEntity(out Vector3 newPosition);
+                UnitRigidBody.Move(newPosition, newRotation);
+                SetMoveAnimation();
             }
 
-            DebugMoveState();
+            //DebugMoveState();
         }
 
         private void DebugMoveState()
         {
-            if (!IsRegimentStateIdentical)
+            if (IsRegimentStateIdentical) return;
+            Debug.Log($"position = {UnitReachTargetPosition.x}, rotation = {UnitReachTargetPosition.y}");
+            if (!UnitReachTargetPosition.x)
             {
-                Debug.Log($"position = {UnitReachTargetPosition.x}, rotation = {UnitReachTargetPosition.y}");
-                if (!UnitReachTargetPosition.x)
-                {
-                    //Debug.Log($"POSITION : unitFinalTargetPosition = {unitFinalTargetPosition}, unitCurrentTargetPosition = {unitCurrentTargetPosition}");
-                }
-                if (!UnitReachTargetPosition.y)
-                {
-                    int2 currentForward = (int2)ceil(Forward.xz * 100);
-                    int2 forwardTarget = (int2)ceil(RegimentStateReference.TargetFormation.DirectionForward.xz * 100);
-                    int2 diff = currentForward - forwardTarget;
-                    Debug.Log($"ROTATION : diff = {diff} currentForward = {currentForward}/{Forward.xz}, forwardTarget = {forwardTarget}/{RegimentStateReference.TargetFormation.DirectionForward.xz} = {all(currentForward == forwardTarget)}");
-                }
+                //Debug.Log($"POSITION : unitFinalTargetPosition = {unitFinalTargetPosition}, unitCurrentTargetPosition = {unitCurrentTargetPosition}");
+            }
+            if (!UnitReachTargetPosition.y)
+            {
+                int2 currentForward = (int2)ceil(Forward.xz * 100);
+                int2 forwardTarget = (int2)ceil(RegimentStateReference.TargetFormation.DirectionForward.xz * 100);
+                int2 diff = currentForward - forwardTarget;
+                Debug.Log($"ROTATION : diff = {diff} currentForward = {currentForward}/{Forward.xz}, forwardTarget = {forwardTarget}/{RegimentStateReference.TargetFormation.DirectionForward.xz} = {all(currentForward == forwardTarget)}");
             }
         }
 
@@ -122,6 +124,7 @@ namespace Kaizerwald.StateMachine
         public override void OnExit()
         {
             acceleration = 0;
+            UnitAnimation.SetVelocity(0);
         }
 
         public override bool ShouldExit(out EStates nextState)
@@ -158,29 +161,38 @@ namespace Kaizerwald.StateMachine
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ State Logic ◈◈◈◈◈◈                                                                                      ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-
-        private void MoveEntity()
+        private bool RotateEntity(out Quaternion newRotation)
         {
-            if (UnitReachTargetPosition[0]) return;
+            newRotation = Rotation;
+            if (UnitReachTargetPosition[1]) return false;
+            Quaternion targetRotation = Quaternion.LookRotation(RegimentStateReference.TargetFormation.DirectionForward, Vector3.up);
+            newRotation = Quaternion.Slerp(Rotation, targetRotation, 1);
+            //UnitRigidBody.MoveRotation(newRotation);
+            return true;
+        }
+        
+        //┌────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+        //│  ◇◇◇◇◇◇ Move Logic ◇◇◇◇◇◇                                                                                  │
+        //└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+        private void SetMoveAnimation()
+        {
+            float mappedVelocity = remap(MarchSpeed, RunSpeed, 1, 2, CurrentSpeed);
+            UnitAnimation.SetVelocity(mappedVelocity);
+        }
+        
+        private bool MoveEntity(out Vector3 newPosition)
+        {
+            newPosition = Position;
+            if (UnitReachTargetPosition[0]) return false;
+            
+            bool isNearFinalTarget = Position.DistanceTo(unitFinalTargetPosition) <= CurrentSpeed * Time.fixedDeltaTime;
             
             float3 direction = Position.DirectionTo(unitCurrentTargetPosition);
-            float mappedVelocity = remap(MarchSpeed, RunSpeed, 1, 2, CurrentSpeed);
-
-            bool isNearFinalTarget = Position.DistanceTo(unitFinalTargetPosition) <= CurrentSpeed * Time.fixedDeltaTime;
-            float3 newPosition = Position + direction * CurrentSpeed * Time.fixedDeltaTime;
             
-            UnitAnimation.SetVelocity(mappedVelocity);
-            UnitRigidBody.MovePosition(isNearFinalTarget ? unitFinalTargetPosition : newPosition);
-        }
-
-        private void RotateEntity()
-        {
-            if (UnitReachTargetPosition[1]) return;
-            
-            Quaternion targetRotation = Quaternion.LookRotation(RegimentStateReference.TargetFormation.DirectionForward, Vector3.up);
-            Quaternion newRotation = Quaternion.Slerp(Rotation, targetRotation, 1);
-            
-            UnitRigidBody.MoveRotation(newRotation);
+            newPosition = isNearFinalTarget ? unitFinalTargetPosition : Position + direction * CurrentSpeed * Time.fixedDeltaTime;
+            return true;
+            //UnitRigidBody.MovePosition(isNearFinalTarget ? unitFinalTargetPosition : newPosition);
         }
     }
 }
