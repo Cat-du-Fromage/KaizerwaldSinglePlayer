@@ -92,17 +92,13 @@ namespace Kaizerwald.TerrainBuilder
         
         public NativeArray<Cell> GetCellPathTo(float3 currentPosition, float3 targetPosition, Allocator allocator = Temp)
         {
-            NativeList<int> pathList = new (8, TempJob);
-            int startIndex = KzwGrid.GetIndexFromPositionCentered(currentPosition.xz, gridCells.NumCellXY);
-            int endIndex = KzwGrid.GetIndexFromPositionCentered(targetPosition.xz, gridCells.NumCellXY);
-            JAStar.Process(pathList, gridCells.NumCellXY, startIndex, endIndex, nodes, true).Complete();
+            using NativeList<int> pathList = GetPathTo(currentPosition, targetPosition);
             
             NativeArray<Cell> cellPath = new(pathList.Length, allocator, UninitializedMemory);
             for (int i = 0; i < pathList.Length; i++)
             {
                 cellPath[i] = gridCells.Cells[pathList[i]];
             }
-            pathList.Dispose();
             return cellPath;
         }
     }

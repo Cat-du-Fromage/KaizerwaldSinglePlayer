@@ -136,6 +136,15 @@ namespace Kaizerwald.TerrainBuilder
             meshRenderer.sharedMaterial = DefaultMaterial;
             meshRenderer.ResetBounds();
         }
+        
+    //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
+    //║ ◈◈◈◈◈◈ Grid System Accessor ◈◈◈◈◈◈                                                                             ║
+    //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
+
+        public NativeArray<Cell> GetCellPathTo(float3 currentPosition, float3 targetPosition, Allocator allocator = Temp)
+        {
+            return TerrainGridSystem.GetCellPathTo(currentPosition, targetPosition, allocator);
+        }
     }
     
     
@@ -143,7 +152,7 @@ namespace Kaizerwald.TerrainBuilder
 //║                                                 ◆◆◆◆◆◆ JOBS ◆◆◆◆◆◆                                                 ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-    //[BurstCompile(CompileSynchronously = true)]
+    [BurstCompile(OptimizeFor = OptimizeFor.Performance)]
     internal struct JMeshData : IJobFor
     {
         [ReadOnly] public int2 NumVerticesXY;
@@ -177,7 +186,7 @@ namespace Kaizerwald.TerrainBuilder
             float height = HeightMap.Length == 1 ? HeightMap[0] : HeightMap[index];
             Vertices[index] = new float3(x - halfSize.x, height, y - halfSize.y);
             Uvs[index] = new half2(float2(x,y) / NumVerticesXY);
-            if (all(int2(x,y) < numQuadsXY))
+            if (Unity.Burst.CompilerServices.Hint.Likely(all(int2(x,y) < numQuadsXY)))
             {
                 int baseTriIndex = (index - y) * 6;
                 //(0,0)-(1,0)-(0,1)-(1,1) 

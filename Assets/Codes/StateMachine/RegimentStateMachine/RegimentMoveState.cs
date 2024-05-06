@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using Kaizerwald.FormationModule;
+using Kaizerwald.TerrainBuilder;
 using Kaizerwald.Utilities;
 using Unity.Burst;
 using Unity.Collections;
@@ -32,6 +34,8 @@ namespace Kaizerwald.StateMachine
         public readonly int MaxRange;
         
         private bool reachTargetPosition = true;
+
+        private Cell[] currentPath = Array.Empty<Cell>();
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                              ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                              ║
@@ -69,14 +73,11 @@ namespace Kaizerwald.StateMachine
 //║                                            ◆◆◆◆◆◆ STATE METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        public override bool ConditionEnter()
-        {
-            return true;
-        }
+        public override bool ConditionEnter() => true;
 
         public override void OnSetup(Order order)
         {
-            //Setup to correct rotation and forward position
+            //Setup to initial rotation and forward position
             float3 center = Position - CurrentFormation.DirectionForward * (CurrentFormation.DistanceUnitToUnitY * (CurrentFormation.Depth - 1));
             float diameter = cmax(float2(CurrentFormation.WidthDepth - 1) * CurrentFormation.DistanceUnitToUnit);
 
@@ -90,28 +91,21 @@ namespace Kaizerwald.StateMachine
 
         public override void OnEnter()
         {
+            CalculatePath();
+            
             reachTargetPosition = false;
             UpdateProgressToTargetPosition();
             
             //TODO: make it change over time NOT instantly!
             CurrentFormation.SetFromFormation(TargetFormation);
         }
-        /*
-        public override void OnFixedUpdate()
-        {
-            if (reachTargetPosition) return;
-            Vector3 position = MoveRegiment();
-            Quaternion rotation = RotateRegiment();
-            StateMachine.CachedTransform.SetPositionAndRotation(position, rotation);
-        }
-        */
+        
         public override void OnUpdate()
         {
             if (reachTargetPosition) return;
             Vector3 position = MoveRegiment();
             Quaternion rotation = RotateRegiment();
             StateMachine.CachedTransform.SetPositionAndRotation(position, rotation);
-            //RegimentTransform.SetPositionAndRotation(position, rotation);
         }
 
         public override void OnExit()
@@ -139,6 +133,7 @@ namespace Kaizerwald.StateMachine
                     Blackboard.EnemyTarget = 0;
                     return StateMachine.DefaultState;
                 }
+                
                 // xz necessary => bonus for high ground
                 if (distance(Position.xz, target.Position.xz) < MaxRange) 
                 {
@@ -154,7 +149,35 @@ namespace Kaizerwald.StateMachine
                 return reachTargetPosition ? StateMachine.DefaultState : StateIdentity;
             }
         }
-
+        
+    //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
+    //║ ◈◈◈◈◈◈ On Enter ◈◈◈◈◈◈                                                                                         ║
+    //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
+        private NativeArray<float> GetCostMatrix(in FormationData targetFormation)
+        {
+            NativeArray<float3> destinations = targetFormation.GetUnitsPositionRelativeToRegiment(LeaderTargetPosition, Temp);
+            NativeArray<float> nativeCostMatrix = new (square(targetFormation.NumUnitsAlive), TempJob, UninitializedMemory);
+            for (int i = 0; i < nativeCostMatrix.Length; i++)
+            {
+                (int x, int y) = GetXY(i, targetFormation.NumUnitsAlive);
+                float3 unitPosition = LinkedRegiment[y].Position;
+                nativeCostMatrix[i] = distancesq(unitPosition, destinations[x]);
+            }
+            return nativeCostMatrix;
+        }
+    
+        private void AssignIndexToUnits()
+        {
+            FormationData targetFormation = TargetFormation;
+            using NativeArray<float> costMatrix = GetCostMatrix(targetFormation);
+            using NativeArray<int> sortedIndex = JobifiedHungarianAlgorithm.FindAssignments(costMatrix, targetFormation.NumUnitsAlive);
+            LinkedRegiment.ReorderElementsBySwap(sortedIndex);
+        }
+        
+    //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
+    //║ ◈◈◈◈◈◈ Move Logic ◈◈◈◈◈◈                                                                                       ║
+    //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
+        
         private void UpdateProgressToTargetPosition()
         {
             if (reachTargetPosition) return;
@@ -162,7 +185,20 @@ namespace Kaizerwald.StateMachine
             //Debug.Log($"Move.UpdateProgressToTargetPosition: distanceToTarget = {distanceToTarget}");
             reachTargetPosition = distanceToTarget <= REACH_DISTANCE_THRESHOLD;
         }
-
+        
+        //Rework : take into consideration pathfinding use of SimpleTerrain
+        // Objectifs :
+        // 1) follow basic path : need visual debug to see how the formation behave upon rotation and move (on regiment gizmos)
+        // - Must see regiment forward (arrow) and units too
+        
+        // 2) Take obstacle into consideration
+        // - reform the regiment to fit between obstacles then reform when possible
+        
+        private void CalculatePath()
+        {
+            currentPath = SimpleTerrain.Instance.GetCellPathTo(Position, LeaderTargetPosition, Temp).ToArray();
+        }
+        
         private Vector3 MoveRegiment()
         {
             if (reachTargetPosition) return Position; // Units may still be on their way
@@ -176,30 +212,6 @@ namespace Kaizerwald.StateMachine
         private Quaternion RotateRegiment()
         {
             return Quaternion.LookRotation(TargetFormation.DirectionForward, Vector3.up);
-        }
-        
-    //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
-    //║ ◈◈◈◈◈◈ On Enter ◈◈◈◈◈◈                                                                                         ║
-    //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        private NativeArray<float> GetCostMatrix(in FormationData targetFormation, Allocator returnedAllocator)
-        {
-            NativeArray<float3> destinations = targetFormation.GetUnitsPositionRelativeToRegiment(LeaderTargetPosition, Temp);
-            NativeArray<float> nativeCostMatrix = new (square(targetFormation.NumUnitsAlive), returnedAllocator, UninitializedMemory);
-            for (int i = 0; i < nativeCostMatrix.Length; i++)
-            {
-                (int x, int y) = GetXY(i, targetFormation.NumUnitsAlive);
-                float3 unitPosition = LinkedRegiment[y].Position;
-                nativeCostMatrix[i] = distancesq(unitPosition, destinations[x]);
-            }
-            return nativeCostMatrix;
-        }
-    
-        private void AssignIndexToUnits()
-        {
-            FormationData targetFormation = TargetFormation;
-            using NativeArray<float> costMatrix = GetCostMatrix(targetFormation, TempJob);
-            using NativeArray<int> sortedIndex = JobifiedHungarianAlgorithm.FindAssignments(costMatrix, targetFormation.NumUnitsAlive);
-            LinkedRegiment.ReorderElementsBySwap(sortedIndex);
         }
     }
 }
