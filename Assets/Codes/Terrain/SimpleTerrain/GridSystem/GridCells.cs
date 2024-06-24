@@ -58,8 +58,9 @@ namespace Kaizerwald.TerrainBuilder
             
             Cells = new Cell[terrainSettings.QuadCount];
             using NativeArray<float3> verticesNtv = meshData.GetVertexData<float3>(stream: 0);
-            
+            Debug.Log($"verticesNtv len = {verticesNtv.Length}");
             NativeArray<float3> cellVertices = new (4, Temp, UninitializedMemory);
+            Debug.Log($"Cells.Length = {Cells.Length}, sizeX = {terrain.TerrainSettings.SizeX}, sizeY = {terrain.TerrainSettings.SizeY}, mul = {terrain.TerrainSettings.SizeX * terrain.TerrainSettings.SizeY}");
             for (int cellIndex = 0; cellIndex < Cells.Length; cellIndex++)
             {
                 int2 cellCoords = GetXY2(cellIndex, terrainSettings.NumQuadX);

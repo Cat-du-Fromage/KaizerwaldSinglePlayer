@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -61,7 +62,8 @@ namespace Kaizerwald.RTTCamera
         //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
         //║ ◈◈◈◈◈◈ Update | Late Update ◈◈◈◈◈◈                                                                         ║
         //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        private void Update()
+        
+        private void LateUpdate()
         {
             if (!isRotating && !isMoving && !isZooming) return;
             // Rotation
@@ -72,6 +74,7 @@ namespace Kaizerwald.RTTCamera
             newPosition += ZoomSpeed * zoomValue * Vector3.up;// isZooming check not needed since we add 0 if zoom == 0
             cameraTransform.SetPositionAndRotation(newPosition, newRotation);
         }
+
 
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║

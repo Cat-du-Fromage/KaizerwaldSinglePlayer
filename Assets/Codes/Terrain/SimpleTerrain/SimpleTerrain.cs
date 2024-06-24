@@ -20,6 +20,7 @@ using static Unity.Collections.NativeArrayOptions;
 using half4 = Unity.Mathematics.half4;
 
 using Kaizerwald.Utilities;
+using UnityEngine.Rendering;
 
 namespace Kaizerwald.TerrainBuilder
 {
@@ -100,7 +101,8 @@ namespace Kaizerwald.TerrainBuilder
             meshRenderer      = GetComponent<MeshRenderer>();
             meshCollider      = GetComponent<MeshCollider>();
             TerrainSettings   = GetComponent<TerrainSettings>().Initialize();
-            TerrainGridSystem = GetComponent<TerrainGridSystem>().Initialize(this);
+            TerrainGridSystem = GetComponent<TerrainGridSystem>();
+            //TerrainGridSystem = GetComponent<TerrainGridSystem>().Initialize(this);
             SpawnerManager    = GetComponent<SpawnerManager>().Initialize();
             GenerateTerrain();
         }
@@ -114,7 +116,6 @@ namespace Kaizerwald.TerrainBuilder
             Mesh terrainMesh = new Mesh(){ name = "TerrainMesh" };
             MeshDataArray meshDataArray = AllocateWritableMeshData(1);
             meshDataArray[0].InitializeBufferParams(TerrainSettings.VerticesCount, TerrainSettings.TriangleIndicesCount);
-
             // MeshData Creation
             JMeshData.ProcessFlat(meshDataArray[0], TerrainSettings.NumVerticesXY).Complete();
             meshDataArray[0].SetSubMesh(TerrainSettings.VerticesCount, TerrainSettings.TriangleIndicesCount);
