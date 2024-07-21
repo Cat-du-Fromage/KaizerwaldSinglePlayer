@@ -138,7 +138,7 @@ namespace Kaizerwald
             
             // FieldOfView
             FieldOfViewController = this.GetOrAddComponent<FieldOfViewController>();
-            FieldOfViewController.Initialize(RegimentType.Range, RegimentType.RegimentClass.FovSideAngleDegrees, CurrentFormation.Width * CurrentFormation.DistanceUnitToUnitX);
+            FieldOfViewController.Initialize(RegimentType.Range, RegimentType.RegimentClass.FovSideAngleDegrees, CurrentFormation.Width * CurrentFormation.DistanceUnitToUnit.x);
             return this;
             
             //┌▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁┐
@@ -147,9 +147,9 @@ namespace Kaizerwald
             List<Unit> CreateRegimentsUnit(int unitLayerIndex)
             {
                 GameObject prefab = RegimentType.UnitPrefab;
-                using NativeArray<float3> positions = formation.GetPositionsInFormationByRaycast(Position, terrainLayer);
+                using NativeArray<float3> positions = formation.GetPositionsByRaycast(Position, terrainLayer);
                 
-                List<Unit> tmpUnits = new(formation.BaseNumUnits);
+                List<Unit> tmpUnits = new(formation.UnitCount);
                 for (int i = 0; i < positions.Length; i++)
                 {
                     Unit unit = Unit.InstantiateUnit(this, prefab, positions[i], Rotation, i, unitLayerIndex);

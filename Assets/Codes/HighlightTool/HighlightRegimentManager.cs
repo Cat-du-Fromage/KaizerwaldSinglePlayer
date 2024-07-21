@@ -194,7 +194,7 @@ namespace Kaizerwald
 #if UNITY_EDITOR
                 if (regiment == null) Debug.Log($"Got a null Highlight regiment at {i}");
 #endif
-                if (regiment.CurrentFormation.NumUnitsAlive > 0) continue;
+                if (regiment.CurrentFormation.UnitCount > 0) continue;
                 UnRegisterRegiment(regiment);
                 Destroy(regiment);
             }

@@ -65,8 +65,8 @@ namespace Kaizerwald
             {
                 HighlightRegiment regiment = PlacementController.SortedSelectedRegiments[i];
                 if (regiment == null || !Registers[registerIndexUsed].ContainsKey(regiment.RegimentID)) continue;
-                int width = keepSameFormation ? regiment.CurrentFormation.Width : min(regiment.CurrentFormation.NumUnitsAlive, PlacementController.DynamicsTempWidth[i]);
-                width = width > regiment.CurrentFormation.NumUnitsAlive ? regiment.CurrentFormation.NumUnitsAlive : width;
+                int width = keepSameFormation ? regiment.CurrentFormation.Width : min(regiment.CurrentFormation.UnitCount, PlacementController.DynamicsTempWidth[i]);
+                width = width > regiment.CurrentFormation.UnitCount ? regiment.CurrentFormation.UnitCount : width;
                 
                 moveOrders[i] = PackOrder(registerIndexUsed, regiment, width, marchOrdered);
                 regiment.SetDestination(moveOrders[i].LeaderDestination, moveOrders[i].TargetFormation);

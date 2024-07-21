@@ -80,7 +80,7 @@ namespace Kaizerwald.StateMachine
         public override void OnSetup(Order order)
         {
             //Setup to initial rotation and forward position
-            float3 center = Position - CurrentFormation.DirectionForward * (CurrentFormation.DistanceUnitToUnitY * (CurrentFormation.Depth - 1));
+            float3 center = Position - CurrentFormation.DirectionForward * (CurrentFormation.DistanceUnitToUnit.y * (CurrentFormation.Depth - 1));
             float diameter = cmax(float2(CurrentFormation.WidthDepth - 1) * CurrentFormation.DistanceUnitToUnit);
 
             Vector3 startPosition = center + center.direction(order.TargetPosition) * (diameter / 2f);
@@ -157,11 +157,12 @@ namespace Kaizerwald.StateMachine
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
         private NativeArray<float> GetCostMatrix(in FormationData targetFormation)
         {
-            NativeArray<float3> destinations = targetFormation.GetUnitsPositionRelativeToRegiment(LeaderTargetPosition, Temp);
-            NativeArray<float> nativeCostMatrix = new (square(targetFormation.NumUnitsAlive), TempJob, UninitializedMemory);
+
+            NativeArray<float3> destinations = ((Formation)targetFormation).GetPositions(LeaderTargetPosition, Temp);
+            NativeArray<float> nativeCostMatrix = new (square(targetFormation.UnitCount), TempJob, UninitializedMemory);
             for (int i = 0; i < nativeCostMatrix.Length; i++)
             {
-                (int x, int y) = KzwGrid.GetXY(i, targetFormation.NumUnitsAlive);
+                (int x, int y) = KzwGrid.GetXY(i, targetFormation.UnitCount);
                 //int y = i / targetFormation.NumUnitsAlive;
                 //int x = i - y * targetFormation.NumUnitsAlive;
                 float3 unitPosition = LinkedRegiment[y].Position;
@@ -174,7 +175,7 @@ namespace Kaizerwald.StateMachine
         {
             FormationData targetFormation = TargetFormation;
             using NativeArray<float> costMatrix = GetCostMatrix(targetFormation);
-            using NativeArray<int> sortedIndex = JobifiedHungarianAlgorithm.FindAssignments(costMatrix, targetFormation.NumUnitsAlive);
+            using NativeArray<int> sortedIndex = JobifiedHungarianAlgorithm.FindAssignments(costMatrix, targetFormation.UnitCount);
             LinkedRegiment.ReorderElementsBySwap(sortedIndex);
         }
         

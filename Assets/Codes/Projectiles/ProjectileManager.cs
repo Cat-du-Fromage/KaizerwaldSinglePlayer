@@ -119,7 +119,7 @@ namespace Kaizerwald
         private void RegisterPool(Regiment regiment)
         {
             GameObject prefab = regiment.RegimentType.BulletPrefab;
-            int unitCount = regiment.CurrentFormation.MaxRow;
+            int unitCount = regiment.CurrentFormation.MaxWidth;
             RegimentBulletsPool.TryAdd(regiment.RegimentID, new KzwObjectPool<ProjectileComponent>(prefab, CallOnPull, unitCount));
         }
         

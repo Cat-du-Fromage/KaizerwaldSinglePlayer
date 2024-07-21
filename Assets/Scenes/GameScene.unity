@@ -996,7 +996,7 @@ PrefabInstance:
     - target: {fileID: 1886885482450021849, guid: 6af1f7b974296a745bf502d42c9c1f2d,
         type: 3}
       propertyPath: OnRegimentSelected.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
-      value: 3
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1886885482450021849, guid: 6af1f7b974296a745bf502d42c9c1f2d,
         type: 3}
@@ -1026,7 +1026,7 @@ PrefabInstance:
     - target: {fileID: 1886885482450021849, guid: 6af1f7b974296a745bf502d42c9c1f2d,
         type: 3}
       propertyPath: OnRegimentDeselected.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: OnShowFieldOfView
+      value: OnHideFieldOfView
       objectReference: {fileID: 0}
     - target: {fileID: 1886885482450021849, guid: 6af1f7b974296a745bf502d42c9c1f2d,
         type: 3}

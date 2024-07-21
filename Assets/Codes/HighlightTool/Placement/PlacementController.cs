@@ -261,7 +261,7 @@ namespace Kaizerwald
             float unitsToAddLength = mouseDistance - MinMaxSelectionWidth.x;
             for (int i = 1; i < SortedSelectedRegiments.Count; i++)
             {
-                unitsToAddLength -= SortedSelectedRegiments[i].CurrentFormation.DistanceUnitToUnitX;
+                unitsToAddLength -= SortedSelectedRegiments[i].CurrentFormation.DistanceUnitToUnit.x;
             }
             return unitsToAddLength;
         }
@@ -273,7 +273,7 @@ namespace Kaizerwald
             {
                 return Array.Empty<int>(); //Ordre => Garde la formation actuelle
             }
-            if (SelectedRegiments.Count == 1 && SelectedRegiments[0].CurrentFormation.NumUnitsAlive == 1)
+            if (SelectedRegiments.Count == 1 && SelectedRegiments[0].CurrentFormation.UnitCount == 1)
             {
                 return PlaceSingleUnitRegiment();
             }
@@ -330,15 +330,15 @@ namespace Kaizerwald
                 JGetInitialTokensPositions job = new()
                 {
                     NewWidth           = newWidths[i],
-                    NumUnitsAlive      = regimentState.NumUnitsAlive,
+                    NumUnitsAlive      = regimentState.UnitCount,
                     DistanceUnitToUnit = half2(regimentState.DistanceUnitToUnit),
                     LineDirection      = lineDirection2D,
                     DepthDirection     = depthDirection2D,
                     Start              = starts[i],
-                    TokensPositions    = initialTokensPositions.Slice(numUnitsRegimentsBefore, regimentState.NumUnitsAlive)
+                    TokensPositions    = initialTokensPositions.Slice(numUnitsRegimentsBefore, regimentState.UnitCount)
                 };
-                jobHandles.Add(job.ScheduleParallel(regimentState.NumUnitsAlive, JobWorkerCount-1, default));
-                numUnitsRegimentsBefore += regimentState.NumUnitsAlive;
+                jobHandles.Add(job.ScheduleParallel(regimentState.UnitCount, JobWorkerCount-1, default));
+                numUnitsRegimentsBefore += regimentState.UnitCount;
             }
             return jobHandles;
         }
@@ -355,7 +355,7 @@ namespace Kaizerwald
             int numUnitsRegimentBefore = 0;
             for (int i = 0; i < SortedSelectedRegiments.Count; i++)
             {
-                int numToken = SortedSelectedRegiments[i].CurrentFormation.NumUnitsAlive;
+                int numToken = SortedSelectedRegiments[i].CurrentFormation.UnitCount;
                 NativeSlice<float2> originSlice = tokensPositions.Slice(numUnitsRegimentBefore, numToken);
                 NativeSlice<RaycastCommand> commandsSlice = commands.Slice(numUnitsRegimentBefore, numToken);
                 jobHandles[i] = JRaycastsCommands.Process(commandsSlice, originSlice, queryParams, dependencies[i]);
@@ -375,7 +375,7 @@ namespace Kaizerwald
             foreach (HighlightRegiment regiment in SortedSelectedRegiments)
             {
                 if(!DynamicRegister.Records.TryGetValue(regiment.RegimentID, out HighlightBehaviour[] tokens)) continue;
-                int numToken = regiment.CurrentFormation.NumUnitsAlive;
+                int numToken = regiment.CurrentFormation.UnitCount;
                 NativeSlice<RaycastHit> raycastHits = results.Slice(numUnitsRegimentBefore, numToken);
                 for (int unitIndex = 0; unitIndex < numToken; unitIndex++)
                 {
@@ -419,8 +419,8 @@ namespace Kaizerwald
             starts[0] = ((float3)MouseStart).xz;
             for (int i = 1; i < SortedSelectedRegiments.Count; i++)
             {
-                float currUnitSpace  = SortedSelectedRegiments[i].CurrentFormation.DistanceUnitToUnitX;
-                float prevUnitSpace  = SortedSelectedRegiments[i - 1].CurrentFormation.DistanceUnitToUnitX;
+                float currUnitSpace  = SortedSelectedRegiments[i].CurrentFormation.DistanceUnitToUnit.x;
+                float prevUnitSpace  = SortedSelectedRegiments[i - 1].CurrentFormation.DistanceUnitToUnit.x;
                 float previousLength = (newWidths[i - 1] - 1) * prevUnitSpace; // -1 because we us space, not units
                 previousLength      += csum(float2(prevUnitSpace, currUnitSpace) * 0.5f);//arrive at edge of last Unit + 1/2 newUnitSize
                 previousLength      += DISTANCE_BETWEEN_REGIMENT + max(0, leftOver); // add regiment space
@@ -440,7 +440,7 @@ namespace Kaizerwald
         private bool IsVisibilityTrigger()
         {
             if (PlacementsVisible) return true;
-            if (mouseDistance < SelectedRegiments[0].CurrentFormation.DistanceUnitToUnitX) return false;
+            if (mouseDistance < SelectedRegiments[0].CurrentFormation.DistanceUnitToUnit.x) return false;
             EnableAllDynamicSelected();
             return true;
         }

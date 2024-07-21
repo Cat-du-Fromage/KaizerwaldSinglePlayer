@@ -193,7 +193,7 @@ namespace Kaizerwald.StateMachine
             int numIndices = max(enemyFormation.NumUnitsLastLine, enemyFormation.NumCompleteLine * enemyFormation.Width);
             
             NativeHashSet<int> indices = new (numIndices, Temp);
-            for (int i = 0; i < enemyFormation.NumUnitsAlive; i++)
+            for (int i = 0; i < enemyFormation.UnitCount; i++)
             {
                 int y = i / enemyFormation.Width;
                 int x = i - y * enemyFormation.Width;

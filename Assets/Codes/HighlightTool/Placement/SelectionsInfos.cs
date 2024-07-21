@@ -49,7 +49,7 @@ namespace Kaizerwald
         
         public static int GetTotalUnitsSelected(List<HighlightRegiment> selectedRegiments)
         {
-            return selectedRegiments.Sum(regiment => regiment.CurrentFormation.NumUnitsAlive);
+            return selectedRegiments.Sum(regiment => regiment.CurrentFormation.UnitCount);
         }
 
         private static float2 GetMinMaxFormationLength(in FormationData formation)
@@ -66,7 +66,7 @@ namespace Kaizerwald
             {
                 //Contrary To Formation Data Formation MinRow is Fixe and does not take in account NumUnitsAlive
                 //FormationData formationData = selectedRegiments[i].CurrentFormation;
-                tmp[i] = selectedRegiments[i].CurrentFormation.MinRow;
+                tmp[i] = selectedRegiments[i].CurrentFormation.MinWidth;
                 //tmp[i] = min(selectedRegiments[i].CurrentFormation.MinRow, selectedRegiments[i].CurrentFormation.NumUnitsAlive);
             }
             return tmp;
