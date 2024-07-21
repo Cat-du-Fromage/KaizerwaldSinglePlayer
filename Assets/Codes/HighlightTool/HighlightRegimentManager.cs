@@ -9,7 +9,7 @@ using UnityEngine.InputSystem;
 using Kaizerwald.Pattern;
 using Kaizerwald.Utilities.Core;
 using Kaizerwald.FormationModule;
-
+using UnityEngine.Events;
 using Object = UnityEngine.Object;
 
 namespace Kaizerwald
@@ -77,6 +77,13 @@ namespace Kaizerwald
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Events ◈◈◈◈◈◈                                                                                           ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
+        [field:Header("Events"), Space(1f)]
+    
+        [field:Header("Selection Events")]
+        [SerializeField] private UnityEvent<int> OnRegimentSelected;
+        
+        [field:Header("Deselection Events")]
+        [SerializeField] private UnityEvent<int> OnRegimentDeselected;
         public event Action<PlayerOrderData[]> OnPlayerOrders;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
@@ -110,7 +117,11 @@ namespace Kaizerwald
         public void FixedUpdate()
         {
             CleanUp();
-            Controllers.ForEach(controller => controller.OnFixedUpdate());
+            //Controllers.ForEach(controller => controller.OnFixedUpdate());
+            foreach (HighlightController controller in Controllers)
+            {
+                controller.OnFixedUpdate();
+            }
             foreach (HighlightRegiment highlightRegiment in Regiments)
             {
                 highlightRegiment.OnFixedUpdate();
@@ -119,7 +130,11 @@ namespace Kaizerwald
 
         public void Update()
         {
-            Controllers.ForEach(controller => controller.OnUpdate());
+            //Controllers.ForEach(controller => controller.OnUpdate());
+            foreach (HighlightController controller in Controllers)
+            {
+                controller.OnUpdate();
+            }
         }
 
         public void LateUpdate()
@@ -205,7 +220,7 @@ namespace Kaizerwald
         }
     
         //┌────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-        //│  ◇◇◇◇◇◇ Regiment Update Event ◇◇◇◇◇◇                                                                       │
+        //│  ◇◇◇◇◇◇ Register | UnRegister ◇◇◇◇◇◇                                                                       │
         //└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
         private void BaseRegister(HighlightRegiment regiment)
         {
@@ -247,9 +262,9 @@ namespace Kaizerwald
             UnRegisterRegiment(regiment);
         }
         
-        //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
-        //║ ◈◈◈◈◈◈ OUTSIDES UPDATES / Resize Request ◈◈◈◈◈◈                                                            ║
-        //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
+    //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
+    //║ ◈◈◈◈◈◈ OUTSIDES UPDATES / Resize Request ◈◈◈◈◈◈                                                                ║
+    //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
         public void ResizeHighlightsRegisters(HighlightRegiment regiment)
         {
             foreach (HighlightSystem highlightSystem in highlightSystems)
@@ -262,10 +277,24 @@ namespace Kaizerwald
 //║                                            ◆◆◆◆◆◆ PLAYER ORDER ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
         
+    //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
+    //║ ◈◈◈◈◈◈ Player Orders ◈◈◈◈◈◈                                                                                    ║
+    //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
         public void OnPlayerOrder(PlayerOrderData[] orders)
         {
             OnPlayerOrders?.Invoke(orders);
         }
         
+    //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
+    //║ ◈◈◈◈◈◈ Selection Event ◈◈◈◈◈◈                                                                                  ║
+    //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
+        public void OnRegimentSelection(int regimentObjectId)
+        {
+            OnRegimentSelected?.Invoke(regimentObjectId);
+        }
+        public void OnRegimentDeselection(int regimentObjectId)
+        {
+            OnRegimentDeselected?.Invoke(regimentObjectId);
+        }
     }
 }

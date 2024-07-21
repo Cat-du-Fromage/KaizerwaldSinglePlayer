@@ -11,9 +11,10 @@ using static Unity.Mathematics.math;
 using static Unity.Collections.Allocator;
 using static Unity.Collections.NativeArrayOptions;
 
+using Kaizerwald.Utilities.Core;
 using Kaizerwald.FormationModule;
 using Kaizerwald.StateMachine;
-using Kaizerwald.Utilities.Core;
+using Kaizerwald.FieldOfView;
 
 namespace Kaizerwald
 {
@@ -39,7 +40,8 @@ namespace Kaizerwald
         [field:SerializeField] public RegimentType RegimentType { get; private set; }
         [field:SerializeField] public RegimentStateMachine StateMachine { get; private set; }
         
-        //"BlackBoard"
+        // FIELD OF VIEW
+        [field:SerializeField] public FieldOfViewController FieldOfViewController { get; private set; }
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║
@@ -135,8 +137,8 @@ namespace Kaizerwald
             StateMachine = this.GetOrAddComponent<RegimentStateMachine>().InitializeAndRegisterUnits(this);
             
             // FieldOfView
-            
-            
+            FieldOfViewController = this.GetOrAddComponent<FieldOfViewController>();
+            FieldOfViewController.Initialize(RegimentType.Range, RegimentType.RegimentClass.FovSideAngleDegrees, CurrentFormation.Width * CurrentFormation.DistanceUnitToUnitX);
             return this;
             
             //┌▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁┐

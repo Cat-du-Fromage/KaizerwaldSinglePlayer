@@ -17,6 +17,8 @@ namespace Kaizerwald
         public int MaxRow = 10;
         public float SpaceBetweenUnits = 0.5f;
 
+        public float FovSideAngleDegrees = 60;
+
         public float2 DistanceUnitToUnit => SpaceBetweenUnits + ((float3)Category.UnitSize).xz;
     }
 }

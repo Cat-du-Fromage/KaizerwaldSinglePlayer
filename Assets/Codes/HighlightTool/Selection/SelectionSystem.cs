@@ -88,8 +88,12 @@ namespace Kaizerwald
             regiment.SetSelectableProperty((ESelectionRegister)registerIndex, true);
             base.OnShow(regiment, registerIndex);
             
-            if ((ESelectionRegister)registerIndex != ESelectionRegister.Selection) return;
-            SelectionInfos.OnSelectionUpdate();
+            // Selection
+            if ((ESelectionRegister)registerIndex == ESelectionRegister.Selection)
+            {
+                SelectionInfos.OnSelectionUpdate();
+                Manager.OnRegimentSelection(regiment.RegimentID);
+            }
         }
         
         public override void OnHide(HighlightRegiment regiment, int registerIndex)
@@ -97,20 +101,31 @@ namespace Kaizerwald
             regiment.SetSelectableProperty((ESelectionRegister)registerIndex, false);
             base.OnHide(regiment, registerIndex);
             
-            if ((ESelectionRegister)registerIndex != ESelectionRegister.Selection) return;
-            SelectionInfos.OnSelectionUpdate();
+            // Selection
+            if ((ESelectionRegister)registerIndex == ESelectionRegister.Selection)
+            {
+                SelectionInfos.OnSelectionUpdate();
+                Manager.OnRegimentDeselection(regiment.RegimentID);
+            }
         }
 
         public override void HideAll(int registerIndex)
         {
+            bool isSelectionRegister = (ESelectionRegister)registerIndex == ESelectionRegister.Selection;
             foreach (HighlightRegiment regiment in Registers[registerIndex].ActiveHighlights)
             {
-                regiment.SetSelectableProperty((ESelectionRegister)registerIndex, true);
+                regiment.SetSelectableProperty((ESelectionRegister)registerIndex, false);
+                if (isSelectionRegister)
+                {
+                    Manager.OnRegimentDeselection(regiment.RegimentID);
+                }
             }
             base.HideAll(registerIndex);
-            
-            if ((ESelectionRegister)registerIndex != ESelectionRegister.Selection) return;
-            SelectionInfos.OnSelectionUpdate();
+
+            if (isSelectionRegister)
+            {
+                SelectionInfos.OnSelectionUpdate();
+            }
         }
 
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
