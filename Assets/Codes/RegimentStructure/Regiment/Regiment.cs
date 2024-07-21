@@ -139,6 +139,7 @@ namespace Kaizerwald
             // FieldOfView
             FieldOfViewController = this.GetOrAddComponent<FieldOfViewController>();
             FieldOfViewController.Initialize(RegimentType.Range, RegimentType.RegimentClass.FovSideAngleDegrees, CurrentFormation.Width * CurrentFormation.DistanceUnitToUnit.x);
+            CurrentFormation.OnWidthChanged += FieldOfViewController.OnWidthChange;
             return this;
             
             //┌▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁┐

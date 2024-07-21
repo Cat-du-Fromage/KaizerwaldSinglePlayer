@@ -15,13 +15,15 @@ namespace Kaizerwald.FieldOfView
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
         
         private Transform cachedTransform;
+
+        private FieldOfViewParams fovParams;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                              ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
         [field:SerializeField] public FieldOfView FieldOfView { get; private set; }
-        [field:SerializeField] public FieldOfViewParams FovParams { get; private set; }
+        public FieldOfViewParams FovParams => fovParams;
 
         public float3 Position => cachedTransform.position;
         public float3 Forward => cachedTransform.forward;
@@ -75,10 +77,10 @@ namespace Kaizerwald.FieldOfView
             FieldOfView.Hide();
         }
 
-        public void OnWidthChange()
+        public void OnWidthChange(int newWidth, float newWidthLength)
         {
-            //Update Mesh
-            //Need C# event from Formation or Regiment?
+            fovParams.WidthLength = newWidthLength;
+            FieldOfView.UpdateMeshWidth();
         }
 
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
@@ -103,7 +105,7 @@ namespace Kaizerwald.FieldOfView
         {
             if (!BaseInitialize()) return this;
             cachedTransform = transform;
-            FovParams = new FieldOfViewParams(range, radians(sideAngleDegrees), widthLength);
+            fovParams = new FieldOfViewParams(range, radians(sideAngleDegrees), widthLength);
             
             FieldOfView.Initialize(this, 1f);
             FieldOfView.transform.localPosition = Vector3.zero + positionOffset;
@@ -112,16 +114,5 @@ namespace Kaizerwald.FieldOfView
             DisableFov();
             return this;
         }
-        
-    //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
-    //║ ◈◈◈◈◈◈ Detection Method ◈◈◈◈◈◈                                                                                 ║
-    //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-
-        public bool IsInsideFieldOfView(float3 point)
-        {
-            return Bounds.IsPointInsideFov(point);
-        }
     }
-    
-    
 }

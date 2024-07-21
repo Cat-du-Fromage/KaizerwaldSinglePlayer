@@ -63,5 +63,11 @@ namespace Kaizerwald.FieldOfView
         {
             
         }
+        
+        public MeshInfos(FieldOfViewParams fovParams, float widthLength, float thickness, float resolution = 1) 
+            : this(fovParams.Range, fovParams.SideAngleRadian, widthLength, thickness, resolution)
+        {
+            
+        }
     }
 }

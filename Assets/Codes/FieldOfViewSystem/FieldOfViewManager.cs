@@ -10,7 +10,6 @@ namespace Kaizerwald.FieldOfView
 {
     public class FieldOfViewManager : SingletonBehaviour<FieldOfViewManager>
     {
-        
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                               ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                  ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
@@ -21,6 +20,7 @@ namespace Kaizerwald.FieldOfView
 //║                                             ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                               ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
+        [field: SerializeField, Range(1, 4)] public int MeshResolution { get; private set; } = 1;
         [field:SerializeField] public GameObject FovPrefab { get; private set; }
         [field:SerializeField] public LayerMask TerrainLayer { get; private set; }
 

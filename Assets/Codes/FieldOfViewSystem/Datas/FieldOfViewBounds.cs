@@ -43,7 +43,7 @@ namespace Kaizerwald.FieldOfView
         }
         public FieldOfViewBounds(FieldOfViewParams fovParams, float3 position, float3 forward) : this(fovParams, position.xz, forward.xz) { }
 
-        public bool IsPointInsideFov(float2 point)
+        public bool Contains(float2 point)
         {
             float2x4 edgesToPoint = float2x4(point, point, point, point) - TrapezePoints;
             bool4 trapezeEdgeChecks = new bool4
@@ -64,9 +64,9 @@ namespace Kaizerwald.FieldOfView
             return true;
         }
         
-        public bool IsPointInsideFov(float3 point)
+        public bool Contains(float3 point)
         {
-            return IsPointInsideFov(point.xz);
+            return Contains(point.xz);
         }
     }
 }

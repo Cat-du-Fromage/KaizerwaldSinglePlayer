@@ -99,7 +99,8 @@ namespace Kaizerwald.StateMachine
             UpdateProgressToTargetPosition();
             
             //TODO: make it change over time NOT instantly!
-            CurrentFormation.SetFromFormation(TargetFormation);
+            CurrentFormation.CopyFrom(TargetFormation);
+            //CurrentFormation.SetFromFormation(TargetFormation);
         }
         
         public override void OnUpdate()

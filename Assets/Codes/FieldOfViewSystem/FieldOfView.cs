@@ -109,10 +109,52 @@ namespace Kaizerwald.FieldOfView
         public void Show() => MeshRenderer.enabled = true;
         public void Hide() => MeshRenderer.enabled = false;
         
+        public JobHandle UpdateVerticesHeightsByJob()
+        {
+            NativeArray<RaycastHit> results = new (verticesPositions.Length, TempJob, UninitializedMemory);
+            JobHandle raycastHandle = JRaycastsCommands.ScheduleParallel(results, verticesPositions, Position, Forward, queryParameters);
+            JobHandle heightsHandle = JHeightVertices.Schedule(verticesPositions, results, -Position.y + GROUND_OFFSET, raycastHandle);
+            results.Dispose(heightsHandle);
+            return heightsHandle;
+        }
+
+        public void UpdateMeshWidth()
+        {
+            MeshInfos = new MeshInfos(FovParams, THICKNESS, FieldOfViewManager.Instance.MeshResolution);
+            MeshDataArray meshDataArray = AllocateWritableMeshData(MeshFilter.sharedMesh);
+            MeshData meshData = meshDataArray[0];
+            
+            // Set Buffer Params
+            meshData.SetVertexBufferParams(MeshInfos.VerticesCount, FovUtils.GetVertexAttribute());
+            meshData.SetIndexBufferParams(MeshInfos.TriangleIndicesCount, IndexFormat.UInt16);
+
+            // Build vertices and Triangles
+            JobHandle triangleJh = JBuildTriangleIndices.ScheduleParallel(meshData.GetIndexData<ushort>());
+            JobHandle verticesJh = BuildVerticesByJob(meshData.GetVertexData<float3>());
+            JobHandle.CompleteAll(ref triangleJh, ref verticesJh);
+            
+            // Set SubMesh
+            meshData.subMeshCount = 1;
+            meshData.SetSubMesh(0, new SubMeshDescriptor(0, MeshInfos.TriangleIndicesCount));
+
+            if (verticesPositions.Length != MeshInfos.VerticesCount)
+            {
+                verticesPositions.Dispose();
+                verticesPositions = new NativeArray<float3>(MeshInfos.VerticesCount, Persistent, UninitializedMemory);
+            }
+            verticesPositions.CopyFrom(meshData.GetVertexData<float3>());
+            ApplyAndDisposeWritableMeshData(meshDataArray, MeshFilter.sharedMesh);
+            //Carefull! fovMesh.Optimize() may change order of indices so copy after doing it!
+            //MeshFilter.sharedMesh.Optimize();
+            MeshFilter.sharedMesh.RecalculateNormals();
+            MeshFilter.sharedMesh.RecalculateTangents();
+            MeshFilter.sharedMesh.RecalculateBounds();
+        }
+        
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
-    //║ ◈◈◈◈◈◈ Update Manager Events ◈◈◈◈◈◈                                                                            ║
+    //║ ◈◈◈◈◈◈ Initialization ◈◈◈◈◈◈                                                                                   ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        public void BaseInitialize(float range, float sideAngleRadian, float widthLength, float resolution = 1)
+        public void BaseInitialize(float range, float sideAngleRadian, float widthLength)
         {
             queryParameters = new QueryParameters(FieldOfViewManager.Instance.TerrainLayer.value);
             
@@ -120,10 +162,11 @@ namespace Kaizerwald.FieldOfView
             MeshFilter      = GetComponent<MeshFilter>();
             MeshRenderer    = GetComponent<MeshRenderer>();
             
-            MeshInfos = new MeshInfos(range, sideAngleRadian, widthLength, THICKNESS, resolution);
+            MeshInfos = new MeshInfos(range, sideAngleRadian, widthLength, THICKNESS, FieldOfViewManager.Instance.MeshResolution);
             verticesPositions.Dispose();
             verticesPositions = new NativeArray<float3>(MeshInfos.VerticesCount, Persistent, UninitializedMemory);
             
+            //verticesPositions.CopyFrom(CreateNativeArray(fovMesh.vertices,Temp).Reinterpret<float3>());
             CreateMesh();
         }
         
@@ -133,19 +176,9 @@ namespace Kaizerwald.FieldOfView
             BaseInitialize(controller.FovParams.Range, controller.FovParams.SideAngleRadian, controller.FovParams.WidthLength);
         }
         
-        public JobHandle UpdateVerticesHeightsByJob()
-        {
-            NativeArray<RaycastHit> results = new (verticesPositions.Length, TempJob, UninitializedMemory);
-            JobHandle raycastHandle = JRaycastsCommands.ScheduleParallel(results, verticesPositions, Position, Forward, queryParameters);
-            JobHandle heightsHandle = JHeightVertices.Schedule(verticesPositions, results, -Position.y + GROUND_OFFSET, raycastHandle);
-            results.Dispose(heightsHandle);
-            return heightsHandle;
-        }
-        
         private void CreateMesh()
         {
             Mesh fovMesh = new Mesh { name = "FovMesh" };
-            fovMesh.MarkDynamic();
             
             // Set Buffer Params
             fovMesh.SetVertexBufferParams(MeshInfos.VerticesCount, FovUtils.GetVertexAttribute());
