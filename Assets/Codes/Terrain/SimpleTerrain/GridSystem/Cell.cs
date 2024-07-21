@@ -12,7 +12,7 @@ using Kaizerwald.Utilities;
 using NUnit.Framework.Internal;
 using UnityEngine.Serialization;
 using UnityEngine.UIElements;
-using static Kaizerwald.Utilities.KzwMath;
+using static Kaizerwald.Utilities.Core.KzwMath;
 
 namespace Kaizerwald.TerrainBuilder
 {

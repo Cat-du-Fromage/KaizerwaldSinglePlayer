@@ -15,8 +15,10 @@ using static Unity.Collections.Allocator;
 using static Unity.Collections.NativeArrayOptions;
 using static Unity.Mathematics.math;
 
-using static Kaizerwald.Utilities.KzwMath;
-using static Kaizerwald.Utilities.CSharpContainerUtils;
+using Kaizerwald.Utilities.Core;
+using static Kaizerwald.Utilities.Core.KzwMath;
+using static Kaizerwald.Utilities.Core.KzwGrid;
+using static Kaizerwald.Utilities.Core.ArrayExtension;
 
 namespace Kaizerwald.StateMachine
 {
@@ -81,7 +83,7 @@ namespace Kaizerwald.StateMachine
             float3 center = Position - CurrentFormation.DirectionForward * (CurrentFormation.DistanceUnitToUnitY * (CurrentFormation.Depth - 1));
             float diameter = cmax(float2(CurrentFormation.WidthDepth - 1) * CurrentFormation.DistanceUnitToUnit);
 
-            Vector3 startPosition = center + center.DirectionTo(order.TargetPosition) * (diameter / 2f);
+            Vector3 startPosition = center + center.direction(order.TargetPosition) * (diameter / 2f);
             Quaternion startRotation = Quaternion.LookRotation(order.TargetFormation.Direction3DForward, Vector3.up);
             RegimentTransform.SetPositionAndRotation(startPosition, startRotation);
             
@@ -159,7 +161,9 @@ namespace Kaizerwald.StateMachine
             NativeArray<float> nativeCostMatrix = new (square(targetFormation.NumUnitsAlive), TempJob, UninitializedMemory);
             for (int i = 0; i < nativeCostMatrix.Length; i++)
             {
-                (int x, int y) = GetXY(i, targetFormation.NumUnitsAlive);
+                (int x, int y) = KzwGrid.GetXY(i, targetFormation.NumUnitsAlive);
+                //int y = i / targetFormation.NumUnitsAlive;
+                //int x = i - y * targetFormation.NumUnitsAlive;
                 float3 unitPosition = LinkedRegiment[y].Position;
                 nativeCostMatrix[i] = distancesq(unitPosition, destinations[x]);
             }
@@ -205,7 +209,7 @@ namespace Kaizerwald.StateMachine
             
             float distanceMove = Time.deltaTime * CurrentSpeed;
             reachTargetPosition = distanceMove > distance(Position, LeaderTargetPosition);
-            Vector3 translation = reachTargetPosition ? LeaderTargetPosition : Position + distanceMove * Position.DirectionTo(LeaderTargetPosition);
+            Vector3 translation = reachTargetPosition ? LeaderTargetPosition : Position + distanceMove * Position.direction(LeaderTargetPosition);
             return translation;
         }
 

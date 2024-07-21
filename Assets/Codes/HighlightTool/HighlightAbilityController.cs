@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Kaizerwald.Utilities;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Kaizerwald.Pattern;
 
 namespace Kaizerwald
 {

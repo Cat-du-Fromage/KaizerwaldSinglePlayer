@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Kaizerwald.Utilities;
 using UnityEngine;
 
+using Kaizerwald.Pattern;
+
 namespace Kaizerwald
 {
     public class ApplicationController : Singleton<ApplicationController>

@@ -33,7 +33,9 @@ namespace Kaizerwald
         {
             if (!highlightPrefab.TryGetComponent<HighlightBehaviour>(out _))
             {
+#if UNITY_EDITOR
                 Debug.LogError("Prefab Don't have component: HighlightBehaviour");
+#endif
             }
             System = system;
             Prefab = highlightPrefab;

@@ -2,7 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-using Kaizerwald.Utilities;
+using Kaizerwald.Pattern;
+using Kaizerwald.Utilities.Core;
 
 namespace Kaizerwald
 {

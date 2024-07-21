@@ -4,10 +4,12 @@ using System.Linq;
 using Unity.Mathematics;
 using UnityEngine;
 
-using static Unity.Mathematics.math;
-
-using Kaizerwald.Utilities;
+using Kaizerwald.Pattern;
+using Kaizerwald.Utilities.Core;
+using Kaizerwald.TerrainBuilder;
 using Kaizerwald.FormationModule;
+
+using static Unity.Mathematics.math;
 
 namespace Kaizerwald
 {
@@ -71,7 +73,6 @@ namespace Kaizerwald
             foreach ((int teamId, Dictionary<ulong, List<RegimentSpawner>> teamSpawners) in spawnerByTeam)
             {
                 TeamKeyPairOffset[teamId] = 0;
-                
                 Vector3 startPosition = TerrainManager.Instance.GetPlayerFirstSpawnPosition(teamIndex);
                 Transform spawnerTransform = TerrainManager.Instance.GetSpawnerTransform(teamIndex);
                 
@@ -89,6 +90,7 @@ namespace Kaizerwald
                             Vector3 position = startPosition + TeamKeyPairOffset[teamId] * spawnerTransform.right;
 
                             Regiment regiment = Instantiate(regimentPrefab, position, spawnerTransform.rotation).GetOrAddComponent<Regiment>();
+                            print($"regiment null = {regiment == null}");
                             regimentsCreated.Add(regiment.InitializeProperties(playerId, teamId, TerrainLayerMask));
                         }
                     }

@@ -7,7 +7,7 @@ using UnityEngine;
 using static Unity.Mathematics.math;
 
 using Kaizerwald.FormationModule;
-using Kaizerwald.Utilities;
+using Kaizerwald.Utilities.Core;
 
 using quaternion = Unity.Mathematics.quaternion;
 
@@ -186,9 +186,9 @@ namespace Kaizerwald.StateMachine
             newPosition = Position;
             if (UnitReachTargetPosition[0]) return false;
             
-            bool isNearFinalTarget = Position.DistanceTo(unitFinalTargetPosition) <= CurrentSpeed * Time.fixedDeltaTime;
+            bool isNearFinalTarget = Position.distance(unitFinalTargetPosition) <= CurrentSpeed * Time.fixedDeltaTime;
             
-            float3 direction = Position.DirectionTo(unitCurrentTargetPosition);
+            float3 direction = Position.direction(unitCurrentTargetPosition);
             
             newPosition = isNearFinalTarget ? unitFinalTargetPosition : Position + direction * CurrentSpeed * Time.fixedDeltaTime;
             return true;

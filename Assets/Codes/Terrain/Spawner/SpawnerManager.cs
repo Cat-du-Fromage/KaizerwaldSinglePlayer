@@ -11,8 +11,9 @@ using static UnityEngine.Quaternion;
 using float2 = Unity.Mathematics.float2;
 using float3 = Unity.Mathematics.float3;
 
-using Kaizerwald.Utilities;
-using static Kaizerwald.Utilities.KzwMath;
+using Kaizerwald.Pattern;
+using Kaizerwald.Utilities.Core;
+using static Kaizerwald.Utilities.Core.KzwMath;
 using quaternion = Unity.Mathematics.quaternion;
 
 namespace Kaizerwald.TerrainBuilder

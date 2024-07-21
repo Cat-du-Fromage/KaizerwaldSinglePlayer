@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 using Kaizerwald.FormationModule;
-using Kaizerwald.Utilities;
+using Kaizerwald.Utilities.Core;
 
 namespace Kaizerwald
 {

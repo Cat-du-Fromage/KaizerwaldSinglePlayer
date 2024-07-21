@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
 
-using Kaizerwald.Utilities;
+using Kaizerwald.Utilities.Core;
 using Kaizerwald.FormationModule;
 using Kaizerwald.StateMachine;
 

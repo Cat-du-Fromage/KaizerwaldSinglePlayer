@@ -2,15 +2,16 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using UnityEngine;
 using Unity.Mathematics;
 using UnityEngine.Rendering;
+using UnityEngine;
+
+using Kaizerwald.Pattern;
+using Kaizerwald.Utilities.Core;
 
 using static Unity.Mathematics.math;
 
 using int2 = Unity.Mathematics.int2;
-
-using Kaizerwald.Utilities;
 
 namespace Kaizerwald
 {

@@ -22,9 +22,12 @@ using static Unity.Jobs.LowLevel.Unsafe.JobsUtility;
 
 using float3 = Unity.Mathematics.float3;
 
-using Kaizerwald.Utilities;
+using Kaizerwald.Utilities.Core;
 using Kaizerwald.FormationModule;
-using static Kaizerwald.Utilities.KzwMath;
+using Kaizerwald.Algorithm;
+
+using static Kaizerwald.Utilities.Core.InputSystemExtension;
+using static Kaizerwald.Utilities.Core.KzwMath;
 
 namespace Kaizerwald
 {
@@ -229,7 +232,8 @@ namespace Kaizerwald
             NativeArray<float> nativeCostMatrix = new (square(SortedSelectedRegiments.Count), Temp, UninitializedMemory);
             for (int i = 0; i < nativeCostMatrix.Length; i++)
             {
-                (int x, int y) = GetXY(i, SortedSelectedRegiments.Count);
+                int y = i / SortedSelectedRegiments.Count;
+                int x = i - y * SortedSelectedRegiments.Count;
                 float3 regimentPosition = SortedSelectedRegiments[y].CurrentPosition;
                 nativeCostMatrix[i] = distancesq(regimentPosition, destinations[x]);
             }

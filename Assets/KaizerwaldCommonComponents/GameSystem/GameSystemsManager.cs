@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
-using Kaizerwald.Utilities;
+
 using UnityEngine;
+
+using Kaizerwald.Pattern;
 
 namespace Kaizerwald
 {

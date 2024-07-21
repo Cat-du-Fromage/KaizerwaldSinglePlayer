@@ -19,7 +19,7 @@ using Debug = UnityEngine.Debug;
 
 using Kaizerwald;
 using Kaizerwald.FormationModule;
-using static Kaizerwald.Utilities.KzwMath;
+using static Kaizerwald.Utilities.Core.KzwMath;
 
 
 
@@ -163,7 +163,8 @@ namespace Kaizerwald
             {
                 for (int i = 0; i < Costs.Length; i++)
                 {
-                    (int x, int y) = GetXY(i, Width);
+                    int y = i / Width;
+                    int x = i - y * Width;
                     if (!(abs(Costs[i]) < EPSILON) || YCovered[y] || XCovered[x]) return;
                     Masks[i] = 1;
                     YCovered[y] = true;
@@ -246,7 +247,8 @@ namespace Kaizerwald
             {
                 for (int i = 0; i < Costs.Length; i++)
                 {
-                    (int x, int y) = GetXY(i, Width);
+                    int y = i / Width;
+                    int x = i - y * Width;
                     bool assignValue = Approximately(Costs[i], 0) && !RowsCovered[y] && !ColsCovered[x];
                     Masks[i] = (byte)select(Masks[i], 1, assignValue);
                     RowsCovered[y] = assignValue || RowsCovered[y];
@@ -470,7 +472,8 @@ namespace Kaizerwald
             {
                 for (int i = 0; i < Costs.Length; i++)
                 {
-                    (int x, int y) = GetXY(i, Width);
+                    int y = i / Width;
+                    int x = i - y * Width;
                     bool assignValue = Approximately(Costs[i], 0) && !RowsCovered[y] && !ColsCovered[x];
                     Masks[i] = (byte)select(Masks[i], 1, assignValue);
                     RowsCovered[y] = assignValue || RowsCovered[y];

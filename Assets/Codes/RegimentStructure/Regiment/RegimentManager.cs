@@ -6,7 +6,8 @@ using Unity.Mathematics;
 using UnityEngine.SceneManagement;
 using UnityEngine;
 
-using Kaizerwald.Utilities;
+using Kaizerwald.Pattern;
+using Kaizerwald.Utilities.Core;
 using Kaizerwald.FormationModule;
 using Kaizerwald.TerrainBuilder;
 

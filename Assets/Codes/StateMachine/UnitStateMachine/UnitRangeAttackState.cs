@@ -12,7 +12,7 @@ using Random = Unity.Mathematics.Random;
 
 using Kaizerwald.FormationModule;
 using Unity.VisualScripting;
-using static Kaizerwald.Utilities.KzwMath;
+using static Kaizerwald.Utilities.Core.KzwMath;
 
 namespace Kaizerwald.StateMachine
 {
@@ -195,7 +195,9 @@ namespace Kaizerwald.StateMachine
             NativeHashSet<int> indices = new (numIndices, Temp);
             for (int i = 0; i < enemyFormation.NumUnitsAlive; i++)
             {
-                int2 coords = GetXY2(i, enemyFormation.Width);
+                int y = i / enemyFormation.Width;
+                int x = i - y * enemyFormation.Width;
+                int2 coords = new int2(x, y);
                 //if (all(coords) && !any(coords == maxWidthDepth)) continue; 
                 if (!any(coords == zero) && !any(coords == maxWidthDepth)) continue; 
                 indices.Add(i);

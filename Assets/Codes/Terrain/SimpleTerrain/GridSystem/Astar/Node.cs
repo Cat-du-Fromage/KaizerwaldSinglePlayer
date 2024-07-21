@@ -5,7 +5,7 @@ using UnityEngine;
 
 using Kaizerwald.Utilities;
 using Unity.VisualScripting;
-using static Kaizerwald.Utilities.KzwMath;
+using static Kaizerwald.Utilities.Core.KzwGrid;
 
 namespace Kaizerwald.TerrainBuilder
 {

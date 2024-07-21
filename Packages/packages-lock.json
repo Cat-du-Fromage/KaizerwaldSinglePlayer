@@ -7,6 +7,16 @@
       "dependencies": {},
       "hash": "bd8729e0f457462d2a7ec9479b64ae80cec4cc5c"
     },
+    "com.kaizerwald.algorithm": {
+      "version": "https://github.com/Cat-du-Fromage/KaizerwaldUtilitiesPackage.git?path=Assets/com.kaizerwald.algorithm",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.mathematics": "1.3.1",
+        "com.unity.collections": "2.2.1"
+      },
+      "hash": "84e6aa8d8691a0c450500f60211f69455c9e45b6"
+    },
     "com.kaizerwald.formation": {
       "version": "https://github.com/Cat-du-Fromage/FormationMatrix.git?path=/Assets/com.kaizerwald.formation",
       "depth": 0,
@@ -17,17 +27,26 @@
       },
       "hash": "717d535f02dc12402a835febb383af6fd4b81353"
     },
-    "com.kaizerwald.utilities": {
-      "version": "https://github.com/Cat-du-Fromage/KaizerwaldUtilitiesPackage.git?path=/Assets/KaizerwaldUtilities",
+    "com.kaizerwald.pattern": {
+      "version": "https://github.com/Cat-du-Fromage/KaizerwaldUtilitiesPackage.git?path=Assets/com.kaizerwald.pattern",
       "depth": 0,
       "source": "git",
       "dependencies": {
         "com.unity.mathematics": "1.3.1",
-        "com.unity.burst": "1.8.11",
-        "com.unity.inputsystem": "1.7.0",
-        "com.unity.collections": "2.1.4"
+        "com.unity.collections": "2.2.1"
       },
-      "hash": "7d5c55bbecd7ce89bc4606ee35d39e8d6b1401f4"
+      "hash": "84e6aa8d8691a0c450500f60211f69455c9e45b6"
+    },
+    "com.kaizerwald.utilities": {
+      "version": "https://github.com/Cat-du-Fromage/KaizerwaldUtilitiesPackage.git?path=Assets/com.kaizerwald.utilities.core",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.mathematics": "1.3.1",
+        "com.unity.collections": "2.2.1",
+        "com.unity.inputsystem": "1.8.2"
+      },
+      "hash": "84e6aa8d8691a0c450500f60211f69455c9e45b6"
     },
     "com.rotaryheart.serializabledictionarylite": {
       "version": "https://github.com/RotaryHeart/SerializableDictionaryLite.git",
@@ -82,7 +101,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.ide.rider": {
-      "version": "3.0.28",
+      "version": "3.0.31",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -100,7 +119,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.inputsystem": {
-      "version": "1.8.1",
+      "version": "1.8.2",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -203,7 +222,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.timeline": {
-      "version": "1.8.6",
+      "version": "1.8.7",
       "depth": 0,
       "source": "registry",
       "dependencies": {

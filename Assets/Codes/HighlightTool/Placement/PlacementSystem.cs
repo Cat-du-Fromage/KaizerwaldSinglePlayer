@@ -12,7 +12,7 @@ using static Unity.Collections.Allocator;
 
 using Kaizerwald.FormationModule;
 using Kaizerwald.StateMachine;
-using Kaizerwald.Utilities;
+using Kaizerwald.Utilities.Core;
 
 namespace Kaizerwald
 {

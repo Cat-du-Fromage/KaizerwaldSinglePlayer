@@ -6,6 +6,8 @@ using Kaizerwald.Utilities;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+using Kaizerwald.Pattern;
+
 namespace Kaizerwald
 {
     public enum EScene : int

@@ -4,8 +4,11 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using Unity.Mathematics;
-using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine;
+
+using Kaizerwald.Pattern;
+using Kaizerwald.Utilities.Core;
 
 #if UNITY_EDITOR
 using UnityEditor;

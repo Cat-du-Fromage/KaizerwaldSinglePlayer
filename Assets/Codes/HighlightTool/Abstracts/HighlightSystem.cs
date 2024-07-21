@@ -30,13 +30,21 @@ namespace Kaizerwald
         //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
         public virtual void AddRegiment(HighlightRegiment regiment, List<GameObject> units)
         {
-            Array.ForEach(Registers, register => register.RegisterRegiment(regiment, units));
+            for (int i = 0; i < Registers.Length; i++)
+            {
+                Registers[i].RegisterRegiment(regiment, units);
+            }
+            //Array.ForEach(Registers, register => register.RegisterRegiment(regiment, units));
         }
         
         public virtual void AddRegiment<T>(HighlightRegiment regiment, List<T> units) 
         where T : MonoBehaviour
         {
-            Array.ForEach(Registers, register => register.RegisterRegiment(regiment, units));
+            for (int i = 0; i < Registers.Length; i++)
+            {
+                Registers[i].RegisterRegiment(regiment, units);
+            }
+            //Array.ForEach(Registers, register => register.RegisterRegiment(regiment, units));
         }
         
         //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
@@ -44,7 +52,11 @@ namespace Kaizerwald
         //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
         public virtual void RemoveRegiment(HighlightRegiment regiment)
         {
-            Array.ForEach(Registers, register => register.UnregisterRegiment(regiment));
+            for (int i = 0; i < Registers.Length; i++)
+            {
+                Registers[i].UnregisterRegiment(regiment);
+            }
+            //Array.ForEach(Registers, register => register.UnregisterRegiment(regiment));
             //TODO add OnHighlightRemoved to Controllers!
         }
         

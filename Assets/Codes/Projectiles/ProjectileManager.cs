@@ -5,6 +5,7 @@ using Unity.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+using Kaizerwald.Pattern;
 using Kaizerwald.Utilities;
 
 namespace Kaizerwald
@@ -17,7 +18,7 @@ namespace Kaizerwald
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
         
         //TODO MAKE POOL BY REGIMENT!!!! so we can destroy them
-        private Dictionary<int, ObjectPool<ProjectileComponent>> RegimentBulletsPool = new();
+        private Dictionary<int, KzwObjectPool<ProjectileComponent>> RegimentBulletsPool = new();
         
         private List<ProjectileComponent> ActiveBullets = new(10);
 
@@ -99,7 +100,7 @@ namespace Kaizerwald
         
         public ProjectileComponent RequestBullet(int regimentID, Vector3 positionInRifle)
         {
-            bool hasValue = RegimentBulletsPool.TryGetValue(regimentID, out ObjectPool<ProjectileComponent> pool);
+            bool hasValue = RegimentBulletsPool.TryGetValue(regimentID, out KzwObjectPool<ProjectileComponent> pool);
             return hasValue ? pool.Pull(positionInRifle) : null;
         }
 
@@ -119,7 +120,7 @@ namespace Kaizerwald
         {
             GameObject prefab = regiment.RegimentType.BulletPrefab;
             int unitCount = regiment.CurrentFormation.MaxRow;
-            RegimentBulletsPool.TryAdd(regiment.RegimentID, new ObjectPool<ProjectileComponent>(prefab, CallOnPull, unitCount));
+            RegimentBulletsPool.TryAdd(regiment.RegimentID, new KzwObjectPool<ProjectileComponent>(prefab, CallOnPull, unitCount));
         }
         
         private void UnRegisterPool(GameObject regimentObject)

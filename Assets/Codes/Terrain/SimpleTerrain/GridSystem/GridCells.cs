@@ -12,9 +12,9 @@ using static Unity.Jobs.LowLevel.Unsafe.JobsUtility;
 using static Unity.Collections.Allocator;
 using static Unity.Collections.NativeArrayOptions;
 
-using Kaizerwald.Utilities;
-
-using static Kaizerwald.Utilities.KzwMath;
+using Kaizerwald.Utilities.Core;
+using static Kaizerwald.Utilities.Core.KzwMath;
+using static Kaizerwald.Utilities.Core.KzwGrid;
 
 namespace Kaizerwald.TerrainBuilder
 {

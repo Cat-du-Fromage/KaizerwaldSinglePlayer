@@ -14,7 +14,7 @@ using Bounds = UnityEngine.Bounds;
 using Vector2 = UnityEngine.Vector2;
 using Vector3 = UnityEngine.Vector3;
 
-using Kaizerwald.Utilities;
+using Kaizerwald.Utilities.Core;
 
 namespace Kaizerwald
 {

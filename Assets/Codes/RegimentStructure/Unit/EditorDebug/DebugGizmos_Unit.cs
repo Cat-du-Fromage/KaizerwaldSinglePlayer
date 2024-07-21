@@ -5,8 +5,10 @@ using UnityEngine;
 
 using Kaizerwald.FormationModule;
 using Kaizerwald.StateMachine;
-using Kaizerwald.Utilities;
+using Kaizerwald.Utilities.Core;
 using Unity.Mathematics;
+
+using Kaizerwald.Utilities.Core.Editor;
 
 namespace Kaizerwald
 {
@@ -32,7 +34,7 @@ namespace Kaizerwald
         private void ShowGizmosTarget(UnitRangeAttackState fireState)
         {
             if (!Regiment.ShowTargetsFiringStateTest || fireState.UnitEnemyTarget == null) return;
-            DrawArrow.HandleLine(Position, fireState.UnitEnemyTarget.Position, Color.red,1f, 0.5f);
+            KzwGizmos.DrawLineArrow(Position, fireState.UnitEnemyTarget.Position, Color.red,1f, 0.5f);
         }
         
         private void ShowAimTarget(UnitRangeAttackState fireState)
@@ -40,7 +42,7 @@ namespace Kaizerwald
             if (!Animation.IsInAimingMode || fireState.UnitEnemyTarget == null) return;
             float distanceUnitToTarget = math.distance(Position, fireState.UnitEnemyTarget.Position);
             float3 endPosition = Position + fireState.AimDirection * distanceUnitToTarget;
-            DrawArrow.HandleLine(Position, endPosition, Color.magenta,1f, 0.5f);
+            KzwGizmos.DrawLineArrow(Position, endPosition, Color.magenta,1f, 0.5f);
         }
     }
 }

@@ -7,7 +7,7 @@ using UnityEngine;
 using static Unity.Mathematics.math;
 using Random = Unity.Mathematics.Random;
 
-using Kaizerwald.Utilities;
+using Kaizerwald.Pattern;
 
 namespace Kaizerwald
 {

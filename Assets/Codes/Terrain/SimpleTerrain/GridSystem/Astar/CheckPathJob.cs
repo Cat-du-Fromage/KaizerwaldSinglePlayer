@@ -13,9 +13,9 @@ using static Unity.Collections.NativeArrayOptions;
 using Kaizerwald.Utilities;
 using UnityEngine.Serialization;
 
-using static Kaizerwald.Utilities.KzwMath;
-using static Kaizerwald.Utilities.InputSystemExtension;
-using static Kaizerwald.Utilities.KzwGrid;
+using static Kaizerwald.Utilities.Core.KzwMath;
+using static Kaizerwald.Utilities.Core.InputSystemExtension;
+using static Kaizerwald.Utilities.Core.KzwGrid;
 
 namespace Kaizerwald.TerrainBuilder
 {

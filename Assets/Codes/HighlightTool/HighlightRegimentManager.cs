@@ -5,10 +5,12 @@ using System.Linq;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using Object = UnityEngine.Object;
 
-using Kaizerwald.Utilities;
+using Kaizerwald.Pattern;
+using Kaizerwald.Utilities.Core;
 using Kaizerwald.FormationModule;
+
+using Object = UnityEngine.Object;
 
 namespace Kaizerwald
 {

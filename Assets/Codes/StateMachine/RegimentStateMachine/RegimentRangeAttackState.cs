@@ -15,8 +15,9 @@ using static Unity.Collections.LowLevel.Unsafe.NativeArrayUnsafeUtility;
 using static Unity.Jobs.LowLevel.Unsafe.JobsUtility;
 using static Unity.Collections.Allocator;
 using static Unity.Collections.NativeArrayOptions;
-using static Kaizerwald.Utilities.KzwMath;
 
+using static Kaizerwald.Utilities.Core.KzwMath;
+using static Kaizerwald.Utilities.Core.KzwGeometry;
 using float2 = Unity.Mathematics.float2;
 
 using Kaizerwald.FormationModule;
@@ -173,10 +174,16 @@ namespace Kaizerwald.StateMachine
             float2 directionRight = mul(AngleAxis(fovAngleInDegrees, up()), regimentAttach.Forward).xz;
             
             //Get tip of the cone formed by the intersection made by the 2 previous directions calculated
-            float2 intersection = GetIntersection(unitLeft, unitRight, directionLeft, directionRight);
+            float2 intersection = GetIntersection(unitLeft, directionLeft, unitRight, directionRight);
             float radius = attackRange + distance(intersection, unitLeft);
             
             return new FieldOfViewData(unitLeft, unitRight, directionLeft, directionRight, intersection, radius);
+            
+            quaternion AngleAxis(float angle, float3 axis)
+            {
+                float angleRadianDiv2 = radians(angle)/2;
+                return quaternion(new float4(normalizesafe(axis) * sin(angleRadianDiv2), cos(angleRadianDiv2)));
+            }
         }
 
         private bool IsInsideFieldOfView(float2 position2D, float2 forward2D, float2 enemyUnitPosition2D, in FieldOfViewData fovData)
@@ -197,8 +204,8 @@ namespace Kaizerwald.StateMachine
             return enemyUnitPosition2D.IsPointInTriangle
             (
                 fovData.TriangleTip, 
-                GetIntersection(topForwardFov, fovData.LeftStartPosition, topForwardDirection.CrossLeft(), fovData.LeftDirection), 
-                GetIntersection(topForwardFov, fovData.RightStartPosition, topForwardDirection.CrossRight(), fovData.RightDirection)
+                GetIntersection(topForwardFov, fovData.LeftStartPosition, topForwardDirection.normalccw(), fovData.LeftDirection), 
+                GetIntersection(topForwardFov, fovData.RightStartPosition, topForwardDirection.normalcw(), fovData.RightDirection)
             );
         }
         

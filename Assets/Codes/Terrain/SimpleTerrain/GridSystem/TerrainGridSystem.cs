@@ -14,7 +14,8 @@ using static Unity.Collections.NativeArrayOptions;
 using float2 = Unity.Mathematics.float2;
 using float3 = Unity.Mathematics.float3;
 
-using Kaizerwald.Utilities;
+using Kaizerwald.Pattern;
+using Kaizerwald.Utilities.Core;
 
 namespace Kaizerwald.TerrainBuilder
 {

@@ -17,7 +17,8 @@ using float2x2 = Unity.Mathematics.float2x2;
 using Kaizerwald.FormationModule;
 using Kaizerwald.Utilities;
 
-using static Kaizerwald.Utilities.KzwMath;
+using static Kaizerwald.Utilities.Core.KzwMath;
+using static Kaizerwald.Utilities.Core.KzwGeometry;
 
 namespace Kaizerwald
 {
@@ -240,10 +241,10 @@ namespace Kaizerwald
                 Gizmos.color = Color.magenta;
                 Gizmos.DrawSphere(topForwardFov.x1y(), 0.3f);
                 
-                float2 leftCross = topForwardDirection.CrossLeft();
+                float2 leftCross = topForwardDirection.normalccw();
                 float2 intersectArcLeft = GetIntersection(topForwardFov, leftStart, leftCross, leftRightDir.c0);
                 
-                float2 rightCross = topForwardDirection.CrossRight();
+                float2 rightCross = topForwardDirection.normalcw();
                 float2 intersectArcRight = GetIntersection(topForwardFov, rightStart, rightCross, leftRightDir.c1);
                 
                 float2x2 leftRightCrossDir = float2x2(leftCross, rightCross);

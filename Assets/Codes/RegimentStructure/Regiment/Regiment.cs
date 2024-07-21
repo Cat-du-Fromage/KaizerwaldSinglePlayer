@@ -13,7 +13,7 @@ using static Unity.Collections.NativeArrayOptions;
 
 using Kaizerwald.FormationModule;
 using Kaizerwald.StateMachine;
-using Kaizerwald.Utilities;
+using Kaizerwald.Utilities.Core;
 
 namespace Kaizerwald
 {
@@ -120,19 +120,23 @@ namespace Kaizerwald
 
         public Regiment InitializeProperties(ulong playerId, int teamID, LayerMask terrainLayer, float3 regimentDirection)
         {
-            //Properties
+            // Properties
             RegimentID = gameObject.GetInstanceID();
             OwnerPlayerID = playerId;
             TeamID = (short)teamID;
             name = $"Player({playerId})_Regiment({RegimentID})";
             
-            //FormationMatrix
+            // FormationMatrix
             Formation formation = RegimentType.GetFormation(regimentDirection);
             List<Unit> units = CreateRegimentsUnit(KaizerwaldGameManager.Instance.UnitLayerIndex);
             InitializeFormation(formation, units, Position);
 
-            //BehaviourTree
+            // StateMachine
             StateMachine = this.GetOrAddComponent<RegimentStateMachine>().InitializeAndRegisterUnits(this);
+            
+            // FieldOfView
+            
+            
             return this;
             
             //┌▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁┐
@@ -174,9 +178,9 @@ namespace Kaizerwald
         {
             Order order = new Order //Only Move can be ordered
             {
-                StateOrdered = EStates.Move,
-                EnemyTargetId = playerOrder.TargetEnemyID,
-                TargetPosition = playerOrder.LeaderDestination,
+                StateOrdered    = EStates.Move,
+                EnemyTargetId   = playerOrder.TargetEnemyID,
+                TargetPosition  = playerOrder.LeaderDestination,
                 TargetFormation = playerOrder.TargetFormation
             };
             StateMachine.RegimentBlackboard.IsRunning = playerOrder.IsRunning;
