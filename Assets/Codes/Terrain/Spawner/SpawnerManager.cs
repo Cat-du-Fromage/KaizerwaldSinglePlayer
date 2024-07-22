@@ -1,169 +1,74 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.Collections;
-using Unity.Mathematics;
-using UnityEngine;
-
-using static Unity.Mathematics.math;
-using static UnityEngine.Mathf;
-using static UnityEngine.Quaternion;
-
-using float2 = Unity.Mathematics.float2;
-using float3 = Unity.Mathematics.float3;
-
 using Kaizerwald.Pattern;
-using Kaizerwald.Utilities.Core;
-using static Kaizerwald.Utilities.Core.KzwMath;
-using quaternion = Unity.Mathematics.quaternion;
+using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Kaizerwald.TerrainBuilder
 {
-    public class SpawnerManager : Singleton<SpawnerManager>
+    [RequireComponent(typeof(SimpleTerrain))]
+    [ExecuteAfter(typeof(SimpleTerrain), OrderIncrease = 1)]
+    public class SpawnerManager : SingletonBehaviour<SpawnerManager>
     {
-//╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
-//║                                            ◆◆◆◆◆◆ Const/ReadOnly ◆◆◆◆◆◆                                            ║
-//╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-        private enum ECardinal : int
-        {
-            North  = 0,
-            South  = 1,
-            East   = 2,
-            West   = 3
-        }
-        
         private const int SPAWNER_DEPTH_SIZE = 16;
-        private const int BORDER_OFFSET = 16;
+        private const int BORDER_OFFSET = 2;
+        private readonly Vector3 spawnerOffset = new Vector3(0.1f, 1, 0.1f);
         
-//╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
-//║                                                ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                 ║
-//╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-
-        [SerializeField] private GameObject SpawnerPrefab;
-        [SerializeField] private Material SpawnerMaterial;
-        [SerializeField] private TerrainSettings TerrainSettings;
+        private TerrainSettings terrainSettings;
+        private SimpleTerrain simpleTerrain;
         
-        [SerializeField] private List<SpawnerComponent> Spawners;
+        [SerializeField] private List<GameObject> PlayerSpawnerObjects;
+        [SerializeField] private List<SpawnerComponent> PlayerSpawners;
         
-        private Dictionary<int, SpawnerComponent> teamIdToSpawner;
-
-//╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
-//║                                              ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                              ║
-//╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-
-        public Transform TerrainTransform { get; private set; }
-        
-    //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
-    //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║
-    //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        private int NumCardinals = 5;
-        private Vector3 GetDirection(ECardinal direction) => direction switch
+        protected override void Initialize()
         {
-            ECardinal.North  => Vector3.forward,
-            ECardinal.South  => Vector3.back,
-            ECardinal.East   => Vector3.right,
-            ECardinal.West   => Vector3.left,
-            _ => Vector3.zero,
-        };
-        
-        public float3 TerrainPosition => TerrainTransform.position;
-        public float2 SizeXY => TerrainSettings.SizeX;
-
-//╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
-//║                                             ◆◆◆◆◆◆ UNITY EVENTS ◆◆◆◆◆◆                                             ║
-//╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-
-        protected override void OnAwake()
-        {
-            base.OnAwake();
-            TerrainTransform = transform;
-            TerrainSettings = GetComponent<TerrainSettings>().Initialize();
-            //CreateAndInitializeSpawners();
+            simpleTerrain = GetComponent<SimpleTerrain>();
+            terrainSettings = GetComponent<TerrainSettings>();
+            InitializeSpawners();
         }
 
-//╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
-//║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
-//╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-        public SpawnerManager Initialize()
+        private void InitializeSpawners()
         {
-            TerrainTransform = transform;
-            TerrainSettings = GetComponent<TerrainSettings>();
-            return this;
-        }
-
-        // =============================================================================================================
-        // FIND A CALLER!!!!
-        // =============================================================================================================
-        public void CreateAndInitializeSpawners(Dictionary<int, List<ulong>> teamIdToPlayerIdListMap)
-        {
-            /*
-            Spawners = new List<SpawnerComponent>(NumCardinals);
-            for (int i = 0; i < NumCardinals; i++)
+            int spawnerCount = transform.childCount;
+            PlayerSpawnerObjects = new List<GameObject>(spawnerCount);
+            PlayerSpawners = new List<SpawnerComponent>(spawnerCount);
+            for (int i = 0; i < spawnerCount; i++)
             {
-                SpawnerComponent spawner = Instantiate(SpawnerPrefab, TerrainTransform).GetComponent<SpawnerComponent>();
-                Spawners.Add(spawner);
-                float2 spawnerSize = float2(SizeXY.x - BORDER_OFFSET, SPAWNER_DEPTH_SIZE);
-                spawner.Initialize(spawnerSize, SpawnerMaterial);
-                spawner.transform.forward = -GetDirection((ECardinal)i);
-                spawner.transform.position = GetSpawnerPosition((ECardinal)i);
-            }
-            */
-            Spawners = new List<SpawnerComponent>(NumCardinals);
-            teamIdToSpawner = new Dictionary<int, SpawnerComponent>(NumCardinals);
-            int spawnerIndex = 0;
-            foreach ((int teamId, List<ulong> playersId) in teamIdToPlayerIdListMap)
-            {
-                SpawnerComponent spawner = Instantiate(SpawnerPrefab, TerrainTransform).GetComponent<SpawnerComponent>();
-                Spawners.Add(spawner);
-                teamIdToSpawner.Add(teamId,spawner);
-                
-                float2 spawnerSize = float2(SizeXY.x - BORDER_OFFSET, SPAWNER_DEPTH_SIZE);
-                spawner.Initialize(spawnerSize, SpawnerMaterial, teamId, playersId);
-                spawner.transform.forward = -GetDirection((ECardinal)spawnerIndex);
-                spawner.transform.position = GetSpawnerPosition((ECardinal)spawnerIndex);
-                //spawner.transform.SetPositionAndRotation(GetSpawnerPosition((ECardinal)spawnerIndex), LookRotation(-GetDirection((ECardinal)spawnerIndex)));
-                spawnerIndex++;
+                Transform child = transform.GetChild(i);
+                //child.forward = -GetDirection((ECardinal)i); // Use inverse direction, because we wont dir to center
+                //child.position = GetSpawnerPosition((ECardinal)i);
+                //child.localScale = Vector3.Scale(spawnerOffset, new Vector3(terrainSettings.SizeXY.x - BORDER_OFFSET, 1, SPAWNER_DEPTH_SIZE));
+                PlayerSpawnerObjects.Add(child.gameObject);
+                PlayerSpawners.Add(child.GetComponent<SpawnerComponent>());
             }
         }
         
-        private float3 GetSpawnerPosition(ECardinal direction)
+        public GameObject GetSpawnerForNumber(int index)
         {
-            float2 halfSizeXY = SizeXY / 2f;
-            float3 dirOffset = GetDirection(direction);
-            float3 offset = dirOffset * (dirOffset.x.IsZero() ? halfSizeXY.y : halfSizeXY.x);
-            offset -= dirOffset * (SPAWNER_DEPTH_SIZE / 2f + BORDER_OFFSET);
-            offset += up() * 0.01f;
-            return offset;
+            return index < 0 || index >= PlayerSpawnerObjects.Count ? null : PlayerSpawnerObjects[index];
         }
         
-    //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
-    //║ ◈◈◈◈◈◈ Spawner ◈◈◈◈◈◈                                                                                          ║
-    //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-
-        public SpawnerComponent GetTeamSpawner(int teamId)
+        public Transform GetSpawnerTransform(int spawnIndex)
         {
-            return teamIdToSpawner.GetValueOrDefault(teamId);
-        }
-
-        public bool TryGetTeamSpawner(int teamId, out SpawnerComponent teamSpawner)
-        {
-            return teamIdToSpawner.TryGetValue(teamId, out teamSpawner);
+            return GetSpawnerForNumber(spawnIndex).transform;
         }
         
-        public float3 GetPlayerFirstSpawnPosition(int teamId, ulong playerId)
-        {
-            return teamIdToSpawner.TryGetValue(teamId, out SpawnerComponent spawner) ? spawner.GetPlayerFirstSpawnPosition(playerId) : float3.zero;
-        }
-        /*
         public Vector3 GetPlayerFirstSpawnPosition(int spawnIndex)
         {
             Transform spawnerTransform = GetSpawnerTransform(spawnIndex);
             if(spawnerTransform == null) return Vector3.zero;
+
+            Vector3 localRight = spawnerTransform.localRotation * transform.right;
+            Vector3 localForward = spawnerTransform.localRotation * transform.forward;
             
-            float spawnHorizontalSize = (SizeXY.x / 2f) - BORDER_OFFSET;
-            Vector3 left = -spawnerTransform.right;
-            Vector3 firstSpawnPoint = spawnerTransform.position + left * spawnHorizontalSize;
+            //float spawnHorizontalSize = (terrainSettings.SizeXY.x / 2f) - BORDER_OFFSET;
+            float zOffset = (spawnerTransform.localScale.z * 10) / 2 - BORDER_OFFSET;
+            float xOffset = (spawnerTransform.localScale.x * 10) / 2 - BORDER_OFFSET * 2;
+            Vector3 firstSpawnPoint = spawnerTransform.localPosition - localRight * xOffset;
+            
+            //transform.localRotation
+            firstSpawnPoint += localForward * zOffset;
             return Vector3.Scale(firstSpawnPoint, new Vector3(1f,0,1f));
         }
-        */
     }
 }

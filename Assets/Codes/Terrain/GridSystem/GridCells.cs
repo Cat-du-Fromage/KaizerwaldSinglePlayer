@@ -35,12 +35,10 @@ namespace Kaizerwald.TerrainBuilder
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ CONSTRUCTOR ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-        public GridCells(SimpleTerrain terrain)
+        public GridCells(SimpleTerrain simpleTerrain)
         {
-            NumCellXY = terrain.TerrainSettings.NumQuadsXY;
-            CreateGridCells(terrain);
-            //if (terrain.IsInitialized) CreateGridCells(terrain);
-            //terrain.OnTerrainGenerated += CreateGridCells;
+            NumCellXY = simpleTerrain.TerrainSettings.NumQuadsXY;
+            CreateGridCells(simpleTerrain);
         }
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
@@ -53,14 +51,13 @@ namespace Kaizerwald.TerrainBuilder
             const int quadWidth = 2;
             
             TerrainSettings terrainSettings = terrain.TerrainSettings;
-            using MeshDataArray meshDataArray = terrain.MeshDataArray;
-            MeshData meshData = meshDataArray[0];
+            
+            using MeshDataArray meshDataArray = AcquireReadOnlyMeshData(terrain.TerrainMesh);
             
             Cells = new Cell[terrainSettings.QuadCount];
-            using NativeArray<float3> verticesNtv = meshData.GetVertexData<float3>(stream: 0);
-            Debug.Log($"verticesNtv len = {verticesNtv.Length}");
+            using NativeArray<float3> verticesNtv = meshDataArray[0].GetVertexData<float3>(stream: 0);
+            
             NativeArray<float3> cellVertices = new (4, Temp, UninitializedMemory);
-            Debug.Log($"Cells.Length = {Cells.Length}, sizeX = {terrain.TerrainSettings.SizeX}, sizeY = {terrain.TerrainSettings.SizeY}, mul = {terrain.TerrainSettings.SizeX * terrain.TerrainSettings.SizeY}");
             for (int cellIndex = 0; cellIndex < Cells.Length; cellIndex++)
             {
                 int2 cellCoords = GetXY2(cellIndex, terrainSettings.NumQuadX);
@@ -73,5 +70,7 @@ namespace Kaizerwald.TerrainBuilder
                 Cells[cellIndex] = new Cell(cellCoords, cellVertices);
             }
         }
+        //Debug.Log($"verticesNtv len = {verticesNtv.Length}");
+        //Debug.Log($"Cells.Length = {Cells.Length}, sizeX = {terrain.TerrainSettings.SizeX}, sizeY = {terrain.TerrainSettings.SizeY}, mul = {terrain.TerrainSettings.SizeX * terrain.TerrainSettings.SizeY}");
     }
 }

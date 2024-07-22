@@ -28,7 +28,7 @@ namespace Kaizerwald
 //║                                              ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
         public int Team { get; private set; }
-        public Dictionary<ulong, Bounds> PlayerToSpawnBoundsMap { get; private set; }
+        //public Dictionary<ulong, Bounds> PlayerToSpawnBoundsMap { get; private set; }
         public Transform SpawnerTransform { get; private set; }
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
@@ -39,11 +39,11 @@ namespace Kaizerwald
         //┌────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
         //│  ◇◇◇◇◇◇ Getters ◇◇◇◇◇◇                                                                                     │
         //└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-        public float3 Position => SpawnerTransform.position;
-        public float3 Left     => -SpawnerTransform.right; 
-        public float3 Right    => SpawnerTransform.right;
-        public float3 Back     => -SpawnerTransform.forward; 
-        public float3 Forward  => SpawnerTransform.right; 
+        public Vector3 LocalPosition   => SpawnerTransform.localPosition;
+        public Vector3 LocalLeft       => SpawnerTransform.localRotation * Vector3.left;
+        public Vector3 LocalRight      => SpawnerTransform.localRotation * Vector3.right;
+        public Vector3 LocalBack       => SpawnerTransform.localRotation * Vector3.back;
+        public Vector3 LocalForward    => SpawnerTransform.localRotation * Vector3.forward;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ UNITY EVENTS ◆◆◆◆◆◆                                             ║
@@ -64,18 +64,13 @@ namespace Kaizerwald
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
         public void Initialize(float2 size, Material material, int team, List<ulong> playerIds)
         {
-            Initialize(size, material);
-            AssignTeamAndPlayerSpawnAreas(team, playerIds);
-        }
-    
-        public void Initialize(float2 size, Material material)
-        {
             spawnerSize = size;
             Mesh terrainMesh = MeshUtils.CreatePlaneMesh(size);
             meshFilter.sharedMesh = terrainMesh;
             meshRenderer.material = material;
+            //AssignTeamAndPlayerSpawnAreas(team, playerIds);
         }
-
+/*
         public void AssignTeamAndPlayerSpawnAreas(int team, List<ulong> playerIds)
         {
             Team = team;
@@ -114,5 +109,6 @@ namespace Kaizerwald
             float3 extents = (float3)bound.extents - SPAWN_POSITION_OFFSET;
             return (float3)bound.center + (Forward * extents.z) + (Left * extents.x);
         }
+        */
     }
 }

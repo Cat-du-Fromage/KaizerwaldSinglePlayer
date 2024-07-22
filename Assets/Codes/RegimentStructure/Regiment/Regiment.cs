@@ -110,27 +110,23 @@ namespace Kaizerwald
         //│  ◇◇◇◇◇◇ Static Constructor ◇◇◇◇◇◇                                                                          │
         //└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
         // Meant to be instantiate this way AND NO OTHER WAY
-        public static Regiment InstantiateAndInitialize(GameObject regimentPrefab, Vector3 position, Quaternion rotation, ulong playerId, int teamID, LayerMask terrainLayer)
+        public static Regiment CreateAndInitialize(GameObject regimentPrefab, Vector3 position, Quaternion rotation, ulong playerId, int teamID, LayerMask terrainLayer)
         {
             return Instantiate(regimentPrefab, position, rotation).GetOrAddComponent<Regiment>().InitializeProperties(playerId, teamID, terrainLayer);
         }
-        
-        public Regiment InitializeProperties(ulong playerId, int teamID, LayerMask terrainLayer)
-        {
-            return InitializeProperties(playerId, teamID, terrainLayer, Forward);
-        }
 
-        public Regiment InitializeProperties(ulong playerId, int teamID, LayerMask terrainLayer, float3 regimentDirection)
+        public Regiment InitializeProperties(ulong playerId, int teamID, LayerMask terrainLayer, float3 regimentDirection = default)
         {
             // Properties
-            RegimentID = gameObject.GetInstanceID();
+            RegimentID    = gameObject.GetInstanceID();
             OwnerPlayerID = playerId;
-            TeamID = (short)teamID;
-            name = $"Player({playerId})_Regiment({RegimentID})";
+            TeamID        = (short)teamID;
+            name          = $"Player({playerId})_Regiment({RegimentID})";
             
             // FormationMatrix
+            regimentDirection   = regimentDirection.IsZero() ? Forward : regimentDirection;
             Formation formation = RegimentType.GetFormation(regimentDirection);
-            List<Unit> units = CreateRegimentsUnit(KaizerwaldGameManager.Instance.UnitLayerIndex);
+            List<Unit> units    = CreateRegimentsUnit(KaizerwaldGameManager.Instance.UnitLayerIndex);
             InitializeFormation(formation, units, Position);
 
             // StateMachine
@@ -153,7 +149,7 @@ namespace Kaizerwald
                 List<Unit> tmpUnits = new(formation.UnitCount);
                 for (int i = 0; i < positions.Length; i++)
                 {
-                    Unit unit = Unit.InstantiateUnit(this, prefab, positions[i], Rotation, i, unitLayerIndex);
+                    Unit unit = Unit.CreateAndInitialize(this, prefab, positions[i], Rotation, i, unitLayerIndex);
                     tmpUnits.Add(unit);
                 }
                 return tmpUnits;

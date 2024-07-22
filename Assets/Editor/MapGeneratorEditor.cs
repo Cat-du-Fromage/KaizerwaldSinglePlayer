@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -15,7 +16,7 @@ namespace Kaizerwald.TerrainBuilder
 
             if (DrawDefaultInspector())
             {
-                if (mapGen.AutoUpdate == true)
+                if (mapGen.AutoUpdate)
                 {
                     mapGen.DrawMapInEditor();
                 }
@@ -28,3 +29,4 @@ namespace Kaizerwald.TerrainBuilder
         }
     }
 }
+#endif

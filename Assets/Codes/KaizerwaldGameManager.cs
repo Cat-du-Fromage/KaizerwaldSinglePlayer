@@ -9,6 +9,7 @@ using Unity.Mathematics;
 
 namespace Kaizerwald
 {
+    [ExecutionOrder(0)]
     public class KaizerwaldGameManager : Singleton<KaizerwaldGameManager>
     {
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
@@ -16,8 +17,10 @@ namespace Kaizerwald
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
         [SerializeField] private bool IsInitialized;
-        private Dictionary<short, List<PlayerInfos>> TeamToPlayersInfo = new() { { 0, new List<PlayerInfos> {default} } };
-        private Dictionary<ulong, PlayerInfos> PlayerIDToPlayersInfo = new(){ { 0, default } };
+        public Dictionary<short, List<PlayerInfos>> TeamToPlayersInfo { get; private set; } = new() { { 0, new List<PlayerInfos> {default} } };
+        public Dictionary<int, List<ulong>> TeamIdToPlayerIdList { get; private set; } = new() { { 0, new List<ulong> {default} } };
+        
+        public Dictionary<ulong, PlayerInfos> PlayerIDToPlayersInfo { get; private set; } = new(){ { 0, default } };
 
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                              ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                              ║
@@ -73,12 +76,31 @@ namespace Kaizerwald
             PlayersInfo = players.Count > 0 ? players : new List<PlayerInfos>(){ default };
             
             TeamToPlayersInfo = new Dictionary<short, List<PlayerInfos>>(players.Count);
+            TeamIdToPlayerIdList = new(players.Count);
+            
             PlayerIDToPlayersInfo = new Dictionary<ulong, PlayerInfos>(players.Count);
             foreach (PlayerInfos playerInfos in players)
             {
                 TeamToPlayersInfo.AddSafe(playerInfos.TeamID, playerInfos);
+                TeamIdToPlayerIdList.AddSafe(playerInfos.TeamID, playerInfos.OwnerPlayerID);
+                
                 PlayerIDToPlayersInfo.TryAdd(playerInfos.OwnerPlayerID, playerInfos);
             }
         }
+        /*
+        public Dictionary<int, List<ulong>> TeamIdToPlayerIdList()
+        {
+            Dictionary<int, List<ulong>> teamIdToPlayerIdListMap = new(KaizerwaldGameManager.Instance.TeamToPlayersInfo.Count);
+            foreach ((short teamId, List<PlayerInfos> players) in KaizerwaldGameManager.Instance.TeamToPlayersInfo)
+            {
+                teamIdToPlayerIdListMap.Add(teamId, new List<ulong>(players.Count));
+                foreach (PlayerInfos playerInfo in players)
+                {
+                    teamIdToPlayerIdListMap[teamId].Add(playerInfo.OwnerPlayerID);
+                }
+            }
+            return teamIdToPlayerIdListMap;
+        }
+        */
     }
 }

@@ -20,11 +20,15 @@ using Kaizerwald.Utilities.Core;
 namespace Kaizerwald.TerrainBuilder
 {
     [RequireComponent(typeof(SimpleTerrain))]
-    public class TerrainGridSystem : Singleton<TerrainGridSystem>
+    [ExecuteAfter(typeof(SimpleTerrain), OrderIncrease = 1)]
+    public class TerrainGridSystem : SingletonBehaviour<TerrainGridSystem>
     {
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                                ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                 ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+        [field:SerializeField] private SimpleTerrain SimpleTerrain;
+        [field: SerializeField] private TerrainSettings TerrainSettings;
 
         private NativeArray<Node> nodes; //MUST NEVER BE CHANGED!
         private NativeArray<bool> obstacles;
@@ -52,14 +56,12 @@ namespace Kaizerwald.TerrainBuilder
             if (obstacles.IsCreated) obstacles.Dispose();
         }
         
-        /*
+        
 #if UNITY_EDITOR
         private void OnDrawGizmos()
         {
-            if (Terrain == null) return;
-            if (!Terrain.IsInitialized || GridCells.Cells == null) return;
+            if (!Application.isPlaying || GridCells.Cells == null) return;
             Gizmos.color = Color.green;
-
             for (int i = 0; i < GridCells.Count; i++)
             {
                 Vector3 center = GridCells.Cells[i].Center;
@@ -67,27 +69,45 @@ namespace Kaizerwald.TerrainBuilder
             }
         }
 #endif
-        */
+        
 
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
+        protected override void Initialize()
+        {
+            SimpleTerrain = GetComponent<SimpleTerrain>();
+            TerrainSettings = GetComponent<TerrainSettings>();
+            
+            print($"setting null ? {SimpleTerrain.TerrainSettings == null}");
+            OnDispose();
+            gridCells = new GridCells(SimpleTerrain);
+            nodes = new NativeArray<Node>(SimpleTerrain.TerrainSettings.QuadCount, Persistent, UninitializedMemory);
+            for (int i = 0; i < nodes.Length; i++)
+            {
+                nodes[i] = new Node(i, SimpleTerrain.TerrainSettings.NumQuadX);
+            }
+        }
+        /*
         public TerrainGridSystem Initialize(SimpleTerrain terrain)
         {
             OnDispose();
             gridCells = new GridCells(terrain);
             nodes = new NativeArray<Node>(terrain.TerrainSettings.QuadCount, Persistent, UninitializedMemory);
-            for (int i = 0; i < nodes.Length; i++) nodes[i] = new Node(i, terrain.TerrainSettings.NumQuadX);
+            for (int i = 0; i < nodes.Length; i++)
+            {
+                nodes[i] = new Node(i, terrain.TerrainSettings.NumQuadX);
+            }
             return this;
         }
-
+        */
         public NativeList<int> GetPathTo(float3 currentPosition, float3 targetPosition)
         {
             NativeList<int> pathList = new (8, TempJob);
             int startIndex = KzwGrid.GetIndexFromPositionCentered(currentPosition.xz, gridCells.NumCellXY);
             int endIndex = KzwGrid.GetIndexFromPositionCentered(targetPosition.xz, gridCells.NumCellXY);
-            JAStar.Process(pathList, gridCells.NumCellXY, startIndex, endIndex, nodes, true).Complete();
+            JAStar.Schedule(pathList, gridCells.NumCellXY, startIndex, endIndex, nodes, true).Complete();
             return pathList;
         }
         

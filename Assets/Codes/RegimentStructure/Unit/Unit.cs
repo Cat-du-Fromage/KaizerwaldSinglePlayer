@@ -57,10 +57,7 @@ namespace Kaizerwald
 
         private void Awake()
         {
-            unitTransform = transform;
-            Animation = GetComponent<UnitAnimation>();
-            unitRigidBody = GetComponent<Rigidbody>();
-            unitCollider = GetComponent<Collider>();
+            BaseInitialization();
         }
 
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
@@ -82,12 +79,20 @@ namespace Kaizerwald
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Initialization Methods (Units are Initialize by their regiment) ◈◈◈◈◈◈                                  ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
+
+        private void BaseInitialization()
+        {
+            unitTransform = transform;
+            Animation = GetComponent<UnitAnimation>();
+            unitRigidBody = GetComponent<Rigidbody>();
+            unitCollider = GetComponent<Collider>();
+        }
     
         //┌────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
         //│  ◇◇◇◇◇◇ Static Constructor ◇◇◇◇◇◇                                                                          │
         //└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
         // Meant to be instantiate this way AND NO OTHER WAY
-        public static Unit InstantiateUnit(Regiment linkedRegiment, GameObject prefab, Vector3 position, Quaternion rotation, int indexInRegiment, int layerIndex)
+        public static Unit CreateAndInitialize(Regiment linkedRegiment, GameObject prefab, Vector3 position, Quaternion rotation, int indexInRegiment, int layerIndex)
         {
             GameObject unitGameObject = Instantiate(prefab, position, rotation);
             if (!unitGameObject.TryGetComponent(out Unit unit))
@@ -99,6 +104,7 @@ namespace Kaizerwald
         
         public Unit Initialize(Regiment regiment, int indexInRegiment, int unitLayerIndex)
         {
+            BaseInitialization();
             name = $"{name}_{indexInRegiment}";
             LinkedRegiment = regiment;
             gameObject.layer = unitLayerIndex;

@@ -73,14 +73,18 @@ namespace Kaizerwald
             foreach ((int teamId, Dictionary<ulong, List<RegimentSpawner>> teamSpawners) in spawnerByTeam)
             {
                 TeamKeyPairOffset[teamId] = 0;
-                Vector3 startPosition = TerrainManager.Instance.GetPlayerFirstSpawnPosition(teamIndex);
-                Transform spawnerTransform = TerrainManager.Instance.GetSpawnerTransform(teamIndex);
+                //Transform spawnerTransform = TerrainManager.Instance.GetSpawnerTransform(teamIndex);
+                //Vector3 startPosition = TerrainManager.Instance.GetPlayerFirstSpawnPosition(teamIndex);
+                Transform spawnerTransform = SpawnerManager.Instance.GetSpawnerTransform(teamIndex);
+                Vector3 startPosition = SpawnerManager.Instance.GetPlayerFirstSpawnPosition(teamIndex);
+                Quaternion spawnerRotation = spawnerTransform.rotation;
                 
                 foreach ((ulong playerId, List<RegimentSpawner> playerSpawners) in teamSpawners)
                 {
                     for (int spawnerIndex = 0; spawnerIndex < playerSpawners.Count; spawnerIndex++)
                     {
-                        (RegimentSpawner current, RegimentSpawner previous) = (playerSpawners[spawnerIndex], playerSpawners[max(0,spawnerIndex-1)]);
+                        RegimentSpawner current    = playerSpawners[spawnerIndex];
+                        RegimentSpawner previous   = playerSpawners[max(0,spawnerIndex-1)];
                         TeamKeyPairOffset[teamId] += GetOffset(current, spawnerIndex) + GetOffset(previous, spawnerIndex);
                         
                         GameObject regimentPrefab = RegimentPrefabsList.GetPrefabFromRegimentType(current.RegimentType);
@@ -88,10 +92,9 @@ namespace Kaizerwald
                         {
                             TeamKeyPairOffset[teamId] += GetOffset(current, cloneIndex, true) + SPACE_BETWEEN_REGIMENT;
                             Vector3 position = startPosition + TeamKeyPairOffset[teamId] * spawnerTransform.right;
-
-                            Regiment regiment = Instantiate(regimentPrefab, position, spawnerTransform.rotation).GetOrAddComponent<Regiment>();
-                            print($"regiment null = {regiment == null}");
-                            regimentsCreated.Add(regiment.InitializeProperties(playerId, teamId, TerrainLayerMask));
+                            
+                            Regiment regiment = Regiment.CreateAndInitialize(regimentPrefab, position, spawnerRotation, playerId, teamId, TerrainLayerMask);
+                            regimentsCreated.Add(regiment);
                         }
                     }
                 }

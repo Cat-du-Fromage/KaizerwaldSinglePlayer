@@ -38,6 +38,7 @@ namespace Kaizerwald.TerrainBuilder
             EndNodeIndex = endIndex;
             ObstaclesGrid = obstaclesGrid;
             PathList = pathList;
+            //CAREFULL BUG SOMETIMES SONT KNOW WHY? unreliable?
             Nodes = new NativeArray<Node>(nodes, TempJob);
             NumNeighbors = allowDiagonal ? 8 : 4;
         }
@@ -129,7 +130,7 @@ namespace Kaizerwald.TerrainBuilder
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Process ◈◈◈◈◈◈                                                                                          ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        public static JobHandle Process(NativeList<int> pathList, int2 gridSizeXY, int start, int end, NativeArray<Node> nodes, NativeArray<bool> obstaclesGrid, bool allowDiagonal = false, JobHandle dependency = default)
+        public static JobHandle Schedule(NativeList<int> pathList, int2 gridSizeXY, int start, int end, NativeArray<Node> nodes, NativeArray<bool> obstaclesGrid, bool allowDiagonal = false, JobHandle dependency = default)
         {
             JAStar job = new JAStar(pathList, gridSizeXY, start, end, nodes, obstaclesGrid, allowDiagonal);
             JobHandle jh1 = job.Schedule(dependency);
@@ -137,10 +138,10 @@ namespace Kaizerwald.TerrainBuilder
             return jh2;
         }
         
-        public static JobHandle Process(NativeList<int> pathList, int2 gridSizeXY, int start, int end, NativeArray<Node> nodes,  bool allowDiagonal = false, JobHandle dependency = default)
+        public static JobHandle Schedule(NativeList<int> pathList, int2 gridSizeXY, int start, int end, NativeArray<Node> nodes,  bool allowDiagonal = false, JobHandle dependency = default)
         {
             NativeArray<bool> obstaclesGrid = new (nodes.Length, TempJob, ClearMemory);
-            JobHandle jh = Process(pathList, gridSizeXY, start, end, nodes, obstaclesGrid, allowDiagonal, dependency);
+            JobHandle jh = Schedule(pathList, gridSizeXY, start, end, nodes, obstaclesGrid, allowDiagonal, dependency);
             obstaclesGrid.Dispose(jh);
             return jh;
         }

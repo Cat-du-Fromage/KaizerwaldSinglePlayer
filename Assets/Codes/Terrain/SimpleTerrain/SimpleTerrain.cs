@@ -21,8 +21,6 @@ using static Unity.Collections.Allocator;
 using static Unity.Collections.NativeArrayOptions;
 
 using half4 = Unity.Mathematics.half4;
-
-using Kaizerwald.Utilities;
 using UnityEngine.Rendering;
 
 namespace Kaizerwald.TerrainBuilder
@@ -30,12 +28,12 @@ namespace Kaizerwald.TerrainBuilder
     [ExecutionOrder(64)]
     [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider))]
     [RequireComponent(typeof(TerrainSettings), typeof(TerrainGridSystem))]
-    public class SimpleTerrain : Singleton<SimpleTerrain>
+    public partial class SimpleTerrain : SingletonBehaviour<SimpleTerrain>
     {
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                                ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                 ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-        
+        private bool isInitialized;
         [SerializeField] private Material DefaultMaterial;
         [SerializeField] private LayerMask TerrainLayerMask;
         
@@ -46,8 +44,7 @@ namespace Kaizerwald.TerrainBuilder
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                               ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-        [field:SerializeField] public bool AutoUpdate { get; private set; }
-        [field:SerializeField] public bool IsInitialized { get; private set; }
+        public Transform TerrainTransform { get; private set; }
         [field:SerializeField] public TerrainSettings TerrainSettings { get; private set; }
         [field:SerializeField] public TerrainGridSystem TerrainGridSystem { get; private set; }
         [field:SerializeField] public SpawnerManager SpawnerManager { get; private set; }
@@ -55,17 +52,13 @@ namespace Kaizerwald.TerrainBuilder
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        public MeshDataArray MeshDataArray => AcquireReadOnlyMeshData(meshFilter.sharedMesh);
+        
+        public Mesh TerrainMesh => GetComponent<MeshFilter>().sharedMesh;
         
         //┌────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
         //│  ◇◇◇◇◇◇ Getters ◇◇◇◇◇◇                                                                                     │
         //└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
         public LayerMask TerrainLayer => TerrainLayerMask;
-        
-    //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
-    //║ ◈◈◈◈◈◈ Events ◈◈◈◈◈◈                                                                                           ║
-    //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        public event Action<SimpleTerrain> OnTerrainGenerated;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ UNITY EVENTS ◆◆◆◆◆◆                                             ║
@@ -74,40 +67,31 @@ namespace Kaizerwald.TerrainBuilder
         protected override void OnAwake()
         {
             base.OnAwake();
-            Initialize();
+            //if (isInitialized) return;
+            //Initialize();
         }
-        
-#if UNITY_EDITOR
-        public void DrawMapInEditor()
-        {
-            Initialize();
-        }
-        
-        /*
-        private void OnDrawGizmos()
-        {
-            Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.value);
-            if (!Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, TerrainLayerMask)) return;
-            Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(hit.point, 0.45f);
-        }
-        */
-#endif  
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        private void Initialize()
+        
+
+        protected override void Initialize()
         {
+            TerrainTransform  = transform;
             meshFilter        = GetComponent<MeshFilter>();
             meshRenderer      = GetComponent<MeshRenderer>();
             meshCollider      = GetComponent<MeshCollider>();
-            TerrainSettings   = GetComponent<TerrainSettings>().Initialize();
-            TerrainGridSystem = GetComponent<TerrainGridSystem>();
-            //TerrainGridSystem = GetComponent<TerrainGridSystem>().Initialize(this);
-            SpawnerManager    = GetComponent<SpawnerManager>().Initialize();
+            TerrainSettings   = GetComponent<TerrainSettings>();
+            //for some reason we need to separate GetComponent from Initialize or we get a null ref!
+            TerrainSettings.Initialize(); 
+            
             GenerateTerrain();
+            
+            SpawnerManager    = SpawnerManager.Instance;
+            TerrainGridSystem = TerrainGridSystem.Instance;
+            //isInitialized = true;
         }
 
         public void GenerateTerrain(string terrainName = "SimpleTerrain")
@@ -119,15 +103,14 @@ namespace Kaizerwald.TerrainBuilder
             Mesh terrainMesh = new Mesh(){ name = "TerrainMesh" };
             MeshDataArray meshDataArray = AllocateWritableMeshData(1);
             meshDataArray[0].InitializeBufferParams(TerrainSettings.VerticesCount, TerrainSettings.TriangleIndicesCount);
+            
             // MeshData Creation
-            JMeshData.ProcessFlat(meshDataArray[0], TerrainSettings.NumVerticesXY).Complete();
+            JMeshData.ScheduleParallel(meshDataArray[0], TerrainSettings.NumVerticesXY).Complete();
             meshDataArray[0].SetSubMesh(TerrainSettings.VerticesCount, TerrainSettings.TriangleIndicesCount);
             ApplyAndDisposeWritableMeshData(meshDataArray, terrainMesh);
 
             UpdateMeshProperties(terrainMesh);
-            IsInitialized = true;
-            OnTerrainGenerated?.Invoke(this);
-            TerrainGridSystem.Initialize(this);
+            //TerrainGridSystem.Initialize(this);
         }
 
         private void UpdateMeshProperties(Mesh terrainMesh)
@@ -135,7 +118,7 @@ namespace Kaizerwald.TerrainBuilder
             terrainMesh.RecalculateNormals();
             terrainMesh.RecalculateTangents();
             terrainMesh.RecalculateBounds();
-            meshFilter.mesh = terrainMesh;
+            meshFilter.sharedMesh = terrainMesh;
             meshCollider.sharedMesh = terrainMesh;
             meshRenderer.sharedMaterial = DefaultMaterial;
             meshRenderer.ResetBounds();
@@ -190,32 +173,33 @@ namespace Kaizerwald.TerrainBuilder
             float height = HeightMap.Length == 1 ? HeightMap[0] : HeightMap[index];
             Vertices[index] = new float3(x - halfSize.x, height, y - halfSize.y);
             Uvs[index] = new half2(float2(x,y) / NumVerticesXY);
-            if (Unity.Burst.CompilerServices.Hint.Likely(all(int2(x,y) < numQuadsXY)))
+            //if (x < numQuadsXY.x && y < numQuadsXY.y)
+            if ( all(int2(x,y) < numQuadsXY))
             {
                 int baseTriIndex = (index - y) * 6;
                 //(0,0)-(1,0)-(0,1)-(1,1) 
                 int4 trianglesVertex = new int4(index, index + 1, index + width, index + width + 1);
                 Triangles[baseTriIndex + 0] = (ushort)trianglesVertex.x; //(0,0)
-                Triangles[baseTriIndex + 1] = (ushort)trianglesVertex.z; //(1,0)
-                Triangles[baseTriIndex + 2] = (ushort)trianglesVertex.y; //(0,1)
-                Triangles[baseTriIndex + 3] = (ushort)trianglesVertex.y; //(0,1)
-                Triangles[baseTriIndex + 4] = (ushort)trianglesVertex.z; //(1,0)
+                Triangles[baseTriIndex + 1] = (ushort)trianglesVertex.z; //(0,1)
+                Triangles[baseTriIndex + 2] = (ushort)trianglesVertex.y; //(1,0)
+                Triangles[baseTriIndex + 3] = (ushort)trianglesVertex.y; //(1,0)
+                Triangles[baseTriIndex + 4] = (ushort)trianglesVertex.z; //(0,1)
                 Triangles[baseTriIndex + 5] = (ushort)trianglesVertex.w; //(1,1)
             }
         }
         
-        internal static JobHandle Process(MeshData meshData, int2 numVerticesXY, NativeArray<float> heightMap, JobHandle jobHandle = default)
+        internal static JobHandle ScheduleParallel(MeshData meshData, int2 numVerticesXY, NativeArray<float> heightMap, JobHandle jobHandle = default)
         {
             JMeshData job = new JMeshData(meshData, numVerticesXY, heightMap);
             JobHandle jh = job.ScheduleParallel(numVerticesXY.x * numVerticesXY.y, JobWorkerCount - 1, jobHandle);
             return jh;
         }
         
-        internal static JobHandle ProcessFlat(MeshData meshData, int2 numVerticesXY, float height = 0, JobHandle jobHandle = default)
+        internal static JobHandle ScheduleParallel(MeshData meshData, int2 numVerticesXY, float height = 0, JobHandle jobHandle = default)
         {
             NativeArray<float> heightMap = new (1, TempJob, UninitializedMemory);
             heightMap[0] = height;
-            JobHandle jh = Process(meshData, numVerticesXY, heightMap, jobHandle);
+            JobHandle jh = ScheduleParallel(meshData, numVerticesXY, heightMap, jobHandle);
             heightMap.Dispose(jh);
             return jh;
         }
