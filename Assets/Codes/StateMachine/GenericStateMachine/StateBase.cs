@@ -1,58 +1,59 @@
+using System.Collections;
+using System.Collections.Generic;
+using Unity.Collections;
+using Unity.Mathematics;
+using UnityEngine;
 
 namespace Kaizerwald.StateMachine
 {
-    public sealed class RegimentIdleState : RegimentStateBase
+    public abstract class StateBase<T> where T : StateMachineBase<T>
     {
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                              ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-        public bool AutoFire { get; private set; } //TODO: déplacer dans Behaviour Tree
+
+        public EStates StateIdentity { get; private set; }
+        protected T StateMachine { get; private set; }
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        private int AttackRange => RegimentType.Range;
-        
-        //┌────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-        //│  ◇◇◇◇◇◇ Setters ◇◇◇◇◇◇                                                                                     │
-        //└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-        public void AutoFireOn()  => AutoFire = true;
-        public void AutoFireOff() => AutoFire = false;
+        protected float3 Position  => StateMachine.Position;
+        public Quaternion Rotation => StateMachine.Rotation;
+        protected float3 Forward   => StateMachine.Forward;
+        protected float3 Back      => StateMachine.Back;
+        protected float3 Right     => StateMachine.Right;
+        protected float3 Left      => StateMachine.Left;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ CONSTRUCTOR ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-        public RegimentIdleState(RegimentStateMachine stateMachine) : base(stateMachine, EStates.Idle)
+
+        protected StateBase(T stateMachine, EStates stateIdentity)
         {
-        }
-
-        //Maybe "Stop" button like in Total war?
-        public override void OnSetup(Order order) { return; }
-
-        public override void OnEnter() { return; }
-
-        public override void OnUpdate() { return; }
-
-        public override void OnExit() { return; }
-
-        public override bool ShouldExit(out EStates nextState)
-        {
-            nextState = GetExitState();
-            return nextState != StateIdentity;
+            StateMachine = stateMachine;
+            StateIdentity = stateIdentity;
         }
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        private EStates GetExitState()
-        {
-            // Later Melee will be check Too (Will be prioritary on Fire => first check made)
-            if (StateMachine.CanEnterState(EStates.Fire))
-            {
-                return EStates.Fire;
-            }
-            return StateIdentity;
-        }
+        public virtual bool ConditionEnter() { return true; }
+
+        //Specific to Player Order
+        public abstract void OnSetup(Order order);
+
+        public virtual void OnEnter() { return;}
+
+        public virtual void OnFixedUpdate() { return;}
+        
+        public abstract void OnUpdate();
+        
+        public virtual void OnExit() { return;}
+        
+        public abstract bool ShouldExit(out EStates state);
+
+        public virtual void OnDestroy() { return; }
     }
 }

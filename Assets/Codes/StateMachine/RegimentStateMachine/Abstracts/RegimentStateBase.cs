@@ -1,59 +1,34 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.Collections;
-using Unity.Mathematics;
 using UnityEngine;
+using Unity.Mathematics;
+
+using Kaizerwald.FormationModule;
 
 namespace Kaizerwald.StateMachine
 {
-    public abstract class StateBase<T> where T : StateMachineBase<T>
+    public abstract class RegimentStateBase : StateBase<RegimentStateMachine>
     {
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
-//║                                              ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                              ║
+//║                                             ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                               ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-
-        public EStates StateIdentity { get; private set; }
-        protected T StateMachine { get; private set; }
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        protected float3 Position  => StateMachine.Position;
-        public Quaternion Rotation => StateMachine.Rotation;
-        protected float3 Forward   => StateMachine.Forward;
-        protected float3 Back      => StateMachine.Back;
-        protected float3 Right     => StateMachine.Right;
-        protected float3 Left      => StateMachine.Left;
+        public Regiment LinkedRegiment => StateMachine.LinkedRegiment;
+        public RegimentType RegimentType => LinkedRegiment.RegimentType;
+        
+        public Formation CurrentFormation => LinkedRegiment.CurrentFormation;
+        public Formation TargetFormation => LinkedRegiment.TargetFormation;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ CONSTRUCTOR ◆◆◆◆◆◆                                              ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        protected StateBase(T stateMachine, EStates stateIdentity)
+        protected RegimentStateBase(RegimentStateMachine stateMachine, EStates stateIdentity) : base(stateMachine, stateIdentity)
         {
-            StateMachine = stateMachine;
-            StateIdentity = stateIdentity;
+            
         }
-        
-//╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
-//║                                            ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                             ║
-//╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-
-        public virtual bool ConditionEnter() { return true; }
-
-        //Specific to Player Order
-        public abstract void OnSetup(Order order);
-        
-        public abstract void OnEnter();
-
-        public virtual void OnFixedUpdate() { return;}
-        
-        public abstract void OnUpdate();
-        
-        public abstract void OnExit();
-        
-        public abstract bool ShouldExit(out EStates state);
-
-        public virtual void OnDestroy() { return; }
     }
 }

@@ -24,6 +24,7 @@ namespace Kaizerwald.StateMachine
 {
     public sealed class RegimentMoveState : RegimentStateBase
     {
+        private const float REACH_DISTANCE_THRESHOLD = 0.0125f;
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                                ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                 ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
