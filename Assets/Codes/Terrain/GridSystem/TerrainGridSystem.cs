@@ -58,8 +58,10 @@ namespace Kaizerwald.TerrainBuilder
         
         
 #if UNITY_EDITOR
+        public bool DebugGrid = false;
         private void OnDrawGizmos()
         {
+            if (!DebugGrid) return;
             if (!Application.isPlaying || GridCells.Cells == null) return;
             Gizmos.color = Color.green;
             for (int i = 0; i < GridCells.Count; i++)

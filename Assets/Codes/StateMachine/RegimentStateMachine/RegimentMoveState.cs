@@ -86,6 +86,7 @@ namespace Kaizerwald.StateMachine
             Quaternion startRotation = Quaternion.LookRotation(order.TargetFormation.Direction3DForward, Vector3.up);
             RegimentTransform.SetPositionAndRotation(startPosition, startRotation);
             
+            // WILL CHANGE!
             LinkedRegiment.SetDestination(order.TargetPosition, order.TargetFormation);
             AssignIndexToUnits();
         }
@@ -105,8 +106,15 @@ namespace Kaizerwald.StateMachine
         public override void OnUpdate()
         {
             if (reachTargetPosition) return;
+            
+            //Decomposition en 2 étapes
+            // 1) rotation Initial et/ou flip
+            // les troupes font uniquement la rotation
+            // BUT: quand les troupes sont correctement placée => rotation plus position initiale
+            
             Vector3 position = MoveRegiment();
             Quaternion rotation = RotateRegiment();
+            
             StateMachine.CachedTransform.SetPositionAndRotation(position, rotation);
         }
 

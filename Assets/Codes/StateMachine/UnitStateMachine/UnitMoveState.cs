@@ -37,11 +37,12 @@ namespace Kaizerwald.StateMachine
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
         public Rigidbody UnitRigidBody => LinkedUnit.UnitRigidBody;
     
-        // RegimentStateReference
+        // RegimentState Reference
         public bool LeaderReachDestination => RegimentStateReference.LeaderReachTargetPosition;
         public float3 LeaderTargetPosition => RegimentStateReference.LeaderTargetPosition;
         public FormationData TargetFormationData => RegimentStateReference.TargetFormation;
         
+        // March Speed Accessors
         public float MarchSpeed => RegimentStateReference.MarchSpeed;
         public float RunSpeed => RegimentStateReference.RunSpeed;
         
@@ -98,24 +99,7 @@ namespace Kaizerwald.StateMachine
 
             //DebugMoveState();
         }
-
-        private void DebugMoveState()
-        {
-            if (IsRegimentStateIdentical) return;
-            Debug.Log($"position = {UnitReachTargetPosition.x}, rotation = {UnitReachTargetPosition.y}");
-            if (!UnitReachTargetPosition.x)
-            {
-                //Debug.Log($"POSITION : unitFinalTargetPosition = {unitFinalTargetPosition}, unitCurrentTargetPosition = {unitCurrentTargetPosition}");
-            }
-            if (!UnitReachTargetPosition.y)
-            {
-                int2 currentForward = (int2)ceil(Forward.xz * 100);
-                int2 forwardTarget = (int2)ceil(RegimentStateReference.TargetFormation.DirectionForward.xz * 100);
-                int2 diff = currentForward - forwardTarget;
-                Debug.Log($"ROTATION : diff = {diff} currentForward = {currentForward}/{Forward.xz}, forwardTarget = {forwardTarget}/{RegimentStateReference.TargetFormation.DirectionForward.xz} = {all(currentForward == forwardTarget)}");
-            }
-        }
-
+        
         public override void OnUpdate()
         {
             return;
@@ -193,6 +177,26 @@ namespace Kaizerwald.StateMachine
             newPosition = isNearFinalTarget ? unitFinalTargetPosition : Position + direction * CurrentSpeed * Time.fixedDeltaTime;
             return true;
             //UnitRigidBody.MovePosition(isNearFinalTarget ? unitFinalTargetPosition : newPosition);
+        }
+        
+        //┌────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+        //│  ◇◇◇◇◇◇ Debug Utils ◇◇◇◇◇◇                                                                                 │
+        //└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+        private void DebugMoveState()
+        {
+            if (IsRegimentStateIdentical) return;
+            //Debug.Log($"position = {UnitReachTargetPosition.x}, rotation = {UnitReachTargetPosition.y}");
+            if (!UnitReachTargetPosition.x)
+            {
+                //Debug.Log($"POSITION : unitFinalTargetPosition = {unitFinalTargetPosition}, unitCurrentTargetPosition = {unitCurrentTargetPosition}");
+            }
+            if (!UnitReachTargetPosition.y)
+            {
+                int2 currentForward = (int2)ceil(Forward.xz * 100);
+                int2 forwardTarget = (int2)ceil(RegimentStateReference.TargetFormation.DirectionForward.xz * 100);
+                int2 diff = currentForward - forwardTarget;
+                //Debug.Log($"ROTATION : diff = {diff} currentForward = {currentForward}/{Forward.xz}, forwardTarget = {forwardTarget}/{RegimentStateReference.TargetFormation.DirectionForward.xz} = {all(currentForward == forwardTarget)}");
+            }
         }
     }
 }

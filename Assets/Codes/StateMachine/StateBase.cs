@@ -1,8 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using Unity.Collections;
 using Unity.Mathematics;
+using UnityEngine;
 
 namespace Kaizerwald.StateMachine
 {
@@ -18,12 +18,12 @@ namespace Kaizerwald.StateMachine
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        protected float3 Position => StateMachine.Position;
+        protected float3 Position  => StateMachine.Position;
         public Quaternion Rotation => StateMachine.Rotation;
-        protected float3 Forward  => StateMachine.Forward;
-        protected float3 Back     => StateMachine.Back;
-        protected float3 Right    => StateMachine.Right;
-        protected float3 Left     => StateMachine.Left;
+        protected float3 Forward   => StateMachine.Forward;
+        protected float3 Back      => StateMachine.Back;
+        protected float3 Right     => StateMachine.Right;
+        protected float3 Left      => StateMachine.Left;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ CONSTRUCTOR ◆◆◆◆◆◆                                              ║
