@@ -677,78 +677,7 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 514042591}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &661236352
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 661236353}
-  - component: {fileID: 661236355}
-  - component: {fileID: 661236354}
-  m_Layer: 0
-  m_Name: KaizerwaldGameManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &661236353
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 661236352}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &661236354
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 661236352}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4ba4719ac0e4b8e42962655e7a8245e2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  NumSystems: 0
---- !u!114 &661236355
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 661236352}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 53da104ae2eb21242aa1f344c4c92d9e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  IsInitialized: 1
-  <MaxPlayer>k__BackingField: 0
-  <TerrainLayerMask>k__BackingField:
-    serializedVersion: 2
-    m_Bits: 256
-  <UnitLayerMask>k__BackingField:
-    serializedVersion: 2
-    m_Bits: 64
-  <PlayersInfo>k__BackingField:
-  - <OwnerPlayerID>k__BackingField: 0
-    <TeamID>k__BackingField: 0
-  - <OwnerPlayerID>k__BackingField: 1
-    <TeamID>k__BackingField: 1
---- !u!43 &893420395
+--- !u!43 &643804470
 Mesh:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -913,6 +842,76 @@ Mesh:
     offset: 0
     size: 0
     path: 
+--- !u!1 &661236352
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 661236353}
+  - component: {fileID: 661236355}
+  - component: {fileID: 661236354}
+  m_Layer: 0
+  m_Name: KaizerwaldGameManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &661236353
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 661236352}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &661236354
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 661236352}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ba4719ac0e4b8e42962655e7a8245e2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &661236355
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 661236352}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53da104ae2eb21242aa1f344c4c92d9e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  IsInitialized: 1
+  <MaxPlayer>k__BackingField: 0
+  <TerrainLayerMask>k__BackingField:
+    serializedVersion: 2
+    m_Bits: 256
+  <UnitLayerMask>k__BackingField:
+    serializedVersion: 2
+    m_Bits: 64
+  <PlayersInfo>k__BackingField:
+  - <OwnerPlayerID>k__BackingField: 0
+    <TeamID>k__BackingField: 0
+  - <OwnerPlayerID>k__BackingField: 1
+    <TeamID>k__BackingField: 1
 --- !u!1 &988522236
 GameObject:
   m_ObjectHideFlags: 0
@@ -1178,16 +1177,26 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3426919349914552551, guid: cf80f185f3187194b96f4cff780dba11,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -56.4
+      objectReference: {fileID: 0}
     - target: {fileID: 4278198254782985048, guid: cf80f185f3187194b96f4cff780dba11,
         type: 3}
       propertyPath: m_Mesh
       value: 
-      objectReference: {fileID: 893420395}
+      objectReference: {fileID: 643804470}
+    - target: {fileID: 4662872712867782386, guid: cf80f185f3187194b96f4cff780dba11,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 53.2
+      objectReference: {fileID: 0}
     - target: {fileID: 4799210888554567742, guid: cf80f185f3187194b96f4cff780dba11,
         type: 3}
       propertyPath: m_Mesh
       value: 
-      objectReference: {fileID: 893420395}
+      objectReference: {fileID: 643804470}
     - target: {fileID: 7220548846776909168, guid: cf80f185f3187194b96f4cff780dba11,
         type: 3}
       propertyPath: m_Name
@@ -1196,14 +1205,15 @@ PrefabInstance:
     - target: {fileID: 7431238223711506287, guid: cf80f185f3187194b96f4cff780dba11,
         type: 3}
       propertyPath: <SizeX>k__BackingField
-      value: 256
+      value: 128
       objectReference: {fileID: 0}
     - target: {fileID: 7431238223711506287, guid: cf80f185f3187194b96f4cff780dba11,
         type: 3}
       propertyPath: <SizeY>k__BackingField
-      value: 256
+      value: 128
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3277421030940302087, guid: cf80f185f3187194b96f4cff780dba11, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
