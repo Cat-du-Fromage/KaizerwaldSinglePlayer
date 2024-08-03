@@ -15,6 +15,8 @@ using static Unity.Collections.Allocator;
 using static Unity.Collections.NativeArrayOptions;
 using static Unity.Mathematics.math;
 
+using quaternion = Unity.Mathematics.quaternion;
+
 using Kaizerwald.Utilities.Core;
 using static Kaizerwald.Utilities.Core.KzwMath;
 using static Kaizerwald.Utilities.Core.KzwGrid;
@@ -22,6 +24,10 @@ using static Kaizerwald.Utilities.Core.ArrayExtension;
 
 namespace Kaizerwald.StateMachine
 {
+    /// <summary>
+    /// 1) Reformation
+    /// 2) Rotation
+    /// </summary>
     public class RegimentPreMoveSubState : RegimentStateBase
     {
         
@@ -31,6 +37,7 @@ namespace Kaizerwald.StateMachine
 
         public override void OnSetup(Order order)
         {
+            float3 directionTarget = order.TargetFormation.Direction3DForward;
             
         }
 
@@ -43,6 +50,11 @@ namespace Kaizerwald.StateMachine
         {
             state = StateIdentity;
             return false;
+        }
+
+        private void InPlaceRotation()
+        {
+            
         }
     }
 }

@@ -29,7 +29,7 @@ namespace Kaizerwald.TerrainBuilder
         [ReadOnly] public NativeArray<bool> ObstaclesGrid; 
         [WriteOnly] public NativeList<int> PathList; // if PathNode.Length == 0 means No Path!
         
-        [DeallocateOnJobCompletion] private NativeArray<Node> Nodes;
+        private NativeArray<Node> Nodes;
         
         public JAStar(NativeList<int> pathList, int2 gridSizeXY, int startIndex, int endIndex, NativeArray<Node> nodes, NativeArray<bool> obstaclesGrid, bool allowDiagonal = false)
         {
@@ -39,7 +39,7 @@ namespace Kaizerwald.TerrainBuilder
             ObstaclesGrid = obstaclesGrid;
             PathList = pathList;
             //CAREFULL BUG SOMETIMES SONT KNOW WHY? unreliable?
-            Nodes = new NativeArray<Node>(nodes, TempJob);
+            Nodes = nodes;
             NumNeighbors = allowDiagonal ? 8 : 4;
         }
         
@@ -132,8 +132,10 @@ namespace Kaizerwald.TerrainBuilder
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
         public static JobHandle Schedule(NativeList<int> pathList, int2 gridSizeXY, int start, int end, NativeArray<Node> nodes, NativeArray<bool> obstaclesGrid, bool allowDiagonal = false, JobHandle dependency = default)
         {
-            JAStar job = new JAStar(pathList, gridSizeXY, start, end, nodes, obstaclesGrid, allowDiagonal);
+            NativeArray<Node> tmpNodes = new NativeArray<Node>(nodes, TempJob);
+            JAStar job = new JAStar(pathList, gridSizeXY, start, end, tmpNodes, obstaclesGrid, allowDiagonal);
             JobHandle jh1 = job.Schedule(dependency);
+            tmpNodes.Dispose(jh1);
             JobHandle jh2 = JReversePath.Process(pathList, jh1);
             return jh2;
         }

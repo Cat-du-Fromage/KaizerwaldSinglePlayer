@@ -109,7 +109,8 @@ namespace Kaizerwald.TerrainBuilder
             NativeList<int> pathList = new (8, TempJob);
             int startIndex = KzwGrid.GetIndexFromPositionCentered(currentPosition.xz, gridCells.NumCellXY);
             int endIndex = KzwGrid.GetIndexFromPositionCentered(targetPosition.xz, gridCells.NumCellXY);
-            JAStar.Schedule(pathList, gridCells.NumCellXY, startIndex, endIndex, nodes, true).Complete();
+            JobHandle jh = JAStar.Schedule(pathList, gridCells.NumCellXY, startIndex, endIndex, nodes, true);
+            jh.Complete();
             return pathList;
         }
         
