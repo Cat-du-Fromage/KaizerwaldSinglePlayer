@@ -9,7 +9,7 @@ using Kaizerwald.Utilities;
 
 namespace Kaizerwald.StateMachine
 {
-    using RegimentState = StateBase<RegimentStateMachine>;
+    using RegimentBaseState = StateBase<RegimentStateMachine>;
     
     [RequireComponent(typeof(Regiment))]
     public sealed class RegimentStateMachine : StateMachineBase<RegimentStateMachine>
@@ -48,7 +48,7 @@ namespace Kaizerwald.StateMachine
         public void OnDestroy()
         {
             if (States == null) return;
-            foreach (RegimentState state in States.Values)
+            foreach (RegimentBaseState state in States.Values)
             {
                 state?.OnDestroy();
             }
@@ -105,7 +105,7 @@ namespace Kaizerwald.StateMachine
         
         protected override void InitializeStates()
         {
-            States = new Dictionary<EStates, RegimentState>()
+            States = new Dictionary<EStates, RegimentBaseState>()
             {
                 {EStates.Idle, new RegimentIdleState(this)},
                 {EStates.Move, new RegimentMoveState(this)},
